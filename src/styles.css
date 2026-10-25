@@ -1,0 +1,1004 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Plus Jakarta Sans", "Noto Sans Arabic", system-ui, sans-serif;
+  --font-arabic: "Noto Sans Arabic", "Plus Jakarta Sans", sans-serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-navy: var(--navy);
+  --color-navy-2: var(--navy-2);
+  --color-navy-foreground: var(--navy-foreground);
+  --color-navy-muted: var(--navy-muted);
+  --color-lime: var(--lime);
+  --color-lime-foreground: var(--lime-foreground);
+  --color-violet: var(--violet);
+  --color-violet-soft: var(--violet-soft);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  /* "Mapped loop" direction (docs/design/art-direction.md): ink = brand surface, lime = action,
+     sea = navigation/info, clay = human accent. */
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-foreground: var(--ink-foreground);
+  --color-ink-muted: var(--ink-muted);
+  --color-sea: var(--sea);
+  --color-sea-soft: var(--sea-soft);
+  --color-clay: var(--clay);
+  --color-clay-strong: var(--clay-strong);
+  --color-clay-soft: var(--clay-soft);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-surface-sunken: var(--surface-sunken);
+  --ease-out-soft: var(--ease-out);
+}
+
+:root {
+  --radius: 0.875rem;
+  --background: oklch(0.975 0.006 106);
+  --foreground: oklch(0.22 0.05 272);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.05 272);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.05 272);
+  /* Shared-component roles (shadcn ui): primary = ink (inverse in dark), secondary = sea-soft. */
+  --primary: oklch(0.2 0.045 255);
+  --primary-foreground: oklch(0.975 0.008 85);
+  --secondary: oklch(0.95 0.025 240);
+  --secondary-foreground: oklch(0.5 0.13 245);
+  --muted: oklch(0.955 0.006 260);
+  --muted-foreground: oklch(0.5 0.03 260);
+  /* Menu/list hover highlight: neutral sand (lime is reserved for actions). */
+  --accent: oklch(0.95 0.012 85);
+  --accent-foreground: oklch(0.2 0.045 255);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.92 0.008 260);
+  --input: oklch(0.92 0.008 260);
+  --ring: oklch(0.5 0.13 245);
+
+  /* Brand surface = ink (the old "navy" names are kept as aliases of the ink values). */
+  --navy: oklch(0.2 0.045 255);
+  --navy-2: oklch(0.27 0.06 252);
+  --navy-foreground: oklch(0.975 0.008 85);
+  --navy-muted: oklch(0.8 0.025 245);
+  --lime: oklch(0.89 0.2 128);
+  --lime-foreground: oklch(0.2 0.045 255);
+  /* Retired: violet now aliases sea (navigation/info) so any missed use still follows the system. */
+  --violet: oklch(0.5 0.13 245);
+  --violet-soft: oklch(0.95 0.025 240);
+
+  /* Brand surface: same ink ground as the home hero (texture comes from BrandBackdrop). */
+  --gradient-hero: var(--gradient-ink);
+  --shadow-card: 0 1px 2px oklch(0.2 0.05 272 / 0.05), 0 8px 24px -12px oklch(0.2 0.05 272 / 0.18);
+  --shadow-glow: 0 0 0 1px oklch(0.89 0.2 128 / 0.4), 0 8px 30px -6px oklch(0.89 0.2 128 / 0.5);
+  --success: oklch(0.5 0.13 150);
+  --success-foreground: oklch(1 0 0);
+
+  /* Mapped loop */
+  --ink: oklch(0.2 0.045 255);
+  --ink-2: oklch(0.27 0.06 252);
+  --ink-foreground: oklch(0.975 0.008 85);
+  --ink-muted: oklch(0.8 0.025 245);
+  --sea: oklch(0.5 0.13 245);
+  --sea-soft: oklch(0.95 0.025 240);
+  --clay: oklch(0.66 0.15 45);
+  --clay-strong: oklch(0.52 0.15 40);
+  --clay-soft: oklch(0.955 0.03 55);
+  --warning: oklch(0.78 0.15 80);
+  --warning-foreground: oklch(0.25 0.06 70);
+  --surface-sunken: oklch(0.955 0.01 85);
+  /* Ink ground with a warm clay light low on the start side and a faint lime light up top — no violet. */
+  --gradient-ink: radial-gradient(55% 75% at 0% 100%, oklch(0.66 0.15 45 / 0.2), transparent 70%),
+    radial-gradient(45% 60% at 100% 0%, oklch(0.89 0.2 128 / 0.08), transparent 70%),
+    linear-gradient(170deg, var(--ink) 0%, var(--ink-2) 120%);
+  --shadow-raised: 0 1px 2px oklch(0.2 0.045 255 / 0.06), 0 14px 34px -16px oklch(0.2 0.045 255 / 0.3);
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-enter: 520ms;
+  --duration-reveal: 600ms;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.16 0.03 275);
+  --foreground: oklch(0.96 0.008 260);
+  --card: oklch(0.21 0.04 276);
+  --card-foreground: oklch(0.96 0.008 260);
+  --popover: oklch(0.21 0.04 276);
+  --popover-foreground: oklch(0.96 0.008 260);
+  --primary: oklch(0.92 0.01 85);
+  --primary-foreground: oklch(0.16 0.03 255);
+  --secondary: oklch(0.27 0.05 245);
+  --secondary-foreground: oklch(0.76 0.11 238);
+  --muted: oklch(0.25 0.03 275);
+  --muted-foreground: oklch(0.75 0.03 265);
+  --accent: oklch(0.26 0.035 255);
+  --accent-foreground: oklch(0.96 0.008 260);
+  --destructive: oklch(0.7 0.19 22);
+  --destructive-foreground: oklch(0.16 0.03 275);
+  --border: oklch(0.32 0.03 275);
+  --input: oklch(0.36 0.03 275);
+  --ring: oklch(0.76 0.11 238);
+  --success: oklch(0.78 0.15 150);
+  --success-foreground: oklch(0.18 0.04 150);
+
+  --navy: oklch(0.14 0.03 255);
+  --navy-2: oklch(0.2 0.045 252);
+  --navy-foreground: oklch(0.97 0.006 85);
+  --navy-muted: oklch(0.8 0.025 245);
+  --lime: oklch(0.89 0.2 128);
+  --lime-foreground: oklch(0.2 0.045 255);
+  --violet: oklch(0.76 0.11 238);
+  --violet-soft: oklch(0.27 0.05 245);
+  --gradient-hero: var(--gradient-ink);
+  --shadow-glow: 0 0 0 1px oklch(0.89 0.2 128 / 0.4), 0 8px 30px -6px oklch(0.89 0.2 128 / 0.5);
+
+  --shadow-card: 0 1px 2px oklch(0 0 0 / 0.3), 0 8px 24px -12px oklch(0 0 0 / 0.6);
+
+  --ink: oklch(0.14 0.03 255);
+  --ink-2: oklch(0.2 0.045 252);
+  --ink-foreground: oklch(0.97 0.006 85);
+  --ink-muted: oklch(0.8 0.025 245);
+  --sea: oklch(0.76 0.11 238);
+  --sea-soft: oklch(0.27 0.05 245);
+  --clay: oklch(0.74 0.13 48);
+  --clay-strong: oklch(0.8 0.12 52);
+  --clay-soft: oklch(0.29 0.055 45);
+  --warning: oklch(0.8 0.14 80);
+  --warning-foreground: oklch(0.22 0.05 70);
+  --surface-sunken: oklch(0.19 0.03 255);
+  --gradient-ink: radial-gradient(55% 75% at 0% 100%, oklch(0.74 0.13 48 / 0.16), transparent 70%),
+    radial-gradient(45% 60% at 100% 0%, oklch(0.89 0.2 128 / 0.07), transparent 70%),
+    linear-gradient(170deg, var(--ink) 0%, var(--ink-2) 120%);
+  --shadow-raised: 0 1px 2px oklch(0 0 0 / 0.35), 0 14px 34px -16px oklch(0 0 0 / 0.75);
+}
+
+@utility bg-hero {
+  background: var(--gradient-hero);
+}
+@utility shadow-card {
+  box-shadow: var(--shadow-card);
+}
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+@utility shadow-raised {
+  box-shadow: var(--shadow-raised);
+}
+
+/* ---------- Mapped loop (proof: home, listing card, service detail) ---------- */
+@utility bg-ink-hero {
+  background: var(--gradient-ink);
+  color: var(--ink-foreground);
+}
+/* Small editorial label: clay, uppercase in Latin scripts, normal case (and a touch larger) in Arabic. */
+@utility eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--clay-strong);
+  [dir="rtl"] & { text-transform: none; font-size: 0.8125rem; }
+}
+/* Flat listing card: hairline border; lifts + raises only for hover-capable pointers (no sticky hover on touch). */
+@utility listing-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--card-foreground);
+  transition: border-color var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);
+  &:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+  &:active { transform: scale(0.99); }
+  @media (hover: hover) {
+    &:hover { border-color: color-mix(in oklab, var(--ink) 30%, var(--border)); transform: translateY(-2px); box-shadow: var(--shadow-raised); }
+  }
+}
+/* Small square-ish tags (pills stay for chips). */
+@utility tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+@utility tag-ink { background: var(--ink); color: var(--ink-foreground); }
+@utility tag-sea { background: var(--sea-soft); color: var(--sea); }
+@utility tag-new { background: var(--clay-soft); color: var(--clay-strong); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--clay) 55%, transparent); }
+/* Panels: flat by default; the page's one primary panel is raised and carries the lime action edge. */
+@utility panel {
+  border-radius: 1.25rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+@utility panel-action {
+  border-radius: 1.25rem;
+  border: 1px solid color-mix(in oklab, var(--ink) 14%, var(--border));
+  background: var(--card);
+  box-shadow: var(--shadow-raised);
+  background-image: linear-gradient(var(--lime), var(--lime));
+  background-size: 100% 4px;
+  background-repeat: no-repeat;
+}
+/* Category tile icon well (clay) and info icon well (sea). */
+@utility icon-well-clay { display: grid; place-items: center; flex-shrink: 0; border-radius: 0.75rem; background: var(--clay-soft); color: var(--clay-strong); }
+@utility icon-well-sea { display: grid; place-items: center; flex-shrink: 0; border-radius: 0.75rem; background: var(--sea-soft); color: var(--sea); }
+/* My own chat message: ink in light mode; a sea-tinted surface in dark mode (ink would vanish there). */
+@utility bubble-own {
+  background: var(--ink);
+  color: var(--ink-foreground);
+  .dark & { background: color-mix(in oklab, var(--sea-soft) 70%, var(--sea) 30%); color: var(--foreground); }
+}
+/* Text link in the navigation colour. */
+@utility link-sea {
+  color: var(--sea);
+  font-weight: 600;
+  text-underline-offset: 4px;
+  &:hover { text-decoration: underline; }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    font-family: var(--font-sans);
+  }
+  html[dir="rtl"] {
+    font-family: var(--font-arabic);
+  }
+  html[dir="rtl"] * {
+    letter-spacing: 0 !important;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* Buttons: 12px radius (pills are for chips/tags). States: hover, focus-visible, pressed, disabled, busy. */
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding-inline: 1.25rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  text-align: center;
+  transition: transform var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-base) var(--ease-out), filter var(--duration-fast) var(--ease-out);
+  &:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  &:active { transform: scale(0.98); }
+  &[aria-busy="true"] { cursor: progress; }
+  &:disabled, &[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    filter: none;
+  }
+}
+/* The one primary action of a view. */
+@utility btn-lime {
+  background: var(--lime);
+  color: var(--lime-foreground);
+  &:hover { box-shadow: var(--shadow-glow); }
+}
+/* Strong secondary action. Inverse in dark mode so it never disappears into the background. */
+@utility btn-ink {
+  background: var(--ink);
+  color: var(--ink-foreground);
+  &:hover { background: var(--ink-2); }
+  .dark & { background: var(--ink-foreground); color: var(--ink); }
+  .dark &:hover { background: color-mix(in oklab, var(--ink-foreground) 88%, var(--sea)); }
+}
+/* Retired name kept as an alias of btn-ink. */
+@utility btn-violet {
+  background: var(--ink);
+  color: var(--ink-foreground);
+  &:hover { background: var(--ink-2); }
+  .dark & { background: var(--ink-foreground); color: var(--ink); }
+}
+@utility btn-ghost-dark {
+  color: var(--ink-foreground);
+  border: 1px solid oklch(1 0 0 / 0.2);
+  &:hover { background: oklch(1 0 0 / 0.08); }
+  &:focus-visible { outline-color: var(--lime); }
+}
+@utility btn-outline {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  &:hover { background: var(--surface-sunken); border-color: color-mix(in oklab, var(--ink) 28%, var(--border)); }
+}
+@utility btn-danger {
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+  &:hover { filter: brightness(1.06); }
+}
+/* Inputs, selects, textareas. Focus = sea ring; invalid = danger border (and danger ring when focused). */
+@utility field {
+  width: 100%;
+  min-height: 2.75rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--input);
+  background: var(--card);
+  padding-inline: 0.875rem;
+  font-size: 1rem;
+  color: var(--foreground);
+  &::placeholder { color: var(--muted-foreground); }
+  transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+  &:hover:not(:disabled) { border-color: color-mix(in oklab, var(--ink) 35%, var(--input)); }
+  &:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 25%, transparent); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; background: var(--surface-sunken); }
+  &[aria-invalid="true"] { border-color: var(--destructive); }
+  &[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px color-mix(in oklab, var(--destructive) 22%, transparent); }
+}
+
+/* Cards: flat with a hairline border; lift only on hover-capable pointers. */
+@utility card-interactive {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  transition: transform var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out), border-color var(--duration-base) var(--ease-out);
+  &:active { transform: scale(0.99); }
+  @media (hover: hover) {
+    &:hover { transform: translateY(-2px); box-shadow: var(--shadow-raised); border-color: color-mix(in oklab, var(--ink) 30%, var(--border)); }
+  }
+}
+
+@utility badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 0.5rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+/* Retired name: same as tag-ink. */
+@utility badge-violet {
+  background: var(--ink);
+  color: var(--ink-foreground);
+}
+@utility badge-soft {
+  background: var(--sea-soft);
+  color: var(--sea);
+}
+@utility badge-success {
+  background: var(--success);
+  color: var(--success-foreground);
+}
+@utility badge-warning {
+  background: color-mix(in oklab, var(--warning) 28%, var(--card));
+  color: var(--warning-foreground);
+  .dark & { background: color-mix(in oklab, var(--warning) 22%, var(--card)); color: var(--warning); }
+}
+@utility badge-muted {
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+
+/* Chips: pill filters/toggles. Selected (aria-pressed) = lime, like every selected state. */
+@utility chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.5rem;
+  white-space: nowrap;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  padding-inline: 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background-color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+  &:hover { border-color: color-mix(in oklab, var(--ink) 40%, var(--border)); }
+  &:active { transform: scale(0.98); }
+  &:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  &[aria-pressed="true"] {
+    background: var(--lime);
+    border-color: var(--lime);
+    color: var(--lime-foreground);
+  }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+
+@utility skeleton-block {
+  border-radius: var(--radius-md);
+  background: var(--muted);
+  animation: pulse 1.6s var(--ease-out) infinite;
+}
+
+@utility empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-2xl);
+  border: 1px dashed var(--border);
+  background: var(--card);
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Mobile app shell: room for the fixed bottom nav so it never covers the footer. */
+.app-shell { padding-bottom: calc(3.5rem + env(safe-area-inset-bottom)); }
+@media (min-width: 768px) { .app-shell { padding-bottom: 0; } }
+
+/* Service detail request bar (below lg). Without :has() support it sits above the bottom nav (old layout + spacer). */
+.request-bar {
+  bottom: calc(3.5rem + env(safe-area-inset-bottom));
+  padding-bottom: 0.75rem;
+}
+@media (min-width: 768px) { .request-bar { bottom: 0; padding-bottom: calc(0.75rem + env(safe-area-inset-bottom)); } }
+@supports selector(:has(*)) {
+  /* Phone-width service pages: the request bar replaces the bottom nav as the only fixed bottom bar
+     (the sticky header and breadcrumb stay). Pure CSS, so it holds before JS and on the server render. */
+  .request-bar { bottom: 0; padding-bottom: calc(0.75rem + env(safe-area-inset-bottom)); }
+  .request-bar-spacer { display: none; }
+  @media (max-width: 767px) { .app-shell:has(.request-bar) .bottom-nav { display: none; } }
+  @media (max-width: 1023px) {
+    .app-shell:has(.request-bar) { padding-bottom: calc(5rem + env(safe-area-inset-bottom)); }
+    /* Focus/scroll into view keeps form controls above the bar. */
+    html:has(.request-bar) { scroll-padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Motion system ----------
+   All entrance effects are opt-in under no-preference, start from a visible fallback,
+   and run on mount only (language/theme changes update text, they never remount). */
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes lift { from { transform: translateY(14px); } to { transform: none; } }
+@keyframes swap-in { from { opacity: 0.2; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes loop-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes loop-trace { from { stroke-dashoffset: 0.94; } to { stroke-dashoffset: -0.06; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes logo-spark { 0% { stroke-dashoffset: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { stroke-dashoffset: -1; opacity: 0; } }
+/* Hero spark nodes and the logo spark: hidden/neutral at rest, so nothing depends on motion. */
+.loop-node { transform-box: fill-box; transform-origin: center; }
+/* Home hero badge: a soft grey sheen crosses it and the lime dot pings — 3 times after load, then rests;
+   hovering the hero plays it once more. Transform/opacity only; static under reduced motion. */
+.hero-badge { position: relative; overflow: hidden; isolation: isolate; }
+.hero-badge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(100deg, transparent 25%, color-mix(in oklab, var(--ink-foreground) 20%, transparent) 50%, transparent 75%);
+  transform: translateX(-110%);
+  pointer-events: none;
+}
+.badge-dot { position: relative; }
+.badge-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--lime);
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-badge::after { animation: badge-sheen 4.2s var(--ease-out) 900ms 3; }
+  .badge-dot::after { animation: badge-ping 4.2s var(--ease-out) 900ms 3; }
+  section:hover .hero-badge::after { animation: badge-sheen-again 1.4s var(--ease-out) 1; }
+  section:hover .badge-dot::after { animation: badge-ping-again 1.4s var(--ease-out) 1; }
+}
+@keyframes badge-sheen { 0% { transform: translateX(-110%); } 35%, 100% { transform: translateX(110%); } }
+@keyframes badge-sheen-again { from { transform: translateX(-110%); } to { transform: translateX(110%); } }
+@keyframes badge-ping { 0% { opacity: 0.7; transform: scale(1); } 30%, 100% { opacity: 0; transform: scale(3.2); } }
+@keyframes badge-ping-again { from { opacity: 0.7; transform: scale(1); } to { opacity: 0; transform: scale(3.2); } }
+
+/* Pointer field (brand.tsx PointerField): static map dot-grid; lights move by transform, appear by opacity. */
+.pointer-field {
+  --pf-dot: color-mix(in oklab, var(--ink-foreground) 9%, transparent);
+  --pf-a: var(--lime);
+  --pf-b: var(--clay);
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.pf-light-tone {
+  --pf-dot: color-mix(in oklab, var(--foreground) 9%, transparent);
+  --pf-a: var(--clay);
+  --pf-b: var(--sea);
+}
+.pf-dots {
+  position: absolute;
+  inset: 0;
+  background: var(--pf-dot);
+  -webkit-mask-image: radial-gradient(circle, #000 1.25px, transparent 1.75px);
+  mask-image: radial-gradient(circle, #000 1.25px, transparent 1.75px);
+  -webkit-mask-size: 22px 22px;
+  mask-size: 22px 22px;
+}
+.pf-torch, .pf-trail, .pf-halo {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 9999px;
+  opacity: 0;
+  will-change: transform;
+  transition: opacity 420ms var(--ease-out);
+}
+.pf-torch { width: 210px; height: 210px; background: radial-gradient(closest-side, var(--pf-a), color-mix(in oklab, var(--pf-a) 35%, transparent) 55%, transparent); }
+.pf-trail { width: 340px; height: 340px; background: radial-gradient(closest-side, color-mix(in oklab, var(--pf-b) 80%, transparent), transparent); }
+.pf-halo { width: 520px; height: 520px; background: radial-gradient(closest-side, color-mix(in oklab, var(--pf-a) 10%, transparent), transparent); }
+.pointer-field[data-active] .pf-torch { opacity: 0.95; }
+.pointer-field[data-active] .pf-trail { opacity: 0.6; }
+.pointer-field[data-active] .pf-halo { opacity: 1; }
+.pf-light-tone[data-active] .pf-torch { opacity: 0.75; }
+.pf-light-tone[data-active] .pf-halo { opacity: 0.6; }
+.pf-ripple {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 120px;
+  height: 120px;
+  border-radius: 9999px;
+  border: 1.5px solid var(--pf-a);
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pf-ripple { animation: pf-ripple 650ms var(--ease-out) forwards; }
+}
+@keyframes pf-ripple {
+  from { opacity: 0.7; scale: 0.15; }
+  to { opacity: 0; scale: 1; }
+}
+.logo-spark { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  /* Short stagger: use style={{ "--enter-delay": "80ms" }} — keep delays ≤ 200ms. */
+  .enter { animation: rise var(--duration-enter) var(--ease-out) both; animation-delay: var(--enter-delay, 0ms); }
+  /* Transform only: the primary form/CTA is never invisible, not even for a frame. */
+  .enter-lift { animation: lift var(--duration-enter) var(--ease-out) both; animation-delay: var(--enter-delay, 0ms); }
+  .swap-in { animation: swap-in var(--duration-base) var(--ease-out); }
+  .loop-draw { stroke-dasharray: 1; animation: loop-draw 1.6s var(--ease-out) both 120ms; }
+  .loop-trace { animation: loop-trace 1.6s var(--ease-out) both 120ms; }
+  .loop-nodes { animation: fade 400ms var(--ease-out) both 900ms; }
+  .loop-node { transition: transform var(--duration-slow) var(--ease-out); }
+  .loop-node[data-lit] { transform: scale(1.7); }
+  .loop-progress { transition: stroke-dasharray 700ms var(--ease-out); }
+  /* Explore: one soft fade when results first replace the skeleton (filter changes don't replay it). */
+  .results-fade { animation: fade 320ms var(--ease-out) both; }
+  .logo-link:hover .logo-spark,
+  .logo-link:focus-visible .logo-spark { animation: logo-spark 900ms var(--ease-out) 1; }
+  [data-reveal="pending"] { opacity: 0; transform: translateY(16px); }
+  [data-reveal="in"] { transition: opacity var(--duration-reveal) var(--ease-out), transform var(--duration-reveal) var(--ease-out); }
+}
+@media print { [data-reveal] { opacity: 1 !important; transform: none !important; } }
+/* View transitions (card photo → service photo, conversation row → thread header). */
+::view-transition-group(*) { animation-duration: 280ms; animation-timing-function: var(--ease-out); }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+
+/* Segmented button groups (language / theme) */
+@utility seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+}
+@utility seg-dark {
+  border-color: color-mix(in oklab, var(--navy-foreground) 20%, transparent);
+  background: color-mix(in oklab, var(--navy-2) 70%, transparent);
+  color: var(--navy-foreground);
+}
+@utility seg-lang {
+  border-radius: 0.75rem;
+  & > * { border-radius: 0.5rem; }
+}
+@utility seg-btn {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  padding-inline: 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0.75;
+  transition: background-color var(--duration-base, 150ms) ease, color var(--duration-base, 150ms) ease;
+  &:hover { opacity: 1; }
+  &:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+  &[aria-pressed="true"] { background: var(--lime); color: var(--lime-foreground); opacity: 1; }
+}
+@utility seg-icon {
+  padding-inline: 0;
+}
+
+@utility section-title {
+  font-size: 1.5rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  @media (min-width: 768px) { font-size: 1.875rem; }
+}
+
+/* Step / info tiles on content pages: border-tint feedback only, no movement */
+@utility step-card {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  transition: border-color var(--duration-base) var(--ease-out), background-color var(--duration-base) var(--ease-out);
+  &:hover {
+    border-color: color-mix(in oklab, var(--ink) 30%, var(--border));
+  }
+}
+
+/* Segmented selector option (customer / provider) */
+@utility segment {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  transition: background-color var(--duration-base) var(--ease-out), color var(--duration-base) var(--ease-out);
+  &:hover { color: var(--foreground); }
+  &:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  &[aria-selected="true"] { background: var(--lime); color: var(--lime-foreground); }
+}
+
+/* ---------- Media frames & viewer (service details, provider profile) ---------- */
+@utility media-frame {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: var(--muted);
+}
+@utility media-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity var(--duration-base) var(--ease-out), transform var(--duration-slow) var(--ease-out);
+}
+@utility media-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  text-align: center;
+  color: var(--muted-foreground);
+  background: repeating-linear-gradient(135deg, var(--muted), var(--muted) 12px, color-mix(in oklab, var(--muted) 70%, var(--border)) 12px, color-mix(in oklab, var(--muted) 70%, var(--border)) 24px);
+}
+@utility media-hint {
+  position: absolute;
+  inset-inline-end: 0.75rem;
+  bottom: 0.75rem;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--navy) 75%, transparent);
+  color: var(--navy-foreground);
+  opacity: 0.85;
+  transition: opacity var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+}
+/* Public profile portrait: card-coloured mat, thin clay ring, raised; zooms the lightbox on click. */
+@utility profile-photo {
+  position: relative;
+  display: block;
+  flex-shrink: 0;
+  width: 8rem;
+  height: 8rem;
+  padding: 0.3rem;
+  border-radius: 9999px;
+  background: var(--card);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--clay) 70%, transparent), var(--shadow-raised);
+}
+/* Same portrait frame as ProfilePhoto at small sizes (header menu, Avatar): card mat + thin clay ring. */
+@utility avatar-ring {
+  box-shadow: 0 0 0 2px var(--card), 0 0 0 3.5px color-mix(in oklab, var(--clay) 75%, transparent);
+}
+@utility profile-photo-btn {
+  cursor: zoom-in;
+  transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);
+  &:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
+  @media (hover: hover) {
+    &:hover { transform: translateY(-2px); box-shadow: 0 0 0 2px var(--clay), var(--shadow-raised); }
+    &:hover .profile-photo-hint { opacity: 1; }
+  }
+  &:focus-visible .profile-photo-hint { opacity: 1; }
+}
+@utility profile-photo-hint {
+  position: absolute;
+  inset-inline-end: 0.35rem;
+  bottom: 0.35rem;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background: var(--ink);
+  color: var(--ink-foreground);
+  box-shadow: 0 0 0 2px var(--card);
+  opacity: 0.85;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+@utility media-trigger {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  cursor: zoom-in;
+  &:hover .media-img { transform: scale(1.02); }
+  &:hover .media-hint, &:focus-visible .media-hint { opacity: 1; transform: scale(1.05); }
+  &:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+}
+.viewer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: color-mix(in oklab, var(--navy) 88%, transparent);
+  backdrop-filter: blur(4px);
+}
+.viewer-content {
+  position: fixed;
+  inset: 0;
+  z-index: 61;
+  display: flex;
+  flex-direction: column;
+  color: var(--navy-foreground);
+  outline: none;
+}
+.viewer-overlay[data-state="open"], .viewer-content[data-state="open"] { animation: viewer-in var(--duration-base) var(--ease-out); }
+.viewer-overlay[data-state="closed"], .viewer-content[data-state="closed"] { animation: viewer-out var(--duration-fast) ease-in; }
+@keyframes viewer-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes viewer-out { from { opacity: 1; } to { opacity: 0; } }
+.viewer-img {
+  max-height: calc(100dvh - 9rem);
+  max-width: 100%;
+  border-radius: 1rem;
+  object-fit: contain;
+  animation: viewer-in var(--duration-base) var(--ease-out);
+}
+@utility viewer-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--navy-foreground) 12%, transparent);
+  color: var(--navy-foreground);
+  transition: background-color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+  &:hover { background: color-mix(in oklab, var(--navy-foreground) 22%, transparent); }
+  &:active { transform: scale(0.95); }
+  &:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+}
+@utility info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 0;
+  & + & { border-top: 1px solid var(--border); }
+}
+@utility info-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  background: var(--sea-soft);
+  color: var(--sea);
+}
+@utility profile-cover {
+  background: var(--gradient-hero);
+  color: var(--navy-foreground);
+}
+
+/* ---------- Homepage / marketplace surfaces ---------- */
+
+/* Display headline: tighter rhythm in Latin scripts, taller line-height for Arabic. */
+@utility display-title {
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  text-wrap: balance;
+  [dir="rtl"] & { line-height: 1.3; font-weight: 700; }
+}
+
+/* Small uppercase section label (same as eyebrow: clay; normal case in Arabic). */
+@utility kicker {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--clay-strong);
+  [dir="rtl"] & { text-transform: none; font-size: 0.8125rem; }
+}
+
+/* Customer/provider switch with a sliding selection indicator */
+@utility intent-switch {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in oklab, var(--navy-foreground) 15%, transparent);
+  background: color-mix(in oklab, var(--navy-2) 70%, transparent);
+}
+@utility intent-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  inset-inline-start: 4px;
+  width: calc(50% - 6px);
+  border-radius: 0.75rem;
+  background: var(--lime);
+  box-shadow: var(--shadow-card);
+  transition: transform var(--duration-slow) var(--ease-out);
+  [data-intent="offer"] > & { transform: translateX(calc(100% + 4px)); }
+  [dir="rtl"] [data-intent="offer"] > & { transform: translateX(calc(-100% - 4px)); }
+}
+@utility intent-tab {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  padding-inline: 0.75rem;
+  font-weight: 700;
+  color: var(--navy-muted);
+  transition: color var(--duration-base) var(--ease-out);
+  &:hover { color: var(--navy-foreground); }
+  &[aria-selected="true"] { color: var(--lime-foreground); }
+  &:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+}
+
+/* Chip on dark brand surfaces */
+@utility chip-dark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.5rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in oklab, var(--navy-foreground) 18%, transparent);
+  padding-inline: 0.85rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--navy-foreground);
+  transition: background-color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+  &:hover { background: color-mix(in oklab, var(--navy-foreground) 8%, transparent); border-color: color-mix(in oklab, var(--lime) 60%, transparent); }
+  &:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+}
+
+/* Category tile (home): flat, bordered; the clay icon well fills with ink on hover — deliberately different from listing cards */
+@utility cat-tile {
+  display: flex;
+  height: 100%;
+  align-items: flex-start;
+  gap: 0.875rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 1rem 1.125rem;
+  transition: border-color var(--duration-base) var(--ease-out), background-color var(--duration-base) var(--ease-out);
+  & .cat-icon { transition: background-color var(--duration-base) var(--ease-out), color var(--duration-base) var(--ease-out); }
+  & .cat-arrow { opacity: 0.35; transition: opacity var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out); }
+  &:hover { border-color: color-mix(in oklab, var(--ink) 35%, var(--border)); }
+  &:hover .cat-icon { background: var(--ink); color: var(--lime); }
+  &:hover .cat-arrow { opacity: 1; transform: translateX(3px); }
+  [dir="rtl"] &:hover .cat-arrow { transform: translateX(-3px); }
+  &:active { background: var(--surface-sunken); }
+}
+
+/* Listing card image without a provider photo: branded tile, never a stock photo */
+@utility media-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--clay-strong);
+  /* Contour rings in clay (the map signature) around a card-coloured centre. */
+  background:
+    radial-gradient(circle at 50% 45%, var(--card) 0 22%, transparent 23%),
+    repeating-radial-gradient(ellipse at 50% 45%, transparent 0 18px, color-mix(in oklab, var(--clay) 18%, transparent) 18px 19px),
+    var(--clay-soft);
+}
+
+/* Numbered steps joined by one line (md+) */
+@utility steps-line {
+  position: relative;
+  @media (min-width: 768px) {
+    &::before {
+      content: "";
+      position: absolute;
+      top: 1.375rem;
+      inset-inline: 2.75rem 2.75rem;
+      border-top: 2px dashed color-mix(in oklab, var(--sea) 35%, var(--border));
+    }
+  }
+}
+
+/* Our own eye button shows/hides passwords; hide Edge's built-in one so there are never two. */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}

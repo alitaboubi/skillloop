@@ -1,0 +1,28 @@
+# SkillLoop upgrade
+- [x] Phase 1 — Design foundation
+- [x] Service detail redesign + request timeline (existing statuses only)
+- [x] Dashboard UI at /dashboard (checklist, services, requests, portfolio, preview, mode switch)
+- [x] Final design pass (states, RTL, 360 px, contrast, focus)
+- [x] Milestone 1 — service details + public provider profile (awaiting visual review)
+- [x] Design slice 1 — brand surface (contour + loop backdrop), motion system, homepage hero/sections, Explore alignment, card photo fallback (awaiting visual review; not yet built/browser-checked in a running app)
+- [ ] Design slice 2 — service details + public provider profile
+- [ ] Design slice 3 — offer wizard + customer request
+- [ ] Design slice 4 — dashboard + messaging
+- [ ] Design slice 5 — auth/settings + final consistency pass
+- [x] Core integrity (client-side): one opening message per request, photo cleanup on failed publish, archive instead of hard delete (src/lib/marketplace-writes.ts, tested). Not yet verified against a backend.
+- [x] UX consistency: Explore search bar no longer hidden under hero; account links + post-auth land on /dashboard; error states on /messages and /profile lists; explore CTA labels. Browser-unverified.
+- [x] Polish batch 1 — /explore: no 500 on numeric/invalid URL params (cleaned + canonical redirect), accent/word-order-insensitive search incl. city + category label, singular counts (Intl.PluralRules), search keeps category/sort, clear keeps sort. Browser-unverified.
+- [x] Polish batch 2 — account: settings load-before-edit (no blank overwrite), profile photo + availability editing (checklist now completable), inline validation, deep links from checklist; dashboard opens client side for accounts without services, real client overview, StatusBadge everywhere, public-profile link. Browser-unverified.
+- [x] Polish batch 3 — portfolio + public contacts editors in /profile settings (#portfolio, #contacts): add/edit/replace photo/remove with inline confirm and storage cleanup; per-contact validation (platform-matched social links, phone/WhatsApp), private by default; public profile renders all 6 contact kinds via shared safe rules, copy-number, featured first project. Reorder/category/link not in schema. Browser-unverified.
+- [x] Polish batch 4 — /offer: 4-step wizard (Basics → Pricing → Location & photo → Review) for create + edit (?edit=id), healthcare acknowledgement (was unpublishable), duration/deliverables, comma prices, per-account 24 h draft restore, save as draft, inert card preview, changed markers, focus/error handling, edit links from profile/dashboard/service page. Browser-unverified.
+- [x] Polish batch 5 — /offer AI writing help UI (title/description/deliverables): brief, mode, tone, editable preview, use/append/replace (confirm + undo), length guard, cooldown; adapter returns "not connected" until the server route exists. Browser-unverified.
+- [x] UX batch 1 "Never lose the thread" — return after login (password, signup, Google), clean sign-out (cache + drafts), request pre-flight (not accepting / open request / next steps), confirmed status changes, failed-message retry, multi-line composer, thread loading/error, guidance banner, toasts top-center. Browser-unverified.
+- [x] UX batch 2 "Profile and service presentation" — share kit (launch screen, /pros owner, dashboard), loop progress + "Profile ready" card, service "Before you request" panel, /pros cover with brand backdrop + real category tiles/chips + request CTA. Browser-unverified.
+- [x] UX batch 3 "Client request journey" — request prompt chips + review step, client next-step tracker, thread header (counterpart + mini service card), list previews sorted by activity, day separators. Browser-unverified.
+- [x] UX batch 4 "Provider workspace and motivation" — Today view (pending oldest first with wait, drafts, not-accepting banner, caught-up + share), drafts surfaced, teaching empty states (listing sketch, category shortcuts, two-path messages). Browser-unverified.
+- [x] UX batch 5 "Cross-cutting delight" + Turnstile — Explore facet counts + greyed zeros + New badge + results fade; 2 view transitions; auth context line, show-password, live rule; calmer homepage CTA; Turnstile widget (off without site key, token → Supabase captchaToken). Browser-unverified; Supabase CAPTCHA not enabled.
+- [x] Turnstile on /forgot-password (action "reset", token → resetPasswordForEmail captchaToken). All three Supabase-CAPTCHA-protected forms now covered; Supabase CAPTCHA still not enabled.
+- [ ] Phase 2 backend: extra statuses, scoped request form, message lock (blocked: backend choice + migration approval)
+- [ ] Phase 3 actions: pause/duplicate/soft delete, availability editing
+- [ ] Phase 4 — AI Service Builder
+- [ ] Phase 5 — Trust and growth (propose first)

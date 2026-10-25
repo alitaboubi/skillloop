@@ -1,0 +1,19 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+      - run: bun run test
+      - run: bun run build
+      # Lint is informational for now: the repo has ~840 existing formatting findings.
+      # Run `bun run format`, then remove continue-on-error to make it blocking.
+      - run: bun run lint
+        continue-on-error: true

@@ -1,0 +1,15 @@
+insert into public.profile_contacts(owner_id,kind,value,is_public) select id,'phone',phone,false from public.profiles where phone is not null and length(phone) > 0 and length(phone) <= 500 on conflict do nothing;
+insert into public.profile_contacts(owner_id,kind,value,is_public) select id,'facebook',facebook,false from public.profiles where facebook is not null and length(facebook) > 0 and length(facebook) <= 500 on conflict do nothing;
+insert into public.profile_contacts(owner_id,kind,value,is_public) select id,'instagram',instagram,false from public.profiles where instagram is not null and length(instagram) > 0 and length(instagram) <= 500 on conflict do nothing;
+insert into public.profile_contacts(owner_id,kind,value,is_public) select id,'website',website,false from public.profiles where website is not null and length(website) > 0 and length(website) <= 500 on conflict do nothing;
+revoke select on public.profiles from anon, authenticated;
+grant select(id,display_name,title,bio,city,area,avatar_url,professional_details,created_at,preferred_lang) on public.profiles to anon,authenticated;
+comment on column public.profiles.phone is 'DEPRECATED: replaced by profile_contacts with opt-in public visibility';
+comment on column public.profiles.facebook is 'DEPRECATED: replaced by profile_contacts';
+comment on column public.profiles.instagram is 'DEPRECATED: replaced by profile_contacts';
+comment on column public.profiles.website is 'DEPRECATED: replaced by profile_contacts';
+alter policy "service images public read" on storage.objects using(bucket_id = 'service-images' and ((storage.foldername(name))[1] = auth.uid()::text or exists(select 1 from public.services s where s.image_url = name and s.status='published' and not s.archived) or exists(select 1 from public.profiles p where p.avatar_url=name) or exists(select 1 from public.portfolio_items p where p.image_url=name)));
+create or replace function public.first_request_message() returns trigger language plpgsql security definer set search_path = public as $$ begin insert into public.messages(request_id,sender_id,body) values(new.id,new.client_id,new.message); return new; end $$;
+create trigger request_initial_message after insert on public.requests for each row execute function public.first_request_message();
+create or replace function public.guard_profile_availability() returns trigger language plpgsql set search_path = public as $$ begin if exists(select 1 from public.profiles p where p.id=new.provider_id and p.professional_details->>'accepting'='false') then raise exception 'Provider is not accepting requests'; end if; return new; end $$;
+create trigger request_availability_guard before insert on public.requests for each row execute function public.guard_profile_availability();

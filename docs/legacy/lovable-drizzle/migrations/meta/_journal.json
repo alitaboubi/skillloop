@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1792534809409,
+      "tag": "0000_skillloop_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792535399834,
+      "tag": "0001_service_images",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792535761108,
+      "tag": "0002_pro_profiles_portfolio",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792583413064,
+      "tag": "0003_marketplace_professional_upgrade",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792583482901,
+      "tag": "0004_public_profile_privacy_and_request_integrity",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792585097419,
+      "tag": "0005_skillloop_schema",
+      "breakpoints": true
+    }
+  ]
+}

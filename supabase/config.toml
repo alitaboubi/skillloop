@@ -1,0 +1,2 @@
+# Local Supabase CLI project name (the remote project is linked separately).
+project_id = "skillloop"
