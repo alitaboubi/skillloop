@@ -20,7 +20,7 @@ import { requestGate } from "@/lib/request-timeline";
 import { addPromptLine } from "@/lib/conversations";
 import { vtName } from "@/lib/view-transitions";
 import { ShareKit } from "@/components/share-kit";
-import { CATEGORY_ICONS } from "@/components/brand";
+import { CATEGORY_ICONS, Reveal } from "@/components/brand";
 import { servicePath } from "@/lib/share";
 
 export const Route = createFileRoute("/services/$id")({
@@ -379,9 +379,9 @@ function Detail({ s }: { s: Service }) {
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 md:py-10">
       <nav aria-label="Breadcrumb">
         <ol className="flex min-w-0 flex-wrap items-center gap-1 text-sm text-muted-foreground">
-          <li><Link to="/" className="rounded hover:text-foreground">{t("home")}</Link></li>
+          <li><Link to="/" className="line-link rounded hover:text-foreground">{t("home")}</Link></li>
           <li aria-hidden><ChevronRight className="size-4 rtl:-scale-x-100" /></li>
-          <li><Link to="/explore" search={{ category: s.category }} className="rounded hover:text-foreground">{t(cat.key)}</Link></li>
+          <li><Link to="/explore" search={{ category: s.category }} className="line-link rounded hover:text-foreground">{t(cat.key)}</Link></li>
           <li aria-hidden><ChevronRight className="size-4 rtl:-scale-x-100" /></li>
           <li className="min-w-0 max-w-full"><span dir="auto" aria-current="page" className="line-clamp-1 text-foreground">{s.title}</span></li>
         </ol>
@@ -470,9 +470,9 @@ function Detail({ s }: { s: Service }) {
       {similar.length > 0 && (
         <section aria-labelledby="sd-similar" className="mt-16 border-t pt-10">
           <h2 id="sd-similar" className="text-xl font-bold">{t("similar")}</h2>
-          <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <Reveal stagger className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {similar.map((x) => <ServiceCard key={x.id} s={x} />)}
-          </div>
+          </Reveal>
         </section>
       )}
 

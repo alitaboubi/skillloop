@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Menu, X, MapPin, Wifi, Star, BadgeCheck, Sun, Moon, Monitor, Home, Search, MessageSquare, User, PlusCircle, ChevronDown, LayoutDashboard, Briefcase, Settings, LogOut } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { profileQuery } from "@/lib/profiles-db";
@@ -12,6 +12,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth, useSignOut } from "@/lib/auth";
 import { publishedServicesQuery } from "@/lib/services-db";
 import { CATEGORY_ICONS, PointerField } from "@/components/brand";
+import { peek } from "@/lib/peek";
+
+// Loaded on first open only, so cmdk stays out of every page's initial bundle.
+const SearchPalette = lazy(() => import("@/components/search-palette").then((m) => ({ default: m.SearchPalette })));
+const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 /** Real published services only — no sample data. */
 /** `initial` = the list the server rendered with (Explore), so the first browser render matches the HTML. */
@@ -239,9 +244,69 @@ function AccountMenu() {
   );
 }
 
+/**
+ * Desktop nav with one lime indicator under the current page that slides to the link under the mouse/keyboard focus and
+ * back (idea from VengeanceUI "Spotlight Navbar"; own CSS, no Motion). Moves by transform, shows by opacity; measured, so
+ * RTL-safe; jumps instead of sliding under reduced motion. Decorative: the active link is already marked (aria-current).
+ */
+function DesktopNav({ links }: { links: readonly { to: string; label: string }[] }) {
+  const nav = useRef<HTMLElement>(null);
+  const bar = useRef<HTMLSpanElement>(null);
+  const pathname = useRouterState({ select: (st) => st.location.pathname });
+  const place = useCallback((el: Element | null) => {
+    const n = nav.current, b = bar.current;
+    if (!n || !b) return;
+    if (!el) { b.removeAttribute("data-on"); return; }
+    const a = n.getBoundingClientRect(), r = el.getBoundingClientRect();
+    const shown = b.hasAttribute("data-on");
+    if (!shown) b.setAttribute("data-jump", "");
+    b.style.width = `${r.width}px`;
+    b.style.transform = `translate3d(${r.left - a.left}px, 0, 0)`;
+    if (!shown) { void b.offsetWidth; b.removeAttribute("data-jump"); }
+    b.setAttribute("data-on", "");
+  }, []);
+  const toActive = useCallback(() => place(nav.current?.querySelector('[data-status="active"]') ?? null), [place]);
+  useIsoLayoutEffect(() => { toActive(); }, [pathname, toActive]);
+  useEffect(() => {
+    window.addEventListener("resize", toActive);
+    void document.fonts?.ready.then(toActive);
+    return () => window.removeEventListener("resize", toActive);
+  }, [toActive]);
+  return (
+    <nav
+      ref={nav}
+      className="relative hidden items-center gap-6 lg:flex"
+      onPointerOver={(e) => { const l = (e.target as Element).closest("a"); if (l && e.pointerType !== "touch") place(l); }}
+      onPointerLeave={toActive}
+      onFocus={(e) => place(e.target)}
+      onBlur={toActive}
+    >
+      {links.map((l) => (
+        <Link key={l.to} to={l.to} className="text-sm text-navy-muted transition-colors hover:text-navy-foreground" activeProps={{ className: "text-navy-foreground font-semibold" }}>
+          {l.label}
+        </Link>
+      ))}
+      <span ref={bar} aria-hidden className="nav-indicator" />
+    </nav>
+  );
+}
+
 export function SiteHeader() {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState(false);
+  const [searchLoaded, setSearchLoaded] = useState(false);
+  const [mac, setMac] = useState(false);
+  const openSearch = useCallback((v: boolean) => { if (v) setSearchLoaded(true); setSearch(v); }, []);
+  const toggleSearch = useCallback(() => { setSearchLoaded(true); setSearch((v) => !v); }, []);
+  useEffect(() => {
+    setMac(/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent));
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "k") { e.preventDefault(); toggleSearch(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [toggleSearch]);
   const links = [
     { to: "/explore", label: t("nav_explore") },
     { to: "/how-it-works", label: t("nav_how") },
@@ -252,20 +317,23 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-navy-foreground/10 bg-navy/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Logo light />
-        <nav className="hidden items-center gap-6 lg:flex">
-          {links.map((l) => (
-            <Link key={l.to} to={l.to} className="text-sm text-navy-muted transition-colors hover:text-navy-foreground" activeProps={{ className: "text-navy-foreground font-semibold" }}>
-              {l.label}
-            </Link>
-          ))}
-        </nav>
+        <DesktopNav links={links} />
         <div className="hidden items-center gap-4 lg:flex">
+          <button type="button" onClick={() => openSearch(true)} aria-haspopup="dialog" aria-keyshortcuts={mac ? "Meta+K" : "Control+K"} className="search-trigger">
+            <Search className="size-4" aria-hidden />{t("sp_open")}
+            <kbd className="search-kbd" aria-hidden>{mac ? "⌘K" : "Ctrl K"}</kbd>
+          </button>
           <PreferencesMenu />
           <DesktopAccount />
         </div>
-        <button className="grid size-11 place-items-center rounded-full text-navy-foreground lg:hidden" aria-label={t("menu")} aria-expanded={open} onClick={() => setOpen(!open)}>
-          {open ? <X /> : <Menu />}
-        </button>
+        <div className="flex items-center gap-1 lg:hidden">
+          <button type="button" className="grid size-11 place-items-center rounded-full text-navy-foreground" aria-label={t("sp_open")} aria-haspopup="dialog" onClick={() => openSearch(true)}>
+            <Search className="size-5" aria-hidden />
+          </button>
+          <button className="grid size-11 place-items-center rounded-full text-navy-foreground" aria-label={t("menu")} aria-expanded={open} onClick={() => setOpen(!open)}>
+            {open ? <X /> : <Menu />}
+          </button>
+        </div>
       </div>
       {open && (
         <div className="border-t border-navy-foreground/10 px-4 pb-6 pt-2 lg:hidden">
@@ -283,13 +351,14 @@ export function SiteHeader() {
           </div>
         </div>
       )}
+      {searchLoaded && <Suspense fallback={null}><SearchPalette open={search} onOpenChange={openSearch} /></Suspense>}
     </header>
   );
 }
 
 export function SiteFooter() {
   const { t } = useI18n();
-  const link = "inline-flex min-h-9 items-center hover:text-navy-foreground";
+  const link = "line-link inline-flex min-h-9 items-center hover:text-navy-foreground";
   return (
     <footer className="relative overflow-hidden bg-navy text-navy-muted">
       <PointerField />
@@ -345,6 +414,9 @@ export function ServiceCard({ s }: { s: Service }) {
             <CatIcon className="size-10" aria-hidden />
             <span className="mt-6 rounded-full bg-card/80 px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground">{t("card_no_photo")}</span>
           </span>
+        )}
+        {s.description.trim() && (
+          <span aria-hidden className="card-peek"><span dir="auto">{peek(s.description)}</span></span>
         )}
         {cat && <span className="tag tag-ink absolute start-3 top-3"><CatIcon className="size-3.5 text-lime" aria-hidden />{t(cat.key)}</span>}
         {s.verified && (

@@ -61,11 +61,15 @@ export function BenefitItem({ icon: Icon, title, desc }: { icon: LucideIcon; tit
 
 export function FaqBlock({ items }: { items: { q: string; a: string }[] }) {
   return (
-    <Accordion type="single" collapsible className="max-w-3xl">
+    // Look inspired by VengeanceUI "FAQ Accordion" (start-edge accent, +/− icon); behaviour stays Radix's accessible accordion.
+    <Accordion type="single" collapsible className="faq-list max-w-3xl">
       {items.map((it, i) => (
-        <AccordionItem key={i} value={`f${i}`}>
-          <AccordionTrigger className="text-start font-semibold">{it.q}</AccordionTrigger>
-          <AccordionContent className="text-muted-foreground">{it.a}</AccordionContent>
+        <AccordionItem key={i} value={`f${i}`} className="faq-item">
+          <AccordionTrigger className="faq-trigger text-start font-semibold">
+            <span aria-hidden className="faq-sign" />
+            <span className="min-w-0 flex-1">{it.q}</span>
+          </AccordionTrigger>
+          <AccordionContent className="faq-answer text-muted-foreground">{it.a}</AccordionContent>
         </AccordionItem>
       ))}
     </Accordion>

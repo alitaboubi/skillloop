@@ -368,7 +368,12 @@ function usePointerField(ref: RefObject<HTMLDivElement | null>) {
  * Safe by default: content renders visible on the server and without JS; it is only hidden
  * when it starts below the fold and the user has not asked for reduced motion.
  */
-export function Reveal({ children, className = "" }: { children: ReactNode; className?: string }) {
+/**
+ * `stagger`: for grids — the container stays put and its first children rise in one after another (40 ms steps, at most
+ * 6 steps; idea from VengeanceUI "Staggered Grid", own CSS implementation, no GSAP). Same safety as above: only for
+ * grids that start below the fold, never hidden on the server or without JS, nothing under reduced motion.
+ */
+export function Reveal({ children, className = "", stagger = false }: { children: ReactNode; className?: string; stagger?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = ref.current;
@@ -391,7 +396,7 @@ export function Reveal({ children, className = "" }: { children: ReactNode; clas
     el.addEventListener("focusin", onFocus, { once: true });
     return () => { io.disconnect(); el.removeEventListener("focusin", onFocus); };
   }, []);
-  return <div ref={ref} className={className}>{children}</div>;
+  return <div ref={ref} className={className} data-stagger={stagger || undefined}>{children}</div>;
 }
 
 /* ---------- Profile progress: the logo's loop, filling with lime ---------- */

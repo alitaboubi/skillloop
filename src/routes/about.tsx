@@ -1,9 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BadgeInfo, Briefcase, Building2, Eye, GraduationCap, Hand, Languages, MapPin, Tag, Users, Wifi } from "lucide-react";
-import hero from "@/assets/hero.jpg";
+import founderJpg from "@/assets/founder/ali-taboubi-560x700.jpg";
+import founderWebp from "@/assets/founder/ali-taboubi-560x700.webp";
 import { useI18n } from "@/lib/i18n";
 import { seo } from "@/lib/seo";
 import { BenefitItem, FinalCta, PageIntro, SectionHeading } from "@/components/page-sections";
+import { FounderCard } from "@/components/founder-card";
+
+// A proper name, identical in every language (by the founder's choice), so it is not a translated string.
+const FOUNDER_NAME = "Ali Taboubi";
 
 export const Route = createFileRoute("/about")({
   head: () => seo("À propos", "La mission de SkillLoop : rendre les compétences locales tunisiennes faciles à trouver, sur place ou à distance.", { path: "/about" }),
@@ -20,8 +25,15 @@ function Page() {
         <div className="min-w-0">
           <SectionHeading title={t("ab_mission_t")} />
           <p className="mt-4 text-lg leading-relaxed">{t("ab_mission_d")}</p>
+          <div className="mt-10 border-t pt-8">
+            <h3 className="eyebrow">{t("ab_founder_t")}</h3>
+            <p className="mt-3 max-w-prose leading-relaxed text-muted-foreground">{t("ab_founder_d")}</p>
+            <p className="mt-4 text-sm font-semibold"><span dir="ltr">{FOUNDER_NAME}</span> · <span className="text-clay-strong">{t("ab_founder_role")}</span></p>
+          </div>
         </div>
-        <img src={hero} alt="" loading="lazy" width={1024} height={1024} className="aspect-[4/3] w-full rounded-3xl object-cover" />
+        {/* Founder portrait (the woman's photo hero.jpg stays in use as the "care" category fallback elsewhere). */}
+        <FounderCard jpg={founderJpg} webp={founderWebp} width={560} height={700} alt={t("ab_founder_alt")} name={FOUNDER_NAME}
+          role={t("ab_founder_role")} quote={t("ab_founder_quote")} revealLabel={t("ab_founder_reveal")} />
       </section>
 
       <section className="bg-card">

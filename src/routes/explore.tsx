@@ -9,7 +9,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose 
 import { SearchBar } from "./index";
 import { seo } from "@/lib/seo";
 import { fetchPublicServices } from "@/lib/services-db";
-import { CATEGORY_ICONS } from "@/components/brand";
+import { CATEGORY_ICONS, Reveal } from "@/components/brand";
 import { EmptyState, ErrorState } from "@/components/states";
 import { activeFilters, cleanExploreSearch, facetCounts, filterServices, type ExploreSearch, type FacetCounts } from "@/lib/explore-filters";
 
@@ -133,9 +133,13 @@ function Explore() {
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-base font-bold tabular-nums" aria-live="polite">
-              {isLoading ? t("loading") : isError ? t("load_error") : s.q ? (
-                <>{t(countKey(lang, n, "ex_results_for"), { n })} <q dir="auto" className="text-sea">{s.q}</q></>
-              ) : t(countKey(lang, n, "results"), { n })}
+              {/* Re-keyed on the count so a filter change rolls the line in softly (idea from VengeanceUI "Animated Number";
+                  CSS swap-in, instant under reduced motion); the live region still announces the new text once. */}
+              <span key={isLoading ? "l" : isError ? "e" : `${n}-${s.q ?? ""}`} className="swap-in inline-block">
+                {isLoading ? t("loading") : isError ? t("load_error") : s.q ? (
+                  <>{t(countKey(lang, n, "ex_results_for"), { n })} <q dir="auto" className="text-sea">{s.q}</q></>
+                ) : t(countKey(lang, n, "results"), { n })}
+              </span>
             </p>
             <div className="flex items-center gap-2">
               <Sheet>
@@ -184,9 +188,9 @@ function Explore() {
           ) : isError ? (
             <div className="mt-8"><ErrorState onRetry={() => refetch()} /></div>
           ) : filtered.length ? (
-            <div className="results-fade mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            <Reveal stagger className="results-fade mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {filtered.map((x) => <ServiceCard key={x.id} s={x} />)}
-            </div>
+            </Reveal>
           ) : services.length === 0 ? (
             <div className="mt-8">
               <EmptyState icon={PackageOpen} title={t("ex_empty_t")} sub={t("ex_empty_d")} action={<Link to="/offer" className="btn btn-outline">{t("offer_service")}</Link>} />

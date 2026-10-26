@@ -13,7 +13,7 @@ import { profileSeo } from "@/lib/seo";
 import { isUuid } from "@/lib/services-db";
 import { useI18n, type TKey } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
-import { BrandBackdrop, CATEGORY_ICONS, PointerField } from "@/components/brand";
+import { BrandBackdrop, CATEGORY_ICONS, PointerField, Reveal } from "@/components/brand";
 import { ShareKit } from "@/components/share-kit";
 import { profilePath } from "@/lib/share";
 import { CATEGORIES, type CategoryId, type Service } from "@/lib/data";
@@ -119,9 +119,9 @@ function Page() {
         <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-5 sm:px-6 md:pb-20">
           <nav aria-label="Breadcrumb">
             <ol className="flex flex-wrap items-center gap-1 text-sm text-navy-muted">
-              <li><Link to="/" className="rounded hover:text-navy-foreground">{t("home")}</Link></li>
+              <li><Link to="/" className="line-link rounded hover:text-navy-foreground">{t("home")}</Link></li>
               <li aria-hidden><ChevronRight className="size-4 rtl:-scale-x-100" /></li>
-              <li><Link to="/explore" className="rounded hover:text-navy-foreground">{t("explore_services")}</Link></li>
+              <li><Link to="/explore" className="line-link rounded hover:text-navy-foreground">{t("explore_services")}</Link></li>
               <li aria-hidden><ChevronRight className="size-4 rtl:-scale-x-100" /></li>
               <li className="min-w-0"><span dir="auto" aria-current="page" className="line-clamp-1 text-navy-foreground">{name}</span></li>
             </ol>
@@ -196,7 +196,7 @@ function Page() {
                 ) : services.length === 0 ? (
                   <EmptyState title={t("pp_no_services")} action={isOwner ? <Link to="/offer" className="btn btn-outline">{t("nav_offer")}</Link> : undefined} />
                 ) : (
-                  <div className="grid gap-5 sm:grid-cols-2">{services.map((s) => <ServiceCard key={s.id} s={s} />)}</div>
+                  <Reveal stagger className="grid gap-5 sm:grid-cols-2">{services.map((s) => <ServiceCard key={s.id} s={s} />)}</Reveal>
                 )}
               </div>
             </section>
@@ -205,14 +205,15 @@ function Page() {
               <section aria-labelledby="pp-portfolio">
                 <h2 id="pp-portfolio" className="text-xl font-bold">{t("sd_portfolio")}<span className="ms-2 text-base font-semibold text-muted-foreground">({portfolio.length})</span></h2>
                 <p className="mt-1 text-sm text-muted-foreground">{t("pp_portfolio_note")}</p>
-                <ul className="mt-5 grid gap-5 sm:grid-cols-2">
+                {/* Bento from 3 projects (idea from VengeanceUI "Image Collage"/"Expandable Bento"; CSS grid only): the newest
+                    leads — full width on tablets, and on wide screens a large tile beside the next two stacked. */}
+                <ul className={`mt-5 grid gap-5 sm:grid-cols-2 ${portfolio.length >= 3 ? "xl:grid-cols-3" : ""}`}>
                   {portfolio.map((x, i) => {
-                    // With three or more projects the newest one leads, full width.
                     const featured = i === 0 && portfolio.length >= 3;
                     return (
-                    <li key={x.src} className={`min-w-0 ${featured ? "sm:col-span-2" : ""}`}>
-                      <button type="button" onClick={() => setViewer(i)} className="media-trigger rounded-2xl" aria-label={t("pp_open_project", { t: x.alt })}>
-                        <FramedImage src={x.src} alt="" className={featured ? "aspect-[4/3] sm:aspect-[16/9]" : "aspect-[4/3]"} />
+                    <li key={x.src} className={`min-w-0 ${featured ? "flex flex-col sm:col-span-2 xl:row-span-2" : ""}`}>
+                      <button type="button" onClick={() => setViewer(i)} className={`media-trigger rounded-2xl ${featured ? "xl:flex-1" : ""}`} aria-label={t("pp_open_project", { t: x.alt })}>
+                        <FramedImage src={x.src} alt="" className={featured ? "aspect-[4/3] sm:aspect-[16/9] xl:aspect-auto xl:h-full xl:min-h-[18rem]" : "aspect-[4/3]"} />
                         <EnlargeHint />
                       </button>
                       <h3 dir="auto" className="mt-3 break-words font-semibold">{x.caption}</h3>

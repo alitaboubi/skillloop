@@ -184,3 +184,30 @@ docs/design/route-checklist.md. NOT verified: the look and the motion (browser).
   old one was the violet loop); linked as /favicon.svg?v=2 so browsers drop the cached violet icon.
 - Home hero badge: a soft grey sheen crosses it and the lime dot pings, 3 times after load (every ~4 s) then rests;
   hovering the hero replays it once. Not endless, by the motion rule. Static under reduced motion.
+
+## 11. About — founder block (2026-10-26, awaiting your visual approval)
+Mission section: left = mission + "Derrière SkillLoop" paragraph + name/role; right = founder card (4:5 crop of the 800 px
+original, no upscaling; star mark in the original's corner falls outside the crop). Reveal adapted from VengeanceUI
+Team Reveal Grid (MIT): grayscale→colour with a fine pointer, lift + subtle zoom, lime ring, lime/clay soft-light glow,
+ink shade with the quote; tap/keyboard toggles the quote (aria-expanded); touch and reduced motion = full colour, no
+movement, nothing automatic. Proposal kept for later: one founder line on /professionals.
+
+## 12. VengeanceUI audit + Phase 1 (2026-10-26, awaiting your browser check)
+Audit (71 components, source from github.com/Ashutoshx7/VengeanceUI, MIT): most need Motion/GSAP/three.js, which
+SkillLoop doesn't have → every adoption is an own CSS/React rewrite. Highlight Grid and Search Modal are ports of CodeGrid
+experiments and Staggered Grid carries third-party credits → ideas only, no code copied. Rejected: WebGL/canvas pieces,
+auto-playing text/marquees/backgrounds, novelty buttons and carousels, logo strips (no partners = would be fake).
+Phase 1 implemented: (1) home category highlight frame (mouse + keyboard; not on Explore, where selected chips are
+already lime); (2) `line-link` underline for text links; (3) staggered card grids via Reveal `stagger` (home recent
+services, Explore results, provider services, similar services); (4) FAQ start-edge accent + rotating +/−.
+Phase 2 (proposed): header search palette on cmdk, sliding nav indicator, results-count roll, card detail reveal,
+portfolio bento. Phase 3 (needs data/decision/dependency): real metrics, recent providers, testimonials (needs reviews),
+profile QR (qrcode-generator), AI button effect.
+
+## 13. Phase 2 (2026-10-26, awaiting your browser check)
+Search palette (Ctrl/⌘K, header "Rechercher", mobile search icon; categories, cities, shortcuts, recent searches on the
+device; free text → /explore?q) — lazy-loaded, labelled dialog, cmdk keyboard model, RTL fix in ui/command (me-2).
+Nav indicator (lime bar under the current/hovered/focused link). Explore result count swaps in softly. Card preview line
+(start of the provider's own description over the photo on hover/keyboard focus; never on touch; decorative duplicate).
+Portfolio bento on /pros (≥ 3 projects, xl: large tile + two stacked). Defaults chosen by me: shortcut, icon placement,
+count animation included, preview = description start (untranslated).

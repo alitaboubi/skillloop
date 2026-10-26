@@ -2,7 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { Search, Laptop, GraduationCap, ArrowRight, Send, Handshake, Rocket, Wrench, Car, Camera, LayoutGrid, Check, Wifi, User, MapPin } from "lucide-react";
 import { BrandBackdrop, CATEGORY_ICONS, PointerField, Reveal } from "@/components/brand";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { HighlightGrid } from "@/components/highlight-grid";
+import { FaqBlock } from "@/components/page-sections";
 import { HomeHero, type HomeHeroHandle } from "@/components/home-hero";
 import { useI18n, type TKey } from "@/lib/i18n";
 import { CATEGORIES, CITIES, type CategoryId } from "@/lib/data";
@@ -86,7 +87,7 @@ function Index() {
             <Link to="/explore" className="btn btn-outline mt-5"><LayoutGrid className="size-4" aria-hidden />{t("hp_cats_all")}</Link>
           </div>
           <div className="min-w-0">
-            <ul className="grid gap-3 sm:grid-cols-2">
+            <HighlightGrid className="grid gap-3 sm:grid-cols-2">
               {FEATURED.map((c) => {
                 const cat = CATEGORIES.find((x) => x.id === c.id)!;
                 const Icon = CATEGORY_ICONS[c.id];
@@ -103,7 +104,7 @@ function Index() {
                   </li>
                 );
               })}
-            </ul>
+            </HighlightGrid>
             {others.length > 0 && (
               <ul className="mt-4 flex flex-wrap gap-2" aria-label={t("hp_cats_more")}>
                 {others.map((c) => {
@@ -147,9 +148,9 @@ function Index() {
         ) : isError ? (
           <div className="mt-6"><ErrorState onRetry={() => refetch()} /></div>
         ) : services.length ? (
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <Reveal stagger className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {services.slice(0, 6).map((s) => <ServiceCard key={s.id} s={s} />)}
-          </div>
+          </Reveal>
         ) : (
           <div className="empty-state mt-6">
             <Rocket className="size-9 text-clay" aria-hidden />
@@ -214,14 +215,10 @@ function Index() {
       <section className="bg-card" aria-labelledby="faq">
         <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
           <h2 id="faq" className="section-title">{t("hp_faq_title")}</h2>
-          <Accordion type="single" collapsible className="mt-6">
-            {([1, 2, 3, 4, 5, 6] as const).map((i) => (
-              <AccordionItem key={i} value={`q${i}`}>
-                <AccordionTrigger className="text-start text-base font-bold">{t(`hp_faq_${i}_q` as TKey)}</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">{t(`hp_faq_${i}_a` as TKey)}</AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          {/* Same FAQ component as the other pages (accent edge, +/−). */}
+          <div className="mt-6">
+            <FaqBlock items={([1, 2, 3, 4, 5, 6] as const).map((i) => ({ q: t(`hp_faq_${i}_q` as TKey), a: t(`hp_faq_${i}_a` as TKey) }))} />
+          </div>
         </div>
       </section>
 
