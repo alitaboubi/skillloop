@@ -4,15 +4,17 @@ import { Menu, X, MapPin, Wifi, Star, BadgeCheck, Sun, Moon, Monitor, Home, Sear
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { profileQuery } from "@/lib/profiles-db";
 import { useTheme, type ThemePref } from "@/lib/theme";
-import { LANGS, useI18n } from "@/lib/i18n";
+import { LANGS, countKey, useI18n } from "@/lib/i18n";
+import { useUnread, useUnreadLive } from "@/lib/use-unread";
 import { CATEGORIES, type Service } from "@/lib/data";
-import { isNew } from "@/lib/explore-filters";
+import { isNew, type ProSummary } from "@/lib/explore-filters";
 import { useViewTransitions, vtName } from "@/lib/view-transitions";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth, useSignOut } from "@/lib/auth";
 import { publishedServicesQuery } from "@/lib/services-db";
 import { CATEGORY_ICONS, PointerField } from "@/components/brand";
 import { peek } from "@/lib/peek";
+import { Avatar } from "@/components/media-viewer";
 
 // Loaded on first open only, so cmdk stays out of every page's initial bundle.
 const SearchPalette = lazy(() => import("@/components/search-palette").then((m) => ({ default: m.SearchPalette })));
@@ -45,9 +47,20 @@ export function ThemeSwitcher({ dark = false }: { dark?: boolean }) {
   );
 }
 
+/** Lime count badge on the messages icon (1–9, then "9+"). Decorative: the link's label carries the number. */
+function UnreadBadge({ count, ringClass }: { count: number; ringClass: string }) {
+  if (count <= 0) return null;
+  return (
+    <span aria-hidden className={`absolute -top-1 -end-1.5 grid h-[1.1rem] min-w-[1.1rem] place-items-center rounded-full bg-lime px-1 text-xs font-bold leading-none text-lime-foreground ring-2 ${ringClass}`}>
+      {count > 9 ? "9+" : count}
+    </span>
+  );
+}
+
 export function BottomNav() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { user } = useAuth();
+  const { count } = useUnread(user?.id);
   const items = [
     { to: "/", label: t("nav_home"), icon: Home, exact: true },
     { to: "/explore", label: t("nav_explore"), icon: Search },
@@ -63,11 +76,15 @@ export function BottomNav() {
             <Link
               to={it.to}
               activeOptions={{ exact: "exact" in it }}
-              className="flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-[11px] font-semibold text-muted-foreground transition-colors"
+              className="flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-xs font-semibold text-muted-foreground transition-colors"
               activeProps={{ className: "text-sea", "aria-current": "page" }}
             >
-              <it.icon className="size-5" aria-hidden />
+              <span className="relative">
+                <it.icon className="size-5" aria-hidden />
+                {it.to === "/messages" && <UnreadBadge count={count} ringClass="ring-card" />}
+              </span>
               <span className="max-w-full truncate">{it.label}</span>
+              {it.to === "/messages" && count > 0 && <span className="sr-only">{t(countKey(lang, count, "unread"), { n: count })}</span>}
             </Link>
           </li>
         ))}
@@ -103,7 +120,6 @@ export function Logo({ light = false }: { light?: boolean }) {
         <path d="M9 2a7 7 0 1 0 0 14c4 0 6-3.5 8-7s4-7 8-7a7 7 0 1 1 0 14c-4 0-6-3.5-8-7S13 2 9 2Z" className="stroke-clay" strokeWidth="3.2" />
         <path d="M25 2c-4 0-6 3.5-8 7" className="stroke-lime" strokeWidth="3.2" strokeLinecap="round" />
         {/* Hover/focus: the lime spark runs one lap of the loop, echoing the homepage hero. */}
-        <path d="M9 2a7 7 0 1 0 0 14c4 0 6-3.5 8-7s4-7 8-7a7 7 0 1 1 0 14c-4 0-6-3.5-8-7S13 2 9 2Z" pathLength={1} strokeDasharray="0.16 0.84" className="logo-spark stroke-lime" strokeWidth="3.2" strokeLinecap="round" />
       </svg>
       <span dir="ltr" className={`text-xl font-extrabold tracking-tight ${light ? "text-navy-foreground" : "text-foreground"}`}>
         Skill<span className="text-lime">Loop</span>
@@ -194,15 +210,20 @@ function PreferencesMenu() {
 
 /** Desktop right side: compact messages + avatar menu when signed in; login/signup otherwise. */
 function DesktopAccount() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { user } = useAuth();
+  const { count } = useUnread(user?.id);
   if (!user) return <AccountActions />;
+  const label = count > 0 ? `${t("messages")} — ${t(countKey(lang, count, "unread"), { n: count })}` : t("messages");
   return (
     <>
-      <Link to="/messages" aria-label={t("messages")} title={t("messages")}
-        className="grid size-10 place-items-center rounded-full text-navy-muted transition-colors hover:bg-navy-foreground/10 hover:text-navy-foreground"
+      <Link to="/messages" aria-label={label} title={label}
+        className="relative grid size-10 place-items-center rounded-full text-navy-muted transition-colors hover:bg-navy-foreground/10 hover:text-navy-foreground"
         activeProps={{ className: "bg-navy-foreground/10 text-navy-foreground", "aria-current": "page" }}>
-        <MessageSquare className="size-5" aria-hidden />
+        <span className="relative">
+          <MessageSquare className="size-5" aria-hidden />
+          <UnreadBadge count={count} ringClass="ring-navy" />
+        </span>
       </Link>
       <AccountMenu />
     </>
@@ -293,6 +314,8 @@ function DesktopNav({ links }: { links: readonly { to: string; label: string }[]
 
 export function SiteHeader() {
   const { t } = useI18n();
+  const { user } = useAuth();
+  useUnreadLive(user?.id); // one realtime listener for the unread badges
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState(false);
   const [searchLoaded, setSearchLoaded] = useState(false);
@@ -412,7 +435,7 @@ export function ServiceCard({ s }: { s: Service }) {
           // No provider photo: a branded category tile instead of a stock image that could read as their work.
           <span className="media-fallback">
             <CatIcon className="size-10" aria-hidden />
-            <span className="mt-6 rounded-full bg-card/80 px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground">{t("card_no_photo")}</span>
+            <span className="mt-6 rounded-full bg-card/80 px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">{t("card_no_photo")}</span>
           </span>
         )}
         {s.description.trim() && (
@@ -425,11 +448,16 @@ export function ServiceCard({ s }: { s: Service }) {
       </div>
       <div className="flex flex-1 flex-col gap-2 p-4">
         {s.real && isNew(s) && <span className="tag tag-new w-fit">{t("badge_new")}</span>}
-        <h3 dir="auto" className="line-clamp-2 text-[1.05rem] font-bold leading-snug">{s.title}</h3>
-        <p className="text-sm">
-          <span dir="auto" className="font-semibold">{s.provider}</span>
-          {s.profession && <span dir="auto" className="text-muted-foreground"> · {s.profession}</span>}
-        </p>
+        <h3 dir="auto" className="line-clamp-2 text-lg font-bold leading-snug">{s.title}</h3>
+        {/* Expert mini-row: the person before the listing — face, name, trade, availability when the pro declared it. */}
+        <div className="flex items-center gap-3">
+          <Avatar src={s.providerAvatar} name={s.provider} size="sm" />
+          <span className="min-w-0 flex-1">
+            <span dir="auto" className="block truncate text-sm font-semibold">{s.provider}</span>
+            {s.profession && <span dir="auto" className="block truncate text-sm text-muted-foreground">{s.profession}</span>}
+          </span>
+          {typeof s.accepting === "boolean" && <span className={`avail-chip ${s.accepting ? "avail-open" : "avail-closed"}`}>{t(s.accepting ? "avail_open" : "avail_closed")}</span>}
+        </div>
         {s.rating && s.rating.count > 0 && (
           <p className="flex items-center gap-1 text-sm">
             <Star className="size-4 fill-current text-lime" aria-hidden />
@@ -451,13 +479,43 @@ export function ServiceCard({ s }: { s: Service }) {
               <span className="block text-sm font-semibold text-muted-foreground">{t("sd_price_missing")}</span>
             ) : (
               <>
-                {s.unit === "pm_from" && <span className="block text-[11px] text-muted-foreground">{t("price_from")}</span>}
+                {s.unit === "pm_from" && <span className="block text-xs text-muted-foreground">{t("price_from")}</span>}
                 <span className="block text-lg font-extrabold tabular-nums leading-tight">{formatPrice(s.price, lang)}</span>
-                {s.unit !== "pm_from" && <span className="block text-[11px] text-muted-foreground">{t(s.unit)}</span>}
+                {s.unit !== "pm_from" && <span className="block text-xs text-muted-foreground">{t(s.unit)}</span>}
               </>
             )}
           </span>
         </div>
+      </div>
+    </Link>
+  );
+}
+
+/** Experts view (Explore ?view=pros): one card per pro, built from their published services (real data only). */
+export function ProCard({ p, compact = false }: { p: ProSummary; compact?: boolean }) {
+  const { t, lang } = useI18n();
+  return (
+    <Link to="/pros/$id" params={{ id: p.ownerId }} className={`listing-card group w-full gap-3 ${compact ? "p-4" : "p-5"}`}>
+      <div className="flex items-center gap-3">
+        <Avatar src={p.avatar} name={p.name} size={compact ? "sm" : "md"} />
+        <span className="min-w-0 flex-1">
+          <span dir="auto" className="block truncate font-bold group-hover:underline">{p.name}</span>
+          {p.profession && <span dir="auto" className="block truncate text-sm text-muted-foreground">{p.profession}</span>}
+        </span>
+      </div>
+      <ul className="flex flex-wrap gap-1.5" aria-label={t("pp_fields")}>
+        {p.categories.slice(0, compact ? 2 : 3).map((c) => {
+          const cat = CATEGORIES.find((x) => x.id === c);
+          const Icon = CATEGORY_ICONS[c] ?? CATEGORY_ICONS.other;
+          return cat ? <li key={c} className="tag tag-sea"><Icon className="size-3.5" aria-hidden />{t(cat.key)}</li> : null;
+        })}
+      </ul>
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t pt-3 text-sm text-muted-foreground">
+        <span className="flex min-w-0 items-center gap-1"><MapPin className="size-3.5 shrink-0" aria-hidden /><span dir="auto" className="truncate">{p.cities.join(", ")}</span></span>
+        <span className="flex items-center gap-2">
+          <span>{t(countKey(lang, p.services, "pro_service_count"), { n: p.services })}</span>
+          {typeof p.accepting === "boolean" && <span className={`avail-chip ${p.accepting ? "avail-open" : "avail-closed"}`}>{t(p.accepting ? "avail_open" : "avail_closed")}</span>}
+        </span>
       </div>
     </Link>
   );
@@ -481,7 +539,7 @@ export function PageHero({ title, sub }: { title: string; sub?: string }) {
     <section className="bg-hero relative overflow-hidden text-navy-foreground">
       <PointerField />
       <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 md:py-16">
-        <h1 className="display-title text-3xl md:text-[2.75rem]">{title}</h1>
+        <h1 className="display-title text-[2rem] md:text-5xl">{title}</h1>
         {sub && <p className="mt-2 max-w-2xl text-navy-muted">{sub}</p>}
       </div>
     </section>

@@ -41,16 +41,18 @@ const raf = () => act(() => new Promise((r) => requestAnimationFrame(() => r(und
 beforeEach(() => { db.inserts = []; });
 
 describe("guided request composer", () => {
-  it("prompt chips add their line once, each on its own line", async () => {
+  it("offers this category's questions; each chip adds its line once, on its own line", async () => {
     renderBox();
     const box = (await screen.findByLabelText(/Décrivez votre besoin/)) as HTMLTextAreaElement;
-    fireEvent.click(screen.getByRole("button", { name: "Où ?" }));
+    // Home repairs: problem, appliance, floor/access, when (request-guides.ts).
+    for (const q of ["Le problème", "Appareil / marque", "Étage / accès", "Quand"]) expect(screen.getByRole("button", { name: q })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Étage / accès" }));
     await raf();
-    fireEvent.change(box, { target: { value: `${box.value}Sousse, Sahloul` } });
-    fireEvent.click(screen.getByRole("button", { name: "Quand ?" }));
-    fireEvent.click(screen.getByRole("button", { name: /Quand \?/ }));
-    expect(box.value).toBe("Lieu : Sousse, Sahloul\nQuand : ");
-    expect(screen.getByRole("button", { name: /Quand \?/ })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.change(box, { target: { value: `${box.value}2e étage, sans ascenseur` } });
+    fireEvent.click(screen.getByRole("button", { name: "Quand" }));
+    fireEvent.click(screen.getByRole("button", { name: "Quand" }));
+    expect(box.value).toBe("Étage / accès : 2e étage, sans ascenseur\nQuand : ");
+    expect(screen.getByRole("button", { name: "Quand" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("shows exactly what the provider will see, and sends only from the review", async () => {

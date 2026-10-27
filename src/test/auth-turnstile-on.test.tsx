@@ -82,8 +82,27 @@ describe("auth with Turnstile on", () => {
     act(() => (ts.opts!["callback"] as (t: string) => void)("tok-9"));
     fireEvent.change(await screen.findByLabelText("Nom complet"), { target: { value: "Amel" } });
     await fill();
+    fireEvent.click(screen.getByLabelText(/J’ai lu et j’accepte/)); // terms acknowledgement (required on sign-up)
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Créer un compte" })); });
     expect((ts.signUp[0] as { options: Record<string, unknown> }).options).toMatchObject({ captchaToken: "tok-9" });
+  });
+
+  it("sign-up requires the terms acknowledgement and never calls Supabase without it", async () => {
+    renderCard("signup");
+    await waitFor(() => expect(ts.opts).not.toBeNull());
+    act(() => (ts.opts!["callback"] as (t: string) => void)("tok-t"));
+    fireEvent.change(await screen.findByLabelText("Nom complet"), { target: { value: "Amel" } });
+    await fill();
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Créer un compte" })); });
+    expect(screen.getByText("Acceptez les conditions pour créer votre compte.")).toBeInTheDocument();
+    expect(ts.signUp).toHaveLength(0);
+  });
+
+  it("sign-up offers both roles with what each unlocks", async () => {
+    renderCard("signup");
+    expect(await screen.findByRole("radio", { name: /Je cherche un pro/ })).toBeChecked();
+    expect(screen.getByRole("radio", { name: /Je propose mes services/ })).not.toBeChecked();
+    expect(screen.getByText(/publier vos services et recevoir des demandes/)).toBeInTheDocument();
   });
 
   it("a refused bot check on login says so, not 'wrong password'", async () => {
@@ -114,6 +133,7 @@ describe("auth with Turnstile on", () => {
     act(() => (ts.opts!["callback"] as (t: string) => void)("tok-s"));
     fireEvent.change(await screen.findByLabelText("Nom complet"), { target: { value: "Amel" } });
     await fill();
+    fireEvent.click(screen.getByLabelText(/J’ai lu et j’accepte/)); // terms acknowledgement (required on sign-up)
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Créer un compte" })); });
     expect(screen.getByRole("alert")).toHaveTextContent("La vérification anti-robot a échoué");
     expect(screen.queryByText(/captcha protection/)).toBeNull();

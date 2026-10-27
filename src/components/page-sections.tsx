@@ -11,7 +11,7 @@ export function PageIntro({ kicker, title, sub, children }: { kicker?: string; t
       <PointerField />
       <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 md:py-16">
         {kicker && <p className="eyebrow text-clay!">{kicker}</p>}
-        <h1 className="display-title mt-2 text-3xl md:text-[2.75rem]">{title}</h1>
+        <h1 className="display-title mt-2 text-[2rem] md:text-5xl">{title}</h1>
         {sub && <p className="mt-2 max-w-2xl text-navy-muted">{sub}</p>}
         {children}
       </div>

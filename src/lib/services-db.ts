@@ -12,10 +12,10 @@ const UNIT: Record<string, Service["unit"]> = { fixed: "pm_fixed", from: "pm_fro
 type Row = {
   id: string; owner_id: string; title: string; description: string; category: string; price_model: string;
   price: number | null; city: string; remote: boolean; created_at: string; image_url?: string | null; details?: Record<string, unknown> | null;
-  profiles?: { display_name: string; title?: string | null } | null;
+  profiles?: { display_name: string; title?: string | null; avatar_url?: string | null; accepting?: unknown } | null;
 };
 
-export function rowToService(r: Row, signed?: string): Service {
+export function rowToService(r: Row, signed?: string, avatar?: string): Service {
   return {
     id: r.id,
     title: r.title,
@@ -37,10 +37,13 @@ export function rowToService(r: Row, signed?: string): Service {
     hasPhoto: !!signed,
     priceMissing: r.price_model !== "quote" && (r.price == null || r.price <= 0),
     details: r.details ?? {},
+    providerAvatar: avatar,
+    // Declared by the pro in their profile; unknown (no chip) unless it is a real boolean.
+    accepting: typeof r.profiles?.accepting === "boolean" ? r.profiles.accepting : undefined,
   };
 }
 
-const SELECT = "id, owner_id, title, description, category, price_model, price, city, remote, created_at, image_url, details, profiles(display_name, title)";
+const SELECT = "id, owner_id, title, description, category, price_model, price, city, remote, created_at, image_url, details, profiles(display_name, title, avatar_url, accepting:professional_details->accepting)";
 
 /** Published, non-archived listings (archived must be filtered here too: RLS lets owners read their own archived rows). */
 async function loadPublished(db: Db) {
@@ -101,8 +104,10 @@ export async function signImages(paths: string[], db: Db = supabase): Promise<Re
 }
 
 async function withImages(rows: Row[], db: Db = supabase) {
-  const urls = await signImages(rows.map((r) => r.image_url).filter((x): x is string => !!x), db);
-  return rows.map((r) => rowToService(r, r.image_url ? urls[r.image_url] : undefined));
+  // Service photos and the pros' profile photos are signed in one call (both public once referenced).
+  const paths = [...new Set(rows.flatMap((r) => [r.image_url, r.profiles?.avatar_url]).filter((x): x is string => !!x))];
+  const urls = await signImages(paths, db);
+  return rows.map((r) => rowToService(r, r.image_url ? urls[r.image_url] : undefined, r.profiles?.avatar_url ? urls[r.profiles.avatar_url] : undefined));
 }
 
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;

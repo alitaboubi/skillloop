@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode, type RefObject } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import { Briefcase, Car, GraduationCap, HardHat, HeartHandshake, HeartPulse, Laptop, LayoutGrid, Palette, PartyPopper, School, Stethoscope, Wrench, type LucideIcon } from "lucide-react";
 import type { CategoryId } from "@/lib/data";
 
@@ -359,44 +359,6 @@ function usePointerField(ref: RefObject<HTMLDivElement | null>) {
       host.removeEventListener("pointerdown", onDown);
     };
   }, [ref]);
-}
-
-/* ---------- Gentle section reveal ---------- */
-
-/**
- * Fades a block in once when it first scrolls into view.
- * Safe by default: content renders visible on the server and without JS; it is only hidden
- * when it starts below the fold and the user has not asked for reduced motion.
- */
-/**
- * `stagger`: for grids — the container stays put and its first children rise in one after another (40 ms steps, at most
- * 6 steps; idea from VengeanceUI "Staggered Grid", own CSS implementation, no GSAP). Same safety as above: only for
- * grids that start below the fold, never hidden on the server or without JS, nothing under reduced motion.
- */
-export function Reveal({ children, className = "", stagger = false }: { children: ReactNode; className?: string; stagger?: boolean }) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    if (el.dataset["reveal"] === "in" || el.getBoundingClientRect().top < window.innerHeight * 0.9) return;
-    el.dataset["reveal"] = "pending";
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          el.dataset["reveal"] = "in";
-          io.disconnect();
-        }
-      },
-      { rootMargin: "0px 0px -6% 0px" },
-    );
-    io.observe(el);
-    // Keyboard users tabbing into a pending block reveal it immediately.
-    const onFocus = () => { el.dataset["reveal"] = "in"; io.disconnect(); };
-    el.addEventListener("focusin", onFocus, { once: true });
-    return () => { io.disconnect(); el.removeEventListener("focusin", onFocus); };
-  }, []);
-  return <div ref={ref} className={className} data-stagger={stagger || undefined}>{children}</div>;
 }
 
 /* ---------- Profile progress: the logo's loop, filling with lime ---------- */

@@ -230,3 +230,31 @@ describe("updateService", () => {
     expect(calls[0]!.args[0]).toMatchObject({ status: "draft", details: { duration: "2 h" }, owner_id: "u1", image_url: null });
   });
 });
+
+describe("before/after photos (prepared, flag off in production)", () => {
+  const file = new File(["x"], "a.png", { type: "image/png" });
+  it("a new before photo needs consent and nothing is uploaded without it", async () => {
+    const { db, calls } = fakeDb(() => ({ data: { id: "pi1" } }));
+    expect((await savePortfolioItem(db, "u1", { id: "pi1", title: "Cuisine", description: "", previousImage: "u1/portfolio/a.png" }, null, { file, remove: false, previous: null, consent: false })).error).toBe("consent");
+    expect(calls.some((c) => c.op === "upload" || c.table === "portfolio_items")).toBe(false);
+  });
+  it("saves the before photo with a consent stamp and removes the replaced one after success", async () => {
+    const { db, calls } = fakeDb((c) => (c.table === "portfolio_items" ? { data: { id: "pi1" } } : {}));
+    await savePortfolioItem(db, "u1", { id: "pi1", title: "Cuisine", description: "", previousImage: "u1/portfolio/a.png" }, null, { file, remove: false, previous: "u1/portfolio/old-before.png", consent: true });
+    const up = calls.find((c) => c.op === "upload")!.args[0] as string;
+    const row = calls.find((c) => c.table === "portfolio_items")!.args[0] as Record<string, unknown>;
+    expect(row).toMatchObject({ before_image_url: up });
+    expect(typeof row["before_consent_at"]).toBe("string");
+    expect(calls.at(-1)).toMatchObject({ op: "remove", args: [["u1/portfolio/old-before.png"]] });
+  });
+  it("without the before option the row never mentions the new columns", async () => {
+    const { db, calls } = fakeDb(() => ({ data: { id: "pi1" } }));
+    await savePortfolioItem(db, "u1", { id: "pi1", title: "Cuisine", description: "", previousImage: "u1/portfolio/a.png" }, null);
+    expect(Object.keys(calls.find((c) => c.table === "portfolio_items")!.args[0] as object)).toEqual(["title", "description", "image_url"]);
+  });
+  it("deleting an item also removes its before photo", async () => {
+    const { db, calls } = fakeDb(() => ({}));
+    await deletePortfolioItem(db, { id: "pi1", image_url: "u1/portfolio/a.png", before_image_url: "u1/portfolio/b.png" });
+    expect(calls.at(-1)).toMatchObject({ op: "remove", args: [["u1/portfolio/a.png", "u1/portfolio/b.png"]] });
+  });
+});

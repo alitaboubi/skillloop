@@ -41,7 +41,9 @@ export type Service = {
   /** True when a priced model has no stored amount — never display as 0. */
   priceMissing?: boolean;
   details?: Record<string, unknown>;
-  accepting?: boolean;
+  accepting?: boolean | undefined;
+  /** Signed URL of the pro's profile photo (expert mini-row on cards); absent without a photo. */
+  providerAvatar?: string | undefined;
   profession?: string | undefined;
   /** Only set when real reviews exist. */
   rating?: { avg: number; count: number };

@@ -27,7 +27,7 @@ function Page() {
         <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-12 sm:px-6 md:grid-cols-2 md:py-16">
           <div className="min-w-0">
             <p className="eyebrow text-clay!">{t("pr_kicker")}</p>
-            <h1 className="display-title mt-2 text-3xl md:text-[2.75rem]">{t("pros_title")}</h1>
+            <h1 className="display-title mt-2 text-[2rem] md:text-5xl">{t("pros_title")}</h1>
             <p className="mt-3 max-w-xl text-navy-muted">{t("pr_sub")}</p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link to="/offer" className="btn btn-lime">{t("pr_cta_publish")}</Link>

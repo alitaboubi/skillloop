@@ -48,7 +48,7 @@ export function DeleteAccount({ userId }: { userId: string }) {
   };
 
   return (
-    <section aria-labelledby={`${id}-h`} className="rounded-[1.25rem] border border-destructive/40 p-5 sm:p-6">
+    <section aria-labelledby={`${id}-h`} className="rounded-3xl border border-destructive/40 p-5 sm:p-6">
       <h2 id={`${id}-h`} className="flex items-center gap-2 text-lg font-bold"><TriangleAlert className="size-5 text-destructive" aria-hidden />{t("da_title")}</h2>
       {!ACCOUNT_DELETION_ENABLED ? (
         <p className="mt-2 text-sm text-muted-foreground">

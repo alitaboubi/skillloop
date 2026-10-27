@@ -11,8 +11,10 @@ describe("translations", () => {
   });
   it("uses the required Tunisian Arabic wording", () => {
     expect(dictionaries.ar.request_quote).toBe("اطلب تقدير للسوم");
-    expect(dictionaries.ar.request_sent).toBe("بعثنا طلبك، نستناو تأكيد مقدّم الخدمة.");
-    expect(dictionaries.fr.request_sent).toBe("Demande envoyée — en attente de confirmation du professionnel.");
+    expect(dictionaries.ar.request_sent).toBe("بعثنا طلبك، نستناو تأكيد المحترف.");
+    expect(dictionaries.fr.request_sent).toBe("Demande envoyée — en attente de confirmation du pro.");
+    // UI word for providers (approved 2026-10-27): "pro" in FR/EN; Arabic محترف (صنايعي only for trade categories).
+    expect(dictionaries.en.provider).toBe("Pro");
   });
 });
 

@@ -7,6 +7,7 @@ import { ArrowUpRight, Check, Pencil, CheckCircle2, ChevronRight, Clock, ImageOf
 import { Avatar, EnlargeHint, FramedImage, MediaViewer } from "@/components/media-viewer";
 import { ErrorState } from "@/components/states";
 import { profileQuery } from "@/lib/profiles-db";
+import { requestGuide, guideLine } from "@/lib/request-guides";
 import { useI18n, type TKey } from "@/lib/i18n";
 import { CATEGORIES, type Service } from "@/lib/data";
 import { ServiceCard, formatPrice, useAllServices } from "@/components/site";
@@ -20,7 +21,7 @@ import { requestGate } from "@/lib/request-timeline";
 import { addPromptLine } from "@/lib/conversations";
 import { vtName } from "@/lib/view-transitions";
 import { ShareKit } from "@/components/share-kit";
-import { CATEGORY_ICONS, Reveal } from "@/components/brand";
+import { CATEGORY_ICONS } from "@/components/brand";
 import { servicePath } from "@/lib/share";
 
 export const Route = createFileRoute("/services/$id")({
@@ -80,7 +81,7 @@ function NextSteps() {
       <ol className="mt-2 space-y-2">
         {steps.map((x, i) => (
           <li key={x.key} className="flex items-start gap-2.5 text-sm">
-            <span aria-hidden className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full text-[11px] font-bold ${x.done ? "bg-lime text-lime-foreground" : "bg-muted text-muted-foreground"}`}>
+            <span aria-hidden className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full text-xs font-bold ${x.done ? "bg-lime text-lime-foreground" : "bg-muted text-muted-foreground"}`}>
               {x.done ? <Check className="size-3" /> : i + 1}
             </span>
             <span className={x.done ? "font-semibold" : "text-muted-foreground"}>{t(x.key)}</span>
@@ -92,7 +93,7 @@ function NextSteps() {
 }
 
 export function RequestBox({ s }: { s: Service }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [msg, setMsg] = useState("");
@@ -165,12 +166,10 @@ export function RequestBox({ s }: { s: Service }) {
         <Link to="/explore" search={{ category: s.category }} className="btn btn-outline w-full">{t("rq_similar")}</Link>
       </div>
     );
-  const prompts: { chip: TKey; line: TKey }[] = [
-    { chip: "rq_p_need", line: "rq_p_need_line" }, { chip: "rq_p_where", line: "rq_p_where_line" },
-    { chip: "rq_p_when", line: "rq_p_when_line" }, { chip: "rq_p_extra", line: "rq_p_extra_line" },
-  ];
-  const addPrompt = (line: TKey) => {
-    const r = addPromptLine(msg, t(line));
+  // Guided request: this category's questions (request-guides.ts); each chip adds an editable line to the client's text.
+  const prompts = requestGuide(s.category).map((key) => ({ chip: key, line: guideLine(t(key), lang) }));
+  const addPrompt = (line: string) => {
+    const r = addPromptLine(msg, line);
     if (r.added) setMsg(r.value);
     requestAnimationFrame(() => { const el = area.current; if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } });
   };
@@ -214,7 +213,7 @@ export function RequestBox({ s }: { s: Service }) {
           <p id="req-prompts" className="text-xs text-muted-foreground">{t("rq_prompts_label")}</p>
           <div role="group" aria-labelledby="req-prompts" className="mt-1.5 flex flex-wrap gap-1.5">
             {prompts.map((p) => {
-              const present = msg.split("\n").some((l) => l.trimStart().startsWith(t(p.line)));
+              const present = msg.split("\n").some((l) => l.trimStart().startsWith(p.line));
               return (
                 <button key={p.chip} type="button" aria-pressed={present} onClick={() => addPrompt(p.line)}
                   className={`chip min-h-9 text-xs ${present ? "border-sea text-sea" : ""}`}>
@@ -254,7 +253,6 @@ function DetailSkeleton() {
 
 const text = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
 const lines = (v: unknown) => (text(v) ?? "").split(/\n|•|;/).map((x) => x.replace(/^[-*\s]+/, "").trim()).filter(Boolean);
-
 
 function ProviderSummary({ s }: { s: Service }) {
   const { t } = useI18n();
@@ -393,7 +391,7 @@ function Detail({ s }: { s: Service }) {
           <span className="tag tag-sea">{s.remote ? <Wifi className="size-3.5" aria-hidden /> : <User className="size-3.5" aria-hidden />}{s.remote ? t("remote") : t("on_site")}</span>
           {s.city && <span className="tag tag-sea"><MapPin className="size-3.5" aria-hidden /><span dir="auto">{s.city}</span></span>}
         </div>
-        <h1 dir="auto" className="display-title break-words text-3xl md:text-[2.75rem]">{s.title}</h1>
+        <h1 dir="auto" className="display-title break-words text-[2rem] md:text-5xl">{s.title}</h1>
         <p className="text-sm text-muted-foreground">
           {t("sd_by")}{" "}
           {s.ownerId ? <Link to="/pros/$id" params={{ id: s.ownerId }} dir="auto" className="font-semibold text-foreground underline-offset-4 hover:underline">{s.provider}</Link> : <span dir="auto" className="font-semibold text-foreground">{s.provider}</span>}
@@ -470,9 +468,9 @@ function Detail({ s }: { s: Service }) {
       {similar.length > 0 && (
         <section aria-labelledby="sd-similar" className="mt-16 border-t pt-10">
           <h2 id="sd-similar" className="text-xl font-bold">{t("similar")}</h2>
-          <Reveal stagger className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {similar.map((x) => <ServiceCard key={x.id} s={x} />)}
-          </Reveal>
+          </div>
         </section>
       )}
 

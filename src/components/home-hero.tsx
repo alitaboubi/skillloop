@@ -133,7 +133,7 @@ export const HomeHero = forwardRef<HomeHeroHandle>(function HomeHero(_props, ref
             role="tabpanel"
             aria-labelledby={`${id}-tab-${intent}`}
             onSubmit={(e) => { e.preventDefault(); submit(); }}
-            className="mt-3 rounded-[1.25rem] bg-card p-4 text-start text-card-foreground shadow-raised ring-1 ring-ink-foreground/10 sm:p-6"
+            className="mt-3 rounded-3xl bg-card p-4 text-start text-card-foreground shadow-raised ring-1 ring-ink-foreground/10 sm:p-6"
           >
             {/* Only the intent-specific copy is re-keyed (short cross-fade); the textarea is never remounted. */}
             <label key={`q-${intent}`} htmlFor={`${id}-text`} className="swap-in block text-base font-bold">{t(c.q)}</label>

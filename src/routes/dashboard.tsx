@@ -44,7 +44,7 @@ const myServicesQuery = (userId: string) => ({
 });
 
 /** Checklist items jump to the matching field in profile settings. */
-const CHECK_ANCHOR: Partial<Record<TKey, string>> = { db_check_photo: "photo", db_check_bio: "bio", db_check_availability: "availability" };
+const CHECK_ANCHOR: Partial<Record<TKey, string>> = { db_check_photo: "photo", db_check_bio: "bio", db_check_availability: "availability", db_check_carnet: "carnet" };
 
 const SECTION_LABEL: Record<Section, TKey> = { overview: "db_overview", services: "my_services", requests: "received_requests", portfolio: "db_portfolio", preview: "db_preview" };
 
@@ -143,7 +143,7 @@ function ClientOverview({ userId }: { userId: string }) {
           <EmptyState icon={Inbox} title={t("db_no_requests")} sub={t("db_no_requests_client")} action={<><Link to="/explore" className="btn btn-ink"><Search className="size-4" aria-hidden />{t("explore_services")}</Link><div className="w-full"><StartShortcuts /></div></>} />
         )}
       </section>
-      <section aria-labelledby="become-pro" className="relative flex flex-col gap-4 overflow-hidden rounded-[1.25rem] bg-ink-hero p-6 text-ink-foreground sm:flex-row sm:items-center sm:justify-between">
+      <section aria-labelledby="become-pro" className="relative flex flex-col gap-4 overflow-hidden rounded-3xl bg-ink-hero p-6 text-ink-foreground sm:flex-row sm:items-center sm:justify-between">
         <PointerField />
         <div className="relative">
           <h2 id="become-pro" className="text-lg font-bold">{t("db_become_pro_t")}</h2>

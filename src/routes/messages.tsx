@@ -15,6 +15,8 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { lastMessagesQuery, myRequestsQuery, type RequestRow } from "@/lib/requests-db";
 import { lastByRequest, relativeDay, sortByActivity, withDaySeparators } from "@/lib/conversations";
+import { useUnread } from "@/lib/use-unread";
+import { markRead } from "@/lib/unread";
 import { Avatar } from "@/components/media-viewer";
 import { useViewTransitions, vtName } from "@/lib/view-transitions";
 import { PageHero, formatPrice } from "@/components/site";
@@ -32,6 +34,7 @@ function Page() {
   const navigate = Route.useNavigate();
   const reqs = useQuery({ ...myRequestsQuery(user?.id ?? ""), enabled: !!user });
   const lastQ = useQuery({ ...lastMessagesQuery(user?.id ?? ""), enabled: !!user });
+  const unread = useUnread(user?.id);
   const vt = useViewTransitions();
   const qc = useQueryClient();
   // Keep previews and ordering fresh; realtime only delivers rows this user may read (RLS).
@@ -85,6 +88,7 @@ function Page() {
             const lm = last.get(x.id);
             const at = lm?.created_at ?? x.created_at;
             const preview = lm ? `${lm.sender_id === user.id ? t("you_prefix") : ""}${lm.body}` : x.message;
+            const isUnread = unread.ids.has(x.id) && x.id !== r;
             return (
               <li key={x.id}>
                 <button type="button" onClick={() => navigate({ search: { r: x.id }, viewTransition: vt })} aria-current={x.id === r ? "true" : undefined}
@@ -95,11 +99,14 @@ function Page() {
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="flex items-baseline justify-between gap-2">
-                      <span dir="auto" className="truncate font-semibold">{other}</span>
+                      <span className="flex min-w-0 items-center gap-1.5">
+                        {isUnread && <span className="size-2 shrink-0 rounded-full bg-lime ring-2 ring-lime/30" role="img" aria-label={t("unread_dot")} />}
+                        <span dir="auto" className={`truncate ${isUnread ? "font-extrabold" : "font-semibold"}`}>{other}</span>
+                      </span>
                       <time dateTime={at} className="shrink-0 text-xs text-muted-foreground">{when(at)}</time>
                     </span>
                     <span dir="auto" className="block truncate text-xs text-muted-foreground">{x.services?.title ?? t("svc_unavailable")}</span>
-                    <span dir="auto" className="mt-1 block truncate text-sm">{preview}</span>
+                    <span dir="auto" className={`mt-1 block truncate text-sm ${isUnread ? "font-semibold text-foreground" : ""}`}>{preview}</span>
                     <span className="mt-1.5 inline-block"><StatusBadge status={x.status} /></span>
                   </span>
                 </button>
@@ -143,6 +150,15 @@ export function Thread({ req, userId, onBack }: { req: RequestRow; userId: strin
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [req.id]);
   useEffect(() => { bottom.current?.scrollIntoView({ block: "nearest" }); }, [msgs.data?.length, outbox.length]);
+  // Opening a conversation (or receiving a message while it is open and visible) marks it read on this device.
+  const newestAt = msgs.data?.length ? msgs.data[msgs.data.length - 1]!.created_at : null;
+  useEffect(() => {
+    if (!newestAt) return;
+    const mark = () => { if (document.visibilityState === "visible") markRead(userId, req.id, newestAt); };
+    mark();
+    document.addEventListener("visibilitychange", mark);
+    return () => document.removeEventListener("visibilitychange", mark);
+  }, [newestAt, req.id, userId]);
   const role = req.provider_id === userId ? "provider" : "client";
   const locale = lang === "ar" ? "ar-TN" : lang;
   // Within a day the separator carries the date, so bubbles show only the time.
@@ -234,7 +250,7 @@ export function Thread({ req, userId, onBack }: { req: RequestRow; userId: strin
               <div key={item.m.id} className={`flex ${item.m.sender_id === userId ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${item.m.sender_id === userId ? "bubble-own" : "bg-muted"}`}>
                   <p dir="auto" className="whitespace-pre-line break-words text-sm">{item.m.body}</p>
-                  <p className="mt-1 text-[10px] opacity-70">{time.format(new Date(item.m.created_at))}</p>
+                  <p className="mt-1 text-xs opacity-70">{time.format(new Date(item.m.created_at))}</p>
                 </div>
               </div>
             ),
@@ -244,7 +260,7 @@ export function Thread({ req, userId, onBack }: { req: RequestRow; userId: strin
           <div key={m.id} className="flex flex-col items-end gap-1">
             <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${m.state === "failed" ? "border border-destructive/50 bg-destructive/10" : "bubble-own opacity-75"}`}>
               <p dir="auto" className="whitespace-pre-line break-words text-sm">{m.body}</p>
-              {m.state === "sending" && <p className="mt-1 text-[10px] opacity-80">{t("msg_sending")}</p>}
+              {m.state === "sending" && <p className="mt-1 text-xs opacity-80">{t("msg_sending")}</p>}
             </div>
             {m.state === "failed" && (
               <p role="alert" className="flex flex-wrap items-center gap-2 text-xs">

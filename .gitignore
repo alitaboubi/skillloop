@@ -42,3 +42,6 @@ supabase/.branches
 
 # Windows download markers (WSL)
 *:Zone.Identifier
+
+# Local screenshots (may contain private information) — never committed
+skillloop-screens/

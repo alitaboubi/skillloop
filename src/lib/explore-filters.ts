@@ -1,4 +1,5 @@
 import { CATEGORIES, CITIES, type Service } from "./data";
+import { synonymCategories } from "./search-synonyms";
 
 export type ExploreSearch = {
   q?: string | undefined;
@@ -6,6 +7,8 @@ export type ExploreSearch = {
   city?: string | undefined;
   mode?: "remote" | "inperson" | undefined;
   sort?: "recent" | "price" | undefined;
+  /** "pros" = Experts view (one card per pro); absent = services. Not a filter. */
+  view?: "pros" | undefined;
 };
 
 /** Case-, accent- and Arabic-diacritic-insensitive form used for keyword matching. */
@@ -19,12 +22,15 @@ export function normalizeText(v: string): string {
     .toLowerCase();
 }
 
-/** Every keyword must appear somewhere in the title, description, city or (translated) category label. */
+/**
+ * Every keyword must appear somewhere in the title, description, city or (translated) category label — or be a
+ * known everyday word for the service's category (search-synonyms.ts: "klimatiseur", "بلومبي", "9raya"…).
+ */
 export function matchesQuery(x: Service, q: string, categoryLabel?: (id: string) => string): boolean {
   const words = normalizeText(q).split(/\s+/).filter(Boolean);
   if (!words.length) return true;
   const hay = normalizeText([x.title, x.description, x.city, categoryLabel?.(x.category) ?? ""].join(" "));
-  return words.every((w) => hay.includes(w));
+  return words.every((w) => hay.includes(w) || synonymCategories(w).includes(x.category));
 }
 
 export function filterServices(list: Service[], s: ExploreSearch, categoryLabel?: (id: string) => string): Service[] {
@@ -84,3 +90,53 @@ export function facetCounts(list: Service[], s: ExploreSearch, categoryLabel?: (
 /** "New" only from the real publication date: published within the last 7 days. */
 export const NEW_DAYS = 7;
 export const isNew = (x: Pick<Service, "publishedDaysAgo">) => x.publishedDaysAgo >= 0 && x.publishedDaysAgo < NEW_DAYS;
+
+/* ---------- Experts view (Phase 2): the same results, one card per pro ---------- */
+
+export type ProSummary = {
+  ownerId: string;
+  name: string;
+  avatar: string | undefined;
+  profession: string | undefined;
+  cities: string[];
+  categories: Service["category"][];
+  services: number;
+  accepting: boolean | undefined;
+  /** Days since this pro's first published service (in the list given). */
+  firstDaysAgo: number;
+};
+
+/** Groups services by pro, keeping the order of the list (a pro appears where their first matching service was). */
+export function groupByPro(list: Service[]): ProSummary[] {
+  const map = new Map<string, ProSummary>();
+  for (const s of list) {
+    if (!s.ownerId) continue;
+    const p = map.get(s.ownerId);
+    if (!p) {
+      map.set(s.ownerId, {
+        ownerId: s.ownerId, name: s.provider, avatar: s.providerAvatar, profession: s.profession,
+        cities: s.city ? [s.city] : [], categories: [s.category], services: 1, accepting: s.accepting, firstDaysAgo: s.publishedDaysAgo,
+      });
+      continue;
+    }
+    p.services += 1;
+    if (s.city && !p.cities.includes(s.city)) p.cities.push(s.city);
+    if (!p.categories.includes(s.category)) p.categories.push(s.category);
+    p.firstDaysAgo = Math.max(p.firstDaysAgo, s.publishedDaysAgo);
+  }
+  return [...map.values()];
+}
+
+/** "Nouveaux sur SkillLoop": first service published within this many days (real dates only). */
+export const NEW_TALENT_DAYS = 30;
+
+/**
+ * Newcomers given a fair place above the results, newest first. Shown only when it adds something: at least one
+ * newcomer AND at least one established pro (if everyone is new, the row would just repeat the list).
+ */
+export function newTalents(all: Service[], max = 6): ProSummary[] {
+  const pros = groupByPro(all);
+  const fresh = pros.filter((p) => p.firstDaysAgo >= 0 && p.firstDaysAgo < NEW_TALENT_DAYS);
+  if (!fresh.length || fresh.length === pros.length) return [];
+  return fresh.sort((a, b) => a.firstDaysAgo - b.firstDaysAgo).slice(0, max);
+}

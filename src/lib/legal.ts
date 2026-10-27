@@ -30,6 +30,7 @@ const PRIVACY: Record<Lang, LegalDoc> = {
         "Demandes et messages échangés entre client et prestataire.",
         "Données techniques : adresse IP, type de navigateur et pages demandées, traités par notre hébergeur pour faire fonctionner et sécuriser le site ; le contrôle anti-robot (Cloudflare Turnstile) lors de la connexion, de l'inscription et de la réinitialisation du mot de passe.",
         "Compteurs d'usage quotidiens (nombre de services, demandes, messages et photos envoyés) pour limiter les abus.",
+        "« Prévenez-moi » : si vous demandez à être prévenu, votre email, ce que vous cherchiez et la ville, uniquement pour vous écrire quand un pro correspondant est disponible ; supprimés sur simple demande.",
       ]] },
       { id: "purposes", h: "Pourquoi", body: [[
         "Fournir le service : créer votre compte, publier vos services, transmettre les demandes et les messages (exécution du service que vous demandez).",
@@ -92,6 +93,7 @@ const PRIVACY: Record<Lang, LegalDoc> = {
         "Requests and messages exchanged between client and provider.",
         "Technical data: IP address, browser type and requested pages, processed by our host to run and secure the site; the bot check (Cloudflare Turnstile) at sign-in, sign-up and password reset.",
         "Daily usage counters (number of services, requests, messages and photos sent) to limit abuse.",
+        "“Notify me”: if you ask to be notified, your email, what you were looking for and the city, used only to write to you when a matching pro is available; deleted on request.",
       ]] },
       { id: "purposes", h: "Why", body: [[
         "Providing the service: creating your account, publishing your services, delivering requests and messages (performing the service you ask for).",
@@ -154,6 +156,7 @@ const PRIVACY: Record<Lang, LegalDoc> = {
         "الطلبات والرسائل المتبادلة بين الحريف ومقدّم الخدمة.",
         "بيانات تقنية: عنوان IP ونوع المتصفح والصفحات المطلوبة، يعالجها المستضيف لتشغيل الموقع وحمايته؛ والتحقق من أنك لست روبوتًا (Cloudflare Turnstile) عند الدخول والتسجيل وإعادة تعيين كلمة السر.",
         "عدّادات استعمال يومية (عدد الخدمات والطلبات والرسائل والصور) للحدّ من التجاوزات.",
+        "«علّمني»: إذا طلبت أن نُعلمك، نحفظ بريدك الإلكتروني وما كنت تبحث عنه والمدينة، فقط لنراسلك عند توفّر محترف مناسب؛ وتُحذف عند الطلب.",
       ]] },
       { id: "purposes", h: "لماذا", body: [[
         "تقديم الخدمة: إنشاء حسابك، نشر خدماتك، إيصال الطلبات والرسائل.",

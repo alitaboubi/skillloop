@@ -215,3 +215,9 @@ tracked files for `sb_secret_`, `service_role`, `eyJhbGciOi` (JWT) → nothing.
 - [ ] Cloudflare Worker metrics (requests, CPU, errors) and Logs for `ssr_error`
 - [ ] Brevo daily sends; Search Console coverage
 - [ ] Manual database dump
+
+## Status update (2026-10-26)
+- Live: https://skillloop.taboubiali363.workers.dev (Cloudflare Workers Builds from alitaboubi/skillloop).
+- Email: Gmail SMTP (dedicated account, app password in Supabase only), port 465, French templates and subjects,
+  rate limit 20/hour — confirmation and password-reset emails verified on the live site. (Brevo not used.)
+- Remaining before announcing: Search Console, legal placeholders, account-deletion decision.

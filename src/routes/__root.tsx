@@ -13,11 +13,11 @@ import { Toaster } from "@/components/ui/sonner";
 import appCss from "../styles.css?url";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { SiteHeader, SiteFooter, BottomNav } from "@/components/site";
-import { PointerField } from "@/components/brand";
 
 const GOOGLE_SITE_VERIFICATION = (import.meta.env["VITE_GOOGLE_SITE_VERIFICATION"] as string | undefined)?.trim() ?? "";
 import { ErrorScreen } from "@/components/error-screen";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
+import { PointerField } from "@/components/brand";
 
 function NotFoundComponent() {
   const { t } = useI18n();

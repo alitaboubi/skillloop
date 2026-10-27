@@ -5,13 +5,105 @@ import { Eye, ImageIcon, Lock, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
-import { applyContactOps, deletePortfolioItem, savePortfolioItem, validatePortfolio } from "@/lib/marketplace-writes";
+import { applyContactOps, deletePortfolioItem, savePortfolioItem, saveProfessionalDetails, validatePortfolio } from "@/lib/marketplace-writes";
+import { COMMITMENTS, COMMITMENT_KEYS, METHOD_STEPS, METHOD_STEP_MAX, WARRANTY_MAX_DAYS, readCarnet, validateCarnet, writeCarnet, type CarnetDraft, type Commitment } from "@/lib/carnet";
+import { BEFORE_AFTER_ENABLED } from "@/lib/before-after";
+import { profileQuery } from "@/lib/profiles-db";
+import type { TKey } from "@/lib/i18n";
 import { CONTACT_KINDS, contactOps, normalizeContact, type ContactDraft, type ContactKind, type ContactRow } from "@/lib/profile-contacts";
 import { PhotoPicker } from "@/components/photo-picker";
 import { EmptyState } from "@/components/states";
 import { CONTACT_META } from "@/components/contact-meta";
 
-export type PortfolioItem = { id: string; title: string; description: string | null; image_url: string; image?: string | undefined };
+export type PortfolioItem = {
+  id: string; title: string; description: string | null; image_url: string; image?: string | undefined;
+  before_image_url?: string | null | undefined; before?: string | undefined;
+};
+
+/* ---------- Carnet: method + commitments ---------- */
+
+const STEP_PH: TKey[] = ["carnet_step_ph1", "carnet_step_ph2", "carnet_step_ph3"];
+
+/**
+ * "Mon carnet" (Phase 2): up to three method steps and commitments from a fixed list, saved into
+ * professional_details (merged into the freshly loaded details so other settings are never overwritten).
+ */
+export function CarnetEditor({ userId, details }: { userId: string; details: unknown }) {
+  const { t } = useI18n();
+  const qc = useQueryClient();
+  const saved = readCarnet(details);
+  const [d, setD] = useState<CarnetDraft>(() => ({
+    method: Array.from({ length: METHOD_STEPS }, (_, i) => saved.method[i] ?? ""),
+    commitments: saved.commitments,
+    warrantyDays: saved.warrantyDays ? String(saved.warrantyDays) : "",
+  }));
+  const [errors, setErrors] = useState<ReturnType<typeof validateCarnet>>({});
+  const [busy, setBusy] = useState(false);
+  const toggle = (c: Commitment) => {
+    setD((cur) => ({ ...cur, commitments: cur.commitments.includes(c) ? cur.commitments.filter((x) => x !== c) : [...cur.commitments, c] }));
+    if (c === "warranty") setErrors(({ warranty: _w, ...rest }) => rest);
+  };
+
+  return (
+    <form id="carnet" noValidate aria-busy={busy} aria-labelledby="cn-title" className="max-w-2xl scroll-mt-24 space-y-6 panel p-6" onSubmit={async (e) => {
+      e.preventDefault();
+      const v = validateCarnet(d);
+      setErrors(v);
+      if (v.method) { document.getElementById("cn-step-0")?.focus(); return; }
+      if (v.warranty) { document.getElementById("cn-days")?.focus(); return; }
+      setBusy(true);
+      // Merge into the latest stored details (another tab or the settings form may have changed them).
+      const fresh = await qc.fetchQuery({ ...profileQuery(userId), staleTime: 0 }).catch(() => null);
+      const error = await saveProfessionalDetails(supabase, userId, writeCarnet(fresh?.professional_details ?? details, d));
+      setBusy(false);
+      if (error) { toast.error(t("err_generic")); return; }
+      toast.success(t("saved"));
+      qc.invalidateQueries({ queryKey: ["profile", userId] });
+    }}>
+      <div>
+        <h2 id="cn-title" className="text-lg font-bold">{t("carnet_title")}</h2>
+        <p className="mt-1 max-w-md text-sm text-muted-foreground">{t("carnet_intro")}</p>
+      </div>
+      <fieldset aria-describedby="cn-method-help">
+        <legend className="text-sm font-semibold">{t("carnet_method")}</legend>
+        <p id="cn-method-help" className="text-sm text-muted-foreground">{t("carnet_method_help")}</p>
+        <ol className="mt-3 space-y-3">
+          {d.method.map((step, i) => (
+            <li key={i}>
+              <label htmlFor={`cn-step-${i}`} className="block text-sm font-semibold text-muted-foreground">{t("carnet_step", { n: i + 1 })}</label>
+              <input id={`cn-step-${i}`} dir="auto" maxLength={METHOD_STEP_MAX} className="field mt-1.5" value={step} placeholder={t(STEP_PH[i]!)}
+                onChange={(e) => { const v = e.target.value; setD((cur) => ({ ...cur, method: cur.method.map((x, j) => (j === i ? v : x)) })); }}
+                aria-invalid={!!errors.method} aria-describedby={errors.method ? "cn-method-err" : undefined} />
+            </li>
+          ))}
+        </ol>
+        {errors.method && <p id="cn-method-err" className="mt-1 text-sm text-destructive">{t(errors.method.key, { n: errors.method.n ?? "" })}</p>}
+      </fieldset>
+      <fieldset aria-describedby="cn-cm-help">
+        <legend className="text-sm font-semibold">{t("carnet_commitments")}</legend>
+        <p id="cn-cm-help" className="text-sm text-muted-foreground">{t("carnet_commitments_help")}</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {COMMITMENTS.map((c) => (
+            <label key={c} className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring ${d.commitments.includes(c) ? "border-sea bg-sea-soft font-semibold text-sea" : "hover:bg-muted"}`}>
+              <input type="checkbox" className="size-4 shrink-0 accent-sea" checked={d.commitments.includes(c)} onChange={() => toggle(c)} />
+              {t(COMMITMENT_KEYS[c])}
+            </label>
+          ))}
+        </div>
+        {d.commitments.includes("warranty") && (
+          <div className="mt-3 max-w-xs">
+            <label htmlFor="cn-days" className="block text-sm font-semibold">{t("cm_days_label")}</label>
+            <input id="cn-days" type="number" inputMode="numeric" min={1} max={WARRANTY_MAX_DAYS} dir="ltr" className="field mt-1.5" value={d.warrantyDays}
+              onChange={(e) => { const v = e.target.value; setD((cur) => ({ ...cur, warrantyDays: v })); setErrors(({ warranty: _w, ...rest }) => rest); }}
+              aria-invalid={!!errors.warranty} aria-describedby={errors.warranty ? "cn-days-err" : undefined} />
+            {errors.warranty && <p id="cn-days-err" className="mt-1 text-sm text-destructive">{t(errors.warranty.key, { n: errors.warranty.n ?? "" })}</p>}
+          </div>
+        )}
+      </fieldset>
+      <button disabled={busy} aria-busy={busy} className="btn btn-lime">{busy ? t("loading") : t("save")}</button>
+    </form>
+  );
+}
 
 /* ---------- Portfolio ---------- */
 
@@ -59,8 +151,9 @@ export function PortfolioEditor({ userId, items }: { userId: string; items: Port
               <li key={x.id} className="sm:col-span-2"><PortfolioForm userId={userId} item={x} onDone={done} /></li>
             ) : (
               <li key={x.id} className="flex flex-col overflow-hidden rounded-2xl ring-1 ring-border">
-                <div className="aspect-[4/3] bg-muted">
+                <div className="relative aspect-[4/3] bg-muted">
                   {x.image ? <img src={x.image} alt={x.title} loading="lazy" className="size-full object-cover" /> : <span className="media-fallback"><ImageIcon className="size-8" aria-hidden /></span>}
+                  {x.before && <span className="tag tag-ink absolute start-2 top-2">{t("ba_before")} / {t("ba_after")}</span>}
                 </div>
                 <div className="flex flex-1 flex-col gap-1 p-3">
                   <p dir="auto" className="break-words font-semibold">{x.title}</p>
@@ -97,6 +190,10 @@ function PortfolioForm({ userId, item, onDone }: { userId: string; item?: Portfo
   const [description, setDescription] = useState(item?.description ?? "");
   const [file, setFile] = useState<File | null>(null);
   const [imageRemoved, setImageRemoved] = useState(false);
+  const [beforeFile, setBeforeFile] = useState<File | null>(null);
+  const [beforeRemoved, setBeforeRemoved] = useState(false);
+  const [consent, setConsent] = useState(false);
+  const [consentErr, setConsentErr] = useState(false);
   const [errors, setErrors] = useState<ReturnType<typeof validatePortfolio>>({});
   const [busy, setBusy] = useState(false);
   const fid = item?.id ?? "new";
@@ -110,11 +207,14 @@ function PortfolioForm({ userId, item, onDone }: { userId: string; item?: Portfo
       setErrors(v);
       const first = (Object.keys(v) as (keyof typeof v)[])[0];
       if (first) { document.getElementById(`pf-${fid}-${first}`)?.focus(); return; }
+      // A new "before" photo is only published with the pro's consent statement.
+      if (BEFORE_AFTER_ENABLED && beforeFile && !consent) { setConsentErr(true); document.getElementById(`pf-${fid}-consent`)?.focus(); return; }
       setBusy(true);
-      const r = await savePortfolioItem(supabase, userId, { ...(item ? { id: item.id } : {}), title, description, previousImage: item?.image_url ?? null }, file);
+      const before = BEFORE_AFTER_ENABLED ? { file: beforeFile, remove: beforeRemoved, previous: item?.before_image_url ?? null, consent } : undefined;
+      const r = await savePortfolioItem(supabase, userId, { ...(item ? { id: item.id } : {}), title, description, previousImage: item?.image_url ?? null }, file, before);
       setBusy(false);
       // Inputs stay as typed on failure so nothing is lost.
-      if (r.error !== null) { const lim = limitMessage(r.error); toast.error(lim ? t(lim.key, lim.vars) : t(r.error === "upload" ? "err_upload" : "err_generic")); return; }
+      if (r.error !== null) { const lim = limitMessage(r.error); toast.error(lim ? t(lim.key, lim.vars) : t(r.error === "upload" ? "err_upload" : r.error === "consent" ? "ba_err_consent" : "err_generic")); return; }
       toast.success(t("portfolio_saved"));
       qc.invalidateQueries({ queryKey: ["profile", userId] });
       onDone();
@@ -124,6 +224,26 @@ function PortfolioForm({ userId, item, onDone }: { userId: string; item?: Portfo
         <PhotoPicker alt="f_project_photo" image={imageRemoved ? null : item?.image ?? null} onPick={(fl) => { setFile(fl); setImageRemoved(!fl); if (fl) clear("image"); }} />
         {err("image")}
       </div>
+      {BEFORE_AFTER_ENABLED && (
+        <div className="space-y-3 rounded-xl border bg-card p-3">
+          <div>
+            <p className="text-sm font-semibold">{t("ba_before_photo")}</p>
+            <p className="mb-2 text-sm text-muted-foreground">{t("ba_before_help")}</p>
+            <PhotoPicker alt="ba_before_photo" image={beforeRemoved ? null : item?.before ?? null} onPick={(fl) => { setBeforeFile(fl); setBeforeRemoved(!fl); if (!fl) setConsentErr(false); }} />
+          </div>
+          {beforeFile && (
+            <div>
+              <label className="flex cursor-pointer items-start gap-3 text-sm">
+                <input id={`pf-${fid}-consent`} type="checkbox" className="mt-0.5 size-4 shrink-0 accent-sea" checked={consent}
+                  onChange={(e) => { setConsent(e.target.checked); if (e.target.checked) setConsentErr(false); }}
+                  aria-invalid={consentErr} aria-describedby={consentErr ? `pf-${fid}-consent-err` : undefined} />
+                {t("ba_consent")}
+              </label>
+              {consentErr && <p id={`pf-${fid}-consent-err`} className="mt-1 text-sm text-destructive">{t("ba_err_consent")}</p>}
+            </div>
+          )}
+        </div>
+      )}
       <div>
         <label htmlFor={`pf-${fid}-title`} className="block text-sm font-semibold">{t("f_project_title")} *</label>
         <input id={`pf-${fid}-title`} autoFocus dir="auto" maxLength={120} className="field mt-1.5" value={title}

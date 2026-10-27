@@ -1,15 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { Search, Laptop, GraduationCap, ArrowRight, Send, Handshake, Rocket, Wrench, Car, Camera, LayoutGrid, Check, Wifi, User, MapPin } from "lucide-react";
-import { BrandBackdrop, CATEGORY_ICONS, PointerField, Reveal } from "@/components/brand";
-import { HighlightGrid } from "@/components/highlight-grid";
+import { BrandBackdrop, CATEGORY_ICONS, PointerField } from "@/components/brand";
 import { FaqBlock } from "@/components/page-sections";
 import { HomeHero, type HomeHeroHandle } from "@/components/home-hero";
 import { useI18n, type TKey } from "@/lib/i18n";
 import { CATEGORIES, CITIES, type CategoryId } from "@/lib/data";
 import { ServiceCard, ServiceCardSkeleton, useAllServices } from "@/components/site";
 import { homeSeo } from "@/lib/seo";
-import { ErrorState } from "@/components/states";
+import { ErrorState, FirstVisitEmpty } from "@/components/states";
 
 export const Route = createFileRoute("/")({
   head: () => homeSeo(),
@@ -79,7 +78,7 @@ function Index() {
       <HomeHero ref={hero} />
 
       <section className="mx-auto max-w-7xl px-4 pt-16 sm:px-6 md:pt-20" aria-labelledby="cats">
-        <Reveal className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)] lg:gap-12">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)] lg:gap-12">
           <div className="lg:sticky lg:top-24 lg:self-start">
             <p className="eyebrow">{t("hp_cats_kicker")}</p>
             <h2 id="cats" className="section-title mt-2">{t("hp_cats_title")}</h2>
@@ -87,7 +86,7 @@ function Index() {
             <Link to="/explore" className="btn btn-outline mt-5"><LayoutGrid className="size-4" aria-hidden />{t("hp_cats_all")}</Link>
           </div>
           <div className="min-w-0">
-            <HighlightGrid className="grid gap-3 sm:grid-cols-2">
+            <ul className="grid gap-3 sm:grid-cols-2">
               {FEATURED.map((c) => {
                 const cat = CATEGORIES.find((x) => x.id === c.id)!;
                 const Icon = CATEGORY_ICONS[c.id];
@@ -104,7 +103,7 @@ function Index() {
                   </li>
                 );
               })}
-            </HighlightGrid>
+            </ul>
             {others.length > 0 && (
               <ul className="mt-4 flex flex-wrap gap-2" aria-label={t("hp_cats_more")}>
                 {others.map((c) => {
@@ -114,11 +113,11 @@ function Index() {
               </ul>
             )}
           </div>
-        </Reveal>
+        </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pt-16 sm:px-6" aria-labelledby="needs">
-        <Reveal className="panel bg-surface-sunken p-6 sm:p-8">
+        <div className="panel bg-surface-sunken p-6 sm:p-8">
         <h2 id="needs" className="section-title">{t("hp_needs_title")}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{t("hp_needs_sub")}</p>
         <ul className="mt-5 flex flex-wrap gap-2">
@@ -130,7 +129,7 @@ function Index() {
             </li>
           ))}
         </ul>
-        </Reveal>
+        </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6" aria-labelledby="latest">
@@ -148,27 +147,18 @@ function Index() {
         ) : isError ? (
           <div className="mt-6"><ErrorState onRetry={() => refetch()} /></div>
         ) : services.length ? (
-          <Reveal stagger className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {services.slice(0, 6).map((s) => <ServiceCard key={s.id} s={s} />)}
-          </Reveal>
-        ) : (
-          <div className="empty-state mt-6">
-            <Rocket className="size-9 text-clay" aria-hidden />
-            <h3 className="font-bold">{t("latest_empty_title")}</h3>
-            <p className="max-w-md text-sm text-muted-foreground">{t("latest_empty_sub")}</p>
-            {/* Calmer rhythm: the hero intent and the closing banner carry the "offer" call; here it's a quiet link. */}
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-              <a href="#cats" className="btn btn-outline">{t("hp_empty_browse")}</a>
-              <Link to="/offer" className="link-sea text-sm">{t("hp_be_first")}</Link>
-            </div>
           </div>
+        ) : (
+          <div className="mt-6"><FirstVisitEmpty /></div>
         )}
       </section>
 
       <HowItWorks />
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6" aria-labelledby="check">
-        <Reveal>
+        <div>
         <h2 id="check" className="section-title">{t("hp_check_title")}</h2>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t("hp_check_sub")}</p>
         <ol className="mt-8 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-5">
@@ -179,7 +169,7 @@ function Index() {
             </li>
           ))}
         </ol>
-        </Reveal>
+        </div>
       </section>
 
       <section className="bg-card" aria-label={`${t("hp_ben_cust")} / ${t("hp_ben_pro")}`}>
@@ -223,7 +213,7 @@ function Index() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
-        <div className="bg-ink-hero relative flex flex-col items-start gap-5 overflow-hidden rounded-[1.25rem] p-8 md:flex-row md:items-center md:justify-between md:p-10">
+        <div className="bg-ink-hero relative flex flex-col items-start gap-5 overflow-hidden rounded-3xl p-8 md:flex-row md:items-center md:justify-between md:p-10">
           <BrandBackdrop variant="intro" />
           <PointerField />
           <div className="relative">
@@ -247,7 +237,7 @@ export function HowItWorks() {
   return (
     <section className="bg-card">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-        <Reveal>
+        <div>
         <h2 className="section-title">{t("how_title")}</h2>
         <ol className="steps-line mt-8 grid gap-8 md:grid-cols-3 md:gap-6">
           {steps.map((s, i) => (
@@ -261,7 +251,7 @@ export function HowItWorks() {
             </li>
           ))}
         </ol>
-        </Reveal>
+        </div>
       </div>
     </section>
   );

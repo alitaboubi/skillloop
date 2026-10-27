@@ -1,17 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
-import { Info, PackageOpen, SearchX, SlidersHorizontal, X } from "lucide-react";
+import { Info, SearchX, SlidersHorizontal, X } from "lucide-react";
 import { countKey, useI18n } from "@/lib/i18n";
 import { CATEGORIES, CITIES, type CategoryId } from "@/lib/data";
 import { PageIntro } from "@/components/page-sections";
-import { ServiceCard, ServiceCardSkeleton, useAllServices } from "@/components/site";
+import { ProCard, ServiceCard, ServiceCardSkeleton, useAllServices } from "@/components/site";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { SearchBar } from "./index";
 import { seo } from "@/lib/seo";
 import { fetchPublicServices } from "@/lib/services-db";
-import { CATEGORY_ICONS, Reveal } from "@/components/brand";
-import { EmptyState, ErrorState } from "@/components/states";
-import { activeFilters, cleanExploreSearch, facetCounts, filterServices, type ExploreSearch, type FacetCounts } from "@/lib/explore-filters";
+import { CATEGORY_ICONS } from "@/components/brand";
+import { EmptyState, ErrorState, FirstVisitEmpty } from "@/components/states";
+import { NotifyMe } from "@/components/notify-me";
+import { NOTIFY_ME_ENABLED } from "@/lib/notify-me";
+import { activeFilters, cleanExploreSearch, facetCounts, filterServices, groupByPro, newTalents, type ExploreSearch, type FacetCounts } from "@/lib/explore-filters";
 
 // URL values are JSON-parsed (?q=123 arrives as a number); accept numbers as text and drop anything else instead of failing the page.
 const text = z.preprocess((v) => (typeof v === "number" ? String(v) : v), z.string().optional()).catch(undefined);
@@ -21,6 +23,7 @@ const searchSchema = z.object({
   city: text,
   mode: z.enum(["remote", "inperson"]).optional().catch(undefined),
   sort: z.enum(["recent", "price"]).optional().catch(undefined),
+  view: z.enum(["pros"]).optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/explore")({
@@ -97,11 +100,15 @@ function Explore() {
   const { services, isLoading, isError, refetch } = useAllServices(ssr);
   const catLabel = (id: string) => { const c = CATEGORIES.find((x) => x.id === id); return c ? t(c.key) : ""; };
   const filtered = filterServices(services, s, catLabel);
-  const n = filtered.length;
+  const pros = s.view === "pros" ? groupByPro(filtered) : [];
+  const n = s.view === "pros" ? pros.length : filtered.length;
+  const countBase = s.view === "pros" ? "pros_count" : "results";
   // Real counts per option (null while loading, so no misleading zeros are shown).
   const counts = isLoading || isError ? null : facetCounts(services, s, catLabel);
   const totalAllCats = isLoading || isError ? null : filterServices(services, { ...s, category: undefined }, catLabel).length;
   const chips = activeFilters(s);
+  // Fair rotation: newcomers get a row above the results (only when it adds something — see newTalents).
+  const talents = isLoading || isError ? [] : newTalents(services);
   const chipLabel = (c: (typeof chips)[number]) => {
     if (c.key === "category") {
       const cat = CATEGORIES.find((x) => x.id === c.value);
@@ -138,7 +145,7 @@ function Explore() {
               <span key={isLoading ? "l" : isError ? "e" : `${n}-${s.q ?? ""}`} className="swap-in inline-block">
                 {isLoading ? t("loading") : isError ? t("load_error") : s.q ? (
                   <>{t(countKey(lang, n, "ex_results_for"), { n })} <q dir="auto" className="text-sea">{s.q}</q></>
-                ) : t(countKey(lang, n, "results"), { n })}
+                ) : t(countKey(lang, n, countBase), { n })}
               </span>
             </p>
             <div className="flex items-center gap-2">
@@ -156,6 +163,14 @@ function Explore() {
                   </div>
                 </SheetContent>
               </Sheet>
+              <div role="group" aria-label={t("ex_view_label")} className="inline-flex rounded-xl border p-0.5">
+                {([undefined, "pros"] as const).map((v) => (
+                  <button key={v ?? "services"} type="button" aria-pressed={s.view === v} onClick={() => set({ view: v })}
+                    className={`min-h-10 rounded-lg px-3 text-sm font-semibold transition-colors ${s.view === v ? "bg-ink text-ink-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+                    {t(v ? "ex_view_pros" : "ex_view_services")}
+                  </button>
+                ))}
+              </div>
               <label className="sr-only" htmlFor="sort">{t("sort_by")}</label>
               <select id="sort" value={s.sort ?? "recent"} onChange={(e) => set({ sort: e.target.value as "recent" | "price" })} className="field w-auto">
                 <option value="recent">{t("sort_recent")}</option>
@@ -176,7 +191,7 @@ function Explore() {
                 </li>
               ))}
               <li>
-                <Link to="/explore" search={s.sort ? { sort: s.sort } : {}} className="chip border-transparent bg-transparent text-sea underline-offset-4 hover:underline">{t("clear_filters")}</Link>
+                <Link to="/explore" search={{ ...(s.sort ? { sort: s.sort } : {}), ...(s.view ? { view: s.view } : {}) }} className="chip border-transparent bg-transparent text-sea underline-offset-4 hover:underline">{t("clear_filters")}</Link>
               </li>
             </ul>
           )}
@@ -188,12 +203,29 @@ function Explore() {
           ) : isError ? (
             <div className="mt-8"><ErrorState onRetry={() => refetch()} /></div>
           ) : filtered.length ? (
-            <Reveal stagger className="results-fade mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {filtered.map((x) => <ServiceCard key={x.id} s={x} />)}
-            </Reveal>
+            <>
+              {chips.length === 0 && talents.length > 0 && (
+                <section aria-labelledby="ex-new" className="mt-6 rounded-2xl border bg-surface-sunken p-4 sm:p-5">
+                  <h2 id="ex-new" className="font-bold">{t("new_talents")}</h2>
+                  <p className="mt-0.5 text-sm text-muted-foreground">{t("new_talents_d")}</p>
+                  <ul className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {talents.map((p) => <li key={p.ownerId} className="flex"><ProCard p={p} compact /></li>)}
+                  </ul>
+                </section>
+              )}
+              {s.view === "pros" ? (
+                <ul className="results-fade mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                  {pros.map((p) => <li key={p.ownerId} className="flex"><ProCard p={p} /></li>)}
+                </ul>
+              ) : (
+                <div className="results-fade mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                  {filtered.map((x) => <ServiceCard key={x.id} s={x} />)}
+                </div>
+              )}
+            </>
           ) : services.length === 0 ? (
             <div className="mt-8">
-              <EmptyState icon={PackageOpen} title={t("ex_empty_t")} sub={t("ex_empty_d")} action={<Link to="/offer" className="btn btn-outline">{t("offer_service")}</Link>} />
+              <FirstVisitEmpty query={s.q} category={s.category} city={s.city} />
             </div>
           ) : (
             <div className="mt-8">
@@ -203,7 +235,8 @@ function Explore() {
                 sub={t("ex_nomatch_d")}
                 action={
                   <>
-                    {chips.length > 0 && <Link to="/explore" search={s.sort ? { sort: s.sort } : {}} className="btn btn-ink">{t("clear_filters")}</Link>}
+                    {chips.length > 0 && <Link to="/explore" search={{ ...(s.sort ? { sort: s.sort } : {}), ...(s.view ? { view: s.view } : {}) }} className="btn btn-ink">{t("clear_filters")}</Link>}
+                    {NOTIFY_ME_ENABLED && <div className="w-full max-w-md text-start"><p className="mb-2 text-sm text-muted-foreground">{t("fv_notify_d")}</p><NotifyMe query={s.q} category={s.category} city={s.city} /></div>}
                     <span className="w-full text-xs text-muted-foreground">{t("ex_pro_hint")} <Link to="/offer" search={s.q?.trim() ? { title: s.q.trim() } : {}} className="font-semibold text-sea underline">{t(s.q?.trim() ? "zero_offer" : "offer_service")}</Link></span>
                   </>
                 }

@@ -116,6 +116,12 @@ export async function saveProfile(
   return { data: { avatar_url }, error: null };
 }
 
+/** Saves only professional_details (the carnet editor); the caller merges into the freshly loaded details. */
+export async function saveProfessionalDetails(db: Db, userId: string, details: Record<string, unknown>): Promise<string | null> {
+  const { error } = await db.from("profiles").update({ professional_details: details as never }).eq("id", userId);
+  return error ? error.message : null;
+}
+
 /** Field-level validation for the profile form (keys are i18n keys). */
 export function validateProfile(p: Pick<ProfileInput, "display_name" | "title" | "bio">): Partial<Record<"display_name" | "title" | "bio", { key: "err_required" | "err_short" | "err_long"; n?: number }>> {
   const e: ReturnType<typeof validateProfile> = {};
@@ -129,6 +135,11 @@ export function validateProfile(p: Pick<ProfileInput, "display_name" | "title" |
 }
 
 export type PortfolioInput = { id?: string; title: string; description: string; previousImage: string | null };
+/**
+ * Optional "before" photo (before/after pairs, only while VITE_BEFORE_AFTER is on): a new file needs `consent`
+ * (the database refuses it otherwise and stamps the consent time itself); `remove` clears it; else it is kept.
+ */
+export type BeforePhoto = { file: File | null; remove: boolean; previous: string | null; consent: boolean };
 
 /** Portfolio validation: the image is required by the schema (image_url not null), title 2–120, description ≤ 1000. */
 export function validatePortfolio(p: { title: string; description: string; hasImage: boolean }): Partial<Record<"title" | "description" | "image", { key: "err_required" | "err_short" | "err_long" | "err_image_required"; n?: number }>> {
@@ -146,34 +157,59 @@ export function validatePortfolio(p: { title: string; description: string; hasIm
  * Creates or updates a portfolio item. A new image is uploaded first and removed again if the write fails;
  * a replaced image is removed only after the row points at the new one.
  */
-export async function savePortfolioItem(db: Db, userId: string, p: PortfolioInput, file: File | null): Promise<Result<{ id: string }>> {
-  let image_url = p.previousImage;
-  let uploaded: string | null = null;
-  if (file) {
-    const ext = file.type === "image/jpeg" ? "jpg" : file.type.split("/")[1];
+export async function savePortfolioItem(db: Db, userId: string, p: PortfolioInput, file: File | null, before?: BeforePhoto): Promise<Result<{ id: string }>> {
+  const uploaded: string[] = [];
+  const upload = async (f: File) => {
+    const ext = f.type === "image/jpeg" ? "jpg" : f.type.split("/")[1];
     const path = `${userId}/portfolio/${crypto.randomUUID()}.${ext}`;
-    const up = await db.storage.from(IMAGE_BUCKET).upload(path, file, { contentType: file.type });
-    if (up.error) return { data: null, error: (await uploadLimitReached(db)) ? UPLOAD_LIMIT_ERROR : "upload" };
-    image_url = uploaded = path;
+    const up = await db.storage.from(IMAGE_BUCKET).upload(path, f, { contentType: f.type });
+    if (up.error) return null;
+    uploaded.push(path);
+    return path;
+  };
+  const failUpload = async (): Promise<Result<{ id: string }>> => {
+    if (uploaded.length) await db.storage.from(IMAGE_BUCKET).remove(uploaded);
+    return { data: null, error: (await uploadLimitReached(db)) ? UPLOAD_LIMIT_ERROR : "upload" };
+  };
+  let image_url = p.previousImage;
+  if (file) {
+    const path = await upload(file);
+    if (!path) return failUpload();
+    image_url = path;
   }
   if (!image_url) return { data: null, error: "image" };
-  const fields = { title: p.title.trim(), description: p.description.trim() || null, image_url };
+  const fields: Record<string, unknown> = { title: p.title.trim(), description: p.description.trim() || null, image_url };
+  let beforeUrl = before?.previous ?? null;
+  if (before) {
+    if (before.file) {
+      if (!before.consent) { if (uploaded.length) await db.storage.from(IMAGE_BUCKET).remove(uploaded); return { data: null, error: "consent" }; }
+      const path = await upload(before.file);
+      if (!path) return failUpload();
+      beforeUrl = path;
+      fields["before_consent_at"] = new Date().toISOString(); // the database replaces it with its own time
+    } else if (before.remove) beforeUrl = null;
+    fields["before_image_url"] = beforeUrl;
+  }
   const res = p.id
-    ? await db.from("portfolio_items").update(fields).eq("id", p.id).select("id").single()
-    : await db.from("portfolio_items").insert({ ...fields, owner_id: userId }).select("id").single();
+    ? await db.from("portfolio_items").update(fields as never).eq("id", p.id).select("id").single()
+    : await db.from("portfolio_items").insert({ ...fields, owner_id: userId } as never).select("id").single();
   if (res.error || !res.data) {
-    if (uploaded) await db.storage.from(IMAGE_BUCKET).remove([uploaded]);
+    if (uploaded.length) await db.storage.from(IMAGE_BUCKET).remove(uploaded);
     return { data: null, error: res.error?.message ?? "save failed" };
   }
-  if (p.previousImage && p.previousImage !== image_url) await db.storage.from(IMAGE_BUCKET).remove([p.previousImage]);
+  const replaced = [
+    ...(p.previousImage && p.previousImage !== image_url ? [p.previousImage] : []),
+    ...(before?.previous && before.previous !== beforeUrl ? [before.previous] : []),
+  ];
+  if (replaced.length) await db.storage.from(IMAGE_BUCKET).remove(replaced);
   return { data: { id: res.data.id }, error: null };
 }
 
 /** Deletes the row first (so nothing public points at a missing file), then its image. */
-export async function deletePortfolioItem(db: Db, item: { id: string; image_url: string }): Promise<string | null> {
+export async function deletePortfolioItem(db: Db, item: { id: string; image_url: string; before_image_url?: string | null | undefined }): Promise<string | null> {
   const { error } = await db.from("portfolio_items").delete().eq("id", item.id);
   if (error) return error.message;
-  await db.storage.from(IMAGE_BUCKET).remove([item.image_url]);
+  await db.storage.from(IMAGE_BUCKET).remove(item.before_image_url ? [item.image_url, item.before_image_url] : [item.image_url]);
   return null;
 }
 

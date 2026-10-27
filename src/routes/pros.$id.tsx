@@ -1,11 +1,11 @@
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Copy, ImageIcon, Languages, MapPin, Pencil, Wifi } from "lucide-react";
+import { Check, ChevronRight, Copy, ImageIcon, Languages, MapPin, Pencil, Wifi } from "lucide-react";
 import { toast } from "sonner";
 import { CONTACT_META } from "@/components/contact-meta";
 import { CONTACT_KINDS, contactHref, contactLabel, isPublicContactValid, type ContactKind } from "@/lib/profile-contacts";
-import { ErrorState, EmptyState } from "@/components/states";
+import { ErrorState, EmptyState, TrustBadge } from "@/components/states";
 import { EnlargeHint, FramedImage, MediaViewer, ProfilePhoto, type MediaItem } from "@/components/media-viewer";
 import { ServiceCard, ServiceCardSkeleton, useAllServices } from "@/components/site";
 import { fetchPublicProfile, profileQuery } from "@/lib/profiles-db";
@@ -13,10 +13,11 @@ import { profileSeo } from "@/lib/seo";
 import { isUuid } from "@/lib/services-db";
 import { useI18n, type TKey } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
-import { BrandBackdrop, CATEGORY_ICONS, PointerField, Reveal } from "@/components/brand";
+import { BrandBackdrop, CATEGORY_ICONS, PointerField } from "@/components/brand";
 import { ShareKit } from "@/components/share-kit";
 import { profilePath } from "@/lib/share";
 import { CATEGORIES, type CategoryId, type Service } from "@/lib/data";
+import { COMMITMENT_KEYS, hasCarnet, readCarnet } from "@/lib/carnet";
 
 export const Route = createFileRoute("/pros/$id")({
   loader: async ({ params, context }) => {
@@ -67,7 +68,6 @@ function Skeleton() {
   );
 }
 
-
 function Page() {
   const { id } = Route.useParams();
   const { t, lang } = useI18n();
@@ -99,9 +99,13 @@ function Page() {
     .filter((c) => c.is_public && isPublicContactValid(c.kind, c.value))
     .sort((a, b) => CONTACT_KINDS.indexOf(a.kind as ContactKind) - CONTACT_KINDS.indexOf(b.kind as ContactKind));
   const copy = (v: string) => navigator.clipboard?.writeText(v).then(() => toast.success(t("copied")), () => {});
-  const portfolio: MediaItem[] = p.portfolio.filter((x) => x.image).map((x) => ({ src: x.image!, alt: x.title, caption: x.title, description: x.description }));
+  const shown = p.portfolio.filter((x) => x.image);
+  const portfolio: MediaItem[] = shown.map((x) => ({ src: x.image!, alt: x.title, caption: x.title, description: x.description }));
+  // Before/after pairs (only once that feature is on): the "before" photo sits at the start side of the "after" one.
+  const befores = shown.map((x) => x.before);
   const since = p.created_at ? new Intl.DateTimeFormat(lang === "ar" ? "ar-TN" : lang, { month: "long", year: "numeric" }).format(new Date(p.created_at)) : null;
   const hasDetails = !!(spoken || availability || typeof pd["accepting"] === "boolean");
+  const carnet = readCarnet(pd);
 
   return (
     <div className="pb-16">
@@ -143,7 +147,9 @@ function Page() {
                 {remote && <span className="tag tag-sea"><Wifi className="size-3.5" aria-hidden />{t("remote")}</span>}
                 {onsite && <span className="tag tag-sea">{t("on_site")}</span>}
                 {spoken && <span className="tag tag-sea"><Languages className="size-3.5" aria-hidden /><span dir="auto">{spoken}</span></span>}
-                {typeof pd["accepting"] === "boolean" && <span className={`badge ${pd["accepting"] ? "badge-success" : "badge-muted"}`}>{t(pd["accepting"] ? "accepting" : "not_accepting")}</span>}
+                {typeof pd["accepting"] === "boolean" && <span className={`avail-chip ${pd["accepting"] ? "avail-open" : "avail-closed"}`}>{t(pd["accepting"] ? "avail_open" : "avail_closed")}</span>}
+                {/* These facts come from the pro: labelled as declared (levels of proof). */}
+                {(place || spoken || typeof pd["accepting"] === "boolean") && <TrustBadge level="declared" />}
               </div>
               {fields.length > 0 && (
                 <ul aria-label={t("pp_fields")} className="mt-3 flex flex-wrap gap-2">
@@ -186,6 +192,45 @@ function Page() {
               </section>
             )}
 
+            {hasCarnet(carnet) ? (
+              <section id="carnet" aria-labelledby="pp-carnet" className="space-y-8">
+                {carnet.method.length > 0 && (
+                  <div>
+                    <div className="flex flex-wrap items-center gap-3"><h2 id="pp-carnet" className="text-xl font-bold">{t("carnet_method")}</h2><TrustBadge level="declared" /></div>
+                    <ol className="mt-4 grid gap-3 sm:grid-cols-3">
+                      {carnet.method.map((step, i) => (
+                        <li key={i} className="panel flex gap-3 p-4">
+                          <span aria-hidden className="grid size-8 shrink-0 place-items-center rounded-full bg-clay/15 text-sm font-bold text-clay-strong">{i + 1}</span>
+                          <p dir="auto" className="min-w-0 break-words text-sm leading-relaxed">{step}</p>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+                {carnet.commitments.length > 0 && (
+                  <div>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <h2 {...(carnet.method.length ? {} : { id: "pp-carnet" })} className="text-xl font-bold">{t("carnet_commitments")}</h2>
+                      <TrustBadge level="declared" />
+                    </div>
+                    <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                      {carnet.commitments.map((c) => (
+                        <li key={c} className="flex items-center gap-3 text-sm">
+                          <span aria-hidden className="grid size-7 shrink-0 place-items-center rounded-full bg-sea-soft text-sea"><Check className="size-4" /></span>
+                          {c === "warranty" ? t("cm_warranty_days", { n: carnet.warrantyDays ?? "" }) : t(COMMITMENT_KEYS[c])}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </section>
+            ) : isOwner ? (
+              <div role="note" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed p-4 text-sm">
+                <p className="max-w-md text-muted-foreground">{t("pp_carnet_owner")}</p>
+                <Link to="/profile" search={{ tab: "settings" }} hash="carnet" className="btn btn-outline min-h-10">{t("pp_carnet_cta")}</Link>
+              </div>
+            ) : null}
+
             <section id="services" aria-labelledby="pp-services" className="scroll-mt-24">
               <h2 id="pp-services" className="text-xl font-bold">{t("pp_services")}{services.length > 0 && <span className="ms-2 text-base font-semibold text-muted-foreground">({services.length})</span>}</h2>
               <div className="mt-5">
@@ -196,7 +241,7 @@ function Page() {
                 ) : services.length === 0 ? (
                   <EmptyState title={t("pp_no_services")} action={isOwner ? <Link to="/offer" className="btn btn-outline">{t("nav_offer")}</Link> : undefined} />
                 ) : (
-                  <Reveal stagger className="grid gap-5 sm:grid-cols-2">{services.map((s) => <ServiceCard key={s.id} s={s} />)}</Reveal>
+                  <div className="grid gap-5 sm:grid-cols-2">{services.map((s) => <ServiceCard key={s.id} s={s} />)}</div>
                 )}
               </div>
             </section>
@@ -212,10 +257,24 @@ function Page() {
                     const featured = i === 0 && portfolio.length >= 3;
                     return (
                     <li key={x.src} className={`min-w-0 ${featured ? "flex flex-col sm:col-span-2 xl:row-span-2" : ""}`}>
-                      <button type="button" onClick={() => setViewer(i)} className={`media-trigger rounded-2xl ${featured ? "xl:flex-1" : ""}`} aria-label={t("pp_open_project", { t: x.alt })}>
-                        <FramedImage src={x.src} alt="" className={featured ? "aspect-[4/3] sm:aspect-[16/9] xl:aspect-auto xl:h-full xl:min-h-[18rem]" : "aspect-[4/3]"} />
-                        <EnlargeHint />
-                      </button>
+                      {befores[i] ? (
+                        <div className={`grid grid-cols-2 gap-2 ${featured ? "xl:flex-1" : ""}`}>
+                          <figure className="relative min-w-0">
+                            <FramedImage src={befores[i]!} alt={`${x.alt} · ${t("ba_before")}`} className="aspect-[4/3]" />
+                            <figcaption className="tag tag-ink absolute start-2 top-2">{t("ba_before")}</figcaption>
+                          </figure>
+                          <button type="button" onClick={() => setViewer(i)} className="media-trigger relative rounded-2xl" aria-label={t("pp_open_project", { t: x.alt })}>
+                            <FramedImage src={x.src} alt="" className="aspect-[4/3]" />
+                            <span aria-hidden className="tag absolute start-2 top-2 bg-lime text-lime-foreground">{t("ba_after")}</span>
+                            <EnlargeHint />
+                          </button>
+                        </div>
+                      ) : (
+                        <button type="button" onClick={() => setViewer(i)} className={`media-trigger rounded-2xl ${featured ? "xl:flex-1" : ""}`} aria-label={t("pp_open_project", { t: x.alt })}>
+                          <FramedImage src={x.src} alt="" className={featured ? "aspect-[4/3] sm:aspect-[16/9] xl:aspect-auto xl:h-full xl:min-h-[18rem]" : "aspect-[4/3]"} />
+                          <EnlargeHint />
+                        </button>
+                      )}
                       <h3 dir="auto" className="mt-3 break-words font-semibold">{x.caption}</h3>
                       {x.description && <p dir="auto" className={`mt-1 break-words text-sm text-muted-foreground ${featured ? "line-clamp-3" : "line-clamp-2"}`}>{x.description}</p>}
                     </li>
@@ -235,7 +294,7 @@ function Page() {
           {(hasDetails || contacts.length > 0 || since) && (
             <aside className="h-fit space-y-6 lg:sticky lg:top-24">
               <section aria-labelledby="pp-details" className="panel p-5">
-                <h2 id="pp-details" className="font-bold">{t("pp_details")}</h2>
+                <div className="flex flex-wrap items-center justify-between gap-2"><h2 id="pp-details" className="font-bold">{t("pp_details")}</h2><TrustBadge level="declared" /></div>
                 <dl className="mt-2 text-sm">
                   {availability && <div className="info-row"><div className="min-w-0"><dt className="text-xs text-muted-foreground">{t("availability")}</dt><dd dir="auto" className="break-words font-semibold">{availability}</dd></div></div>}
                   {spoken && <div className="info-row"><div className="min-w-0"><dt className="text-xs text-muted-foreground">{t("languages")}</dt><dd dir="auto" className="font-semibold">{spoken}</dd></div></div>}

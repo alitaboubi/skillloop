@@ -1,4 +1,5 @@
 import type { TKey } from "./i18n";
+import { hasCarnet, readCarnet } from "./carnet";
 
 export type TimelineStep = { key: TKey; state: "done" | "current" | "upcoming"; tone: "default" | "positive" | "negative"; at?: string };
 
@@ -27,6 +28,7 @@ export function profileChecklist(p: ChecklistInput): { key: TKey; done: boolean 
     { key: "db_check_bio", done: (p.bio ?? "").trim().length >= 20 },
     { key: "db_check_service", done: p.publishedServices > 0 },
     { key: "db_check_availability", done: typeof pd["accepting"] === "boolean" || typeof pd["availability"] === "string" && pd["availability"].trim() !== "" },
+    { key: "db_check_carnet", done: hasCarnet(readCarnet(pd)) },
   ];
 }
 

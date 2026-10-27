@@ -1,11 +1,78 @@
-import type { ReactNode } from "react";
-import { AlertTriangle, CheckCircle2, ImageIcon, Inbox, Tag } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { AlertTriangle, BadgeCheck, CheckCircle2, ImageIcon, Inbox, PenLine, Rocket, ShieldCheck, Tag } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { CATEGORIES, type CategoryId } from "@/lib/data";
 import { CATEGORY_ICONS, PointerField } from "@/components/brand";
 import { useI18n } from "@/lib/i18n";
 import { statusTone, timelineSteps } from "@/lib/request-timeline";
 import { STATUS_KEY } from "@/lib/requests-db";
+import { proNoun } from "@/lib/pro-noun";
+import { absoluteUrl, whatsappShareUrl } from "@/lib/share";
+import { NOTIFY_ME_ENABLED } from "@/lib/notify-me";
+import { NotifyMe } from "@/components/notify-me";
+
+/**
+ * Levels of proof (docs/product/design-upgrade.md §5): what the pro states (declared), what a client confirmed after a
+ * real job (confirmed), what SkillLoop checked (verified). Shape + colour + word, never colour alone. Only "declared"
+ * is used until verified completions exist.
+ */
+export type ProofLevel = "declared" | "confirmed" | "verified";
+const PROOF_ICON = { declared: PenLine, confirmed: BadgeCheck, verified: ShieldCheck } as const;
+
+export function TrustBadge({ level }: { level: ProofLevel }) {
+  const { t } = useI18n();
+  const Icon = PROOF_ICON[level];
+  const help = t(`proof_${level}_help`);
+  return (
+    <span className={`trust-badge trust-${level}`} title={help}>
+      <Icon className="size-4 shrink-0" aria-hidden />
+      {t(`proof_${level}`)}
+      <span className="sr-only"> — {help}</span>
+    </span>
+  );
+}
+
+/**
+ * First-visit empty state (no listings yet, or none matching): explains SkillLoop in one line and offers one next step
+ * per kind of visitor — be notified (only when the notify table is live), invite a good pro, publish as a pro.
+ */
+export function FirstVisitEmpty({ query, category, city, title, lead }: { query?: string | undefined; category?: string | undefined; city?: string | undefined; title?: string; lead?: string }) {
+  const { t, lang } = useI18n();
+  const pro = proNoun(lang, category);
+  // The share link needs the browser's origin: resolved after mount so the server HTML stays identical.
+  const [invite, setInvite] = useState("");
+  useEffect(() => { setInvite(whatsappShareUrl(t("fv_invite_text"), absoluteUrl("/professionals"))); }, [t]);
+  return (
+    <section className="panel p-6 sm:p-8">
+      <div className="flex items-start gap-4">
+        <span className="icon-well-clay size-12"><Rocket className="size-6" aria-hidden /></span>
+        <div className="min-w-0">
+          <h3 className="text-xl font-bold">{title ?? t("fv_title")}</h3>
+          <p className="mt-1 max-w-2xl text-muted-foreground">{lead ?? t("fv_lead")}</p>
+        </div>
+      </div>
+      <div className={`mt-6 grid gap-4 ${NOTIFY_ME_ENABLED ? "lg:grid-cols-[1.4fr_1fr_1fr]" : "sm:grid-cols-2"}`}>
+        {NOTIFY_ME_ENABLED && (
+          <div className="rounded-2xl border bg-surface-sunken p-5">
+            <h4 className="font-bold">{t("fv_notify_t")}</h4>
+            <p className="mb-3 mt-1 text-sm text-muted-foreground">{t("fv_notify_d")}</p>
+            <NotifyMe query={query} category={category} city={city} />
+          </div>
+        )}
+        <div className="flex flex-col rounded-2xl border p-5">
+          <h4 className="font-bold">{t("fv_invite_t", { pro })}</h4>
+          <p className="mt-1 flex-1 text-sm text-muted-foreground">{t("fv_invite_d")}</p>
+          <a href={invite || "/professionals"} target={invite ? "_blank" : undefined} rel="noopener noreferrer" className="btn btn-outline mt-4 self-start">{t("fv_invite_btn")}</a>
+        </div>
+        <div className="flex flex-col rounded-2xl border p-5">
+          <h4 className="font-bold">{t("fv_publish_t", { pro })}</h4>
+          <p className="mt-1 flex-1 text-sm text-muted-foreground">{t("fv_publish_d")}</p>
+          <Link to="/offer" search={query?.trim() ? { title: query.trim() } : {}} className="btn btn-ink mt-4 self-start">{t("fv_publish_btn")}</Link>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export function EmptyState({ icon: Icon = Inbox, title, sub, action }: { icon?: typeof Inbox; title: string; sub?: string | undefined; action?: ReactNode }) {
   return (
