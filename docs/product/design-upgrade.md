@@ -366,3 +366,5 @@ The pointer-driven flow comes back: PointerField (mouse-lit dot grid) on page he
 - Not in Phase 2 (needs a schema change, later): photos attached to a request, neighbourhood filter, “disponible cette
   semaine” (needs real availability data), default sort by confirmed jobs (needs Phase 3 verified completions).
 
+### Honesty fix (2026-10-28)
+The auth trust point « Des travaux confirmés par de vrais clients » is replaced by « Des pros qui montrent leur méthode et leur travail » until verified completions exist (Phase 3); the AI-draft mentions on How it works and the Pros FAQ are removed while AI is switched off.
