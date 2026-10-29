@@ -335,8 +335,9 @@ export function SiteHeader() {
     { to: "/explore", label: t("nav_explore") },
     { to: "/how-it-works", label: t("nav_how") },
     { to: "/professionals", label: t("nav_pros") },
+    ...(PRO_PLAN_ENABLED ? [{ to: "/pricing", label: t("pc_nav") }] : []),
     { to: "/about", label: t("nav_about") },
-  ] as const;
+  ];
   return (
     <header className="sticky top-0 z-40 border-b border-navy-foreground/10 bg-navy/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
