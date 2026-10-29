@@ -95,3 +95,7 @@ no charging before the card and accountant answer · ad promises before features
 Per phase: unit tests (entitlements, trial dates, downgrade rules), pgTAP tests for RLS/limits via
 `node scripts/db-test.mjs --pending …` (dry run before apply), SSR checks of /pricing and profiles, manual run-through
 with two accounts (founder trial → expiry → downgrade), and the ad text checked against what is live before sponsoring.
+
+## Status (2026-10-29)
+- Phase 0: live copy fixed (deployed c46403f). Legal/VAT and the showcase profile: postponed by Ali.
+- Phase 1: built behind VITE_PRO_PLAN (off); migration 20261029120000_subscriptions.sql prepared, not applied. Deviation from the draft: when a trial ends nothing is unpublished — limits only apply to new publications/portfolio items (simpler, kinder, no scheduled job needed).

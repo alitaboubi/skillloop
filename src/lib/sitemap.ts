@@ -1,5 +1,6 @@
 import { publicSupabase } from "@/integrations/supabase/client";
 import { hasPlaceholders } from "@/lib/legal";
+import { PRO_PLAN_ENABLED } from "@/lib/plan";
 
 /**
  * robots.txt and sitemap.xml (served by src/routes/robots[.]txt.ts and sitemap[.]xml.ts).
@@ -8,7 +9,7 @@ import { hasPlaceholders } from "@/lib/legal";
  * The sitemap lists only public pages: static pages, published non-archived services, and the profiles of their providers
  * (profiles without a published service are noindex, see profileSeo).
  */
-export const STATIC_PATHS = ["/", "/explore", "/how-it-works", "/professionals", "/about"] as const;
+export const STATIC_PATHS: readonly string[] = ["/", "/explore", "/how-it-works", "/professionals", "/about", ...(PRO_PLAN_ENABLED ? ["/pricing"] : [])];
 /** Privacy and terms join the sitemap once their [PLACEHOLDER] fields are filled in (until then they are noindex). */
 export const LEGAL_PATHS: string[] = (["privacy", "terms"] as const).filter((k) => !hasPlaceholders(k)).map((k) => `/${k}`);
 

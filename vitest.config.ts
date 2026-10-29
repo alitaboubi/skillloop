@@ -10,7 +10,7 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     // Tests never depend on a developer's local .env: features keyed on env are off unless a test mocks them.
-    env: { VITE_TURNSTILE_SITE_KEY: "", VITE_ACCOUNT_DELETION: "", VITE_GOOGLE_SITE_VERIFICATION: "", VITE_NOTIFY_ME: "", VITE_BEFORE_AFTER: "" },
+    env: { VITE_TURNSTILE_SITE_KEY: "", VITE_ACCOUNT_DELETION: "", VITE_GOOGLE_SITE_VERIFICATION: "", VITE_NOTIFY_ME: "", VITE_BEFORE_AFTER: "", VITE_PRO_PLAN: "" },
   },
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },

@@ -21,10 +21,23 @@ export function limitKindOf(err: string | { message?: string | undefined } | nul
   return m ? (m[1] as LimitKind) : null;
 }
 
-/** i18n key + values for the limit message, or null when the error is not a quota refusal. */
+/**
+ * Plan limits enforced by the database (migration 20261029120000_subscriptions.sql): "plan_limit_reached:<kind>" when a
+ * free account publishes a 3rd service or adds a 7th portfolio item. Keep the numbers in sync with src/lib/plan.ts.
+ */
+const PLAN_KEYS = { services: { key: "plan_limit_services", n: 2 }, portfolio: { key: "plan_limit_portfolio", n: 6 } } as const satisfies Record<string, { key: TKey; n: number }>;
+export function planLimitKindOf(err: Parameters<typeof limitKindOf>[0]): keyof typeof PLAN_KEYS | null {
+  const msg = typeof err === "string" ? err : err?.message;
+  const m = /^plan_limit_reached:(services|portfolio)$/.exec(msg?.trim() ?? "");
+  return m ? (m[1] as keyof typeof PLAN_KEYS) : null;
+}
+
+/** i18n key + values for a daily-quota or plan-limit refusal, or null for any other error. */
 export function limitMessage(err: Parameters<typeof limitKindOf>[0]): { key: TKey; vars: { n: number } } | null {
   const kind = limitKindOf(err);
-  return kind ? { key: KEYS[kind], vars: { n: DAILY_LIMITS[kind] } } : null;
+  if (kind) return { key: KEYS[kind], vars: { n: DAILY_LIMITS[kind] } };
+  const plan = planLimitKindOf(err);
+  return plan ? { key: PLAN_KEYS[plan].key, vars: { n: PLAN_KEYS[plan].n } } : null;
 }
 
 /**

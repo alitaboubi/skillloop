@@ -15,6 +15,7 @@ import { publishedServicesQuery } from "@/lib/services-db";
 import { CATEGORY_ICONS, PointerField } from "@/components/brand";
 import { peek } from "@/lib/peek";
 import { Avatar } from "@/components/media-viewer";
+import { PRO_PLAN_ENABLED } from "@/lib/plan";
 
 // Loaded on first open only, so cmdk stays out of every page's initial bundle.
 const SearchPalette = lazy(() => import("@/components/search-palette").then((m) => ({ default: m.SearchPalette })));
@@ -400,6 +401,7 @@ export function SiteFooter() {
           <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-navy-foreground">{t("ft_providers")}</h2>
           <Link to="/offer" className={link}>{t("offer_service")}</Link>
           <Link to="/professionals" className={link}>{t("nav_pros")}</Link>
+          {PRO_PLAN_ENABLED && <Link to="/pricing" className={link}>{t("pc_nav")}</Link>}
           <Link to="/dashboard" className={link}>{t("dashboard")}</Link>
         </nav>
         <nav aria-label={t("ft_company")} className="flex flex-col text-sm">

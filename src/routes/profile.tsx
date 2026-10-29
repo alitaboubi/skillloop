@@ -118,12 +118,14 @@ function MyServices({ userId }: { userId: string }) {
   });
   const toggle = async (id: string, status: string) => {
     const { error } = await supabase.from("services").update({ status: status === "published" ? "draft" : "published" }).eq("id", id);
-    if (error) { toast.error(t("err_generic")); return; }
+    if (error) { const lim = limitMessage(error); toast.error(lim ? t(lim.key, lim.vars) : t("err_generic")); return; }
     qc.invalidateQueries({ queryKey: ["services"] });
+    qc.invalidateQueries({ queryKey: ["plan"] }); // a first publication starts the free month
   };
   const archive = async (id: string, archived: boolean) => {
     if (archived && !confirm(t("confirm_archive"))) return;
-    if (await setServiceArchived(supabase, id, archived)) { toast.error(t("err_generic")); return; }
+    const err = await setServiceArchived(supabase, id, archived);
+    if (err) { const lim = limitMessage(err); toast.error(lim ? t(lim.key, lim.vars) : t("err_generic")); return; }
     qc.invalidateQueries({ queryKey: ["services"] });
   };
   if (q.isLoading) return <ListSkeleton />;

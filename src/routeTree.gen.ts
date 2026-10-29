@@ -18,6 +18,7 @@ import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as OfferRouteImport } from './routes/offer'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProfessionalsRouteImport } from './routes/professionals'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -73,6 +74,11 @@ const MessagesRoute = MessagesRouteImport.update({
 const OfferRoute = OfferRouteImport.update({
   id: '/offer',
   path: '/offer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/messages': typeof MessagesRoute
   '/offer': typeof OfferRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professionals': typeof ProfessionalsRoute
   '/profile': typeof ProfileRoute
@@ -163,6 +170,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/messages': typeof MessagesRoute
   '/offer': typeof OfferRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professionals': typeof ProfessionalsRoute
   '/profile': typeof ProfileRoute
@@ -186,6 +194,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/messages': typeof MessagesRoute
   '/offer': typeof OfferRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professionals': typeof ProfessionalsRoute
   '/profile': typeof ProfileRoute
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/messages'
     | '/offer'
+    | '/pricing'
     | '/privacy'
     | '/professionals'
     | '/profile'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/messages'
     | '/offer'
+    | '/pricing'
     | '/privacy'
     | '/professionals'
     | '/profile'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/messages'
     | '/offer'
+    | '/pricing'
     | '/privacy'
     | '/professionals'
     | '/profile'
@@ -277,6 +289,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MessagesRoute: typeof MessagesRoute
   OfferRoute: typeof OfferRoute
+  PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   ProfessionalsRoute: typeof ProfessionalsRoute
   ProfileRoute: typeof ProfileRoute
@@ -353,6 +366,13 @@ declare module '@tanstack/react-router' {
       path: '/offer'
       fullPath: '/offer'
       preLoaderRoute: typeof OfferRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -445,6 +465,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MessagesRoute: MessagesRoute,
   OfferRoute: OfferRoute,
+  PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   ProfessionalsRoute: ProfessionalsRoute,
   ProfileRoute: ProfileRoute,

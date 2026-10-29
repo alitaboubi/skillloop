@@ -19,6 +19,8 @@ import { draftsFirst, draftsToFinish, formatWait, isCaughtUp, pendingOldestFirst
 import { ShareKit } from "@/components/share-kit";
 import { profilePath } from "@/lib/share";
 import { ProfilePhoto } from "@/components/media-viewer";
+import { PRO_PLAN_ENABLED } from "@/lib/plan";
+import { PlanCard } from "@/components/plan-card";
 
 const SECTIONS = ["overview", "services", "requests", "portfolio", "preview"] as const;
 type Section = (typeof SECTIONS)[number];
@@ -181,6 +183,8 @@ function Overview({ userId }: { userId: string }) {
           <Link to="/profile" search={{ tab: "settings" }} hash="availability" className="btn btn-outline min-h-10 shrink-0">{t("change_availability")}</Link>
         </div>
       )}
+
+      {PRO_PLAN_ENABLED && <PlanCard userId={userId} publishedServices={p?.serviceIds.length ?? 0} />}
 
       <section aria-labelledby="today">
         <h2 id="today" className="mb-3 text-lg font-bold">{t("today_t")}</h2>

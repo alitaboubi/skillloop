@@ -192,6 +192,7 @@ function Wizard({ userId, titleParam, original }: { userId: string; titleParam: 
     if (r.error !== null) { const lim = limitMessage(r.error); setSubmitErr(lim ? t(lim.key, lim.vars) : t(r.error === "upload" ? "err_upload" : "err_generic")); return; }
     qc.invalidateQueries({ queryKey: ["services"] });
     qc.invalidateQueries({ queryKey: ["profile", userId] });
+    qc.invalidateQueries({ queryKey: ["plan"] }); // a first publication starts the free month
     if (!original) { clearWizardDraft(); clearOfferDraft(); }
     setDone({ id: r.data.id, status });
   };
