@@ -48,3 +48,6 @@ skillloop-screens/
 
 # graphify knowledge graph (rebuilt locally)
 graphify-out/
+
+# Claude Code worktrees
+.claude/worktrees/
