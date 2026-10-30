@@ -1031,6 +1031,21 @@
   color: var(--navy-foreground);
 }
 
+/* ---------- Carnet themes (SkillLoop Pro; src/lib/carnet.ts) ----------
+   Scoped variables, not :root tokens: a theme gives the public page a cover and one accent for the carnet (method step
+   numbers + top edge, commitment checks). Covers stay dark so the cover text keeps its contrast in both modes. */
+.ctheme-sea { --ct-cover: linear-gradient(160deg, oklch(0.27 0.075 240) 0%, oklch(0.42 0.115 230) 120%); --ct-accent: var(--sea); --ct-accent-soft: var(--sea-soft); }
+.ctheme-clay { --ct-cover: linear-gradient(160deg, oklch(0.25 0.045 40) 0%, oklch(0.45 0.115 42) 120%); --ct-accent: var(--clay-strong); --ct-accent-soft: var(--clay-soft); }
+.ctheme-olive { --ct-cover: linear-gradient(160deg, oklch(0.24 0.035 125) 0%, oklch(0.42 0.075 122) 120%); --ct-accent: oklch(0.45 0.09 125); --ct-accent-soft: oklch(0.95 0.03 120); }
+.ctheme-night { --ct-cover: linear-gradient(170deg, oklch(0.12 0.02 265) 0%, oklch(0.22 0.05 275) 120%); --ct-accent: var(--clay-strong); --ct-accent-soft: var(--clay-soft); }
+.dark .ctheme-olive { --ct-accent: oklch(0.8 0.12 125); --ct-accent-soft: oklch(0.28 0.04 125); }
+.ctheme .profile-cover { background: var(--ct-cover); }
+.ctheme .ct-step { border-top: 3px solid var(--ct-accent); }
+.ctheme .ct-num, .ctheme .ct-check { background: var(--ct-accent-soft); color: var(--ct-accent); }
+.ct-swatch { position: relative; display: block; height: 3.5rem; border-radius: var(--radius-md); background: var(--gradient-hero); overflow: hidden; }
+.ct-swatch-dot { position: absolute; inset-inline-end: 0.5rem; bottom: 0.5rem; width: 0.875rem; height: 0.875rem; border-radius: 9999px; background: var(--ct-accent, var(--clay)); box-shadow: 0 0 0 2px var(--card); }
+.ctheme.ct-swatch { background: var(--ct-cover); }
+
 /* ---------- Homepage / marketplace surfaces ---------- */
 
 /* Display headline: tighter rhythm in Latin scripts, taller line-height for Arabic. */

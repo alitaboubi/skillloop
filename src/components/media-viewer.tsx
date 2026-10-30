@@ -3,7 +3,8 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { ChevronLeft, ChevronRight, ImageOff, Maximize2, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
-export type MediaItem = { src: string; alt: string; caption?: string | null | undefined; description?: string | null | undefined };
+/** `video` (Pro "portfolio en mouvement"): played in the lightbox, `src` is its poster frame. */
+export type MediaItem = { src: string; alt: string; caption?: string | null | undefined; description?: string | null | undefined; video?: string | undefined };
 
 /** Image with a stable frame, skeleton while loading and a clear error state. */
 export function FramedImage({ src, alt, className = "", eager = false }: { src: string; alt: string; className?: string; eager?: boolean }) {
@@ -63,7 +64,13 @@ export function MediaViewer({ items, index, onIndex, open, onOpenChange }: { ite
             </div>
           </div>
           <div className="relative flex min-h-0 flex-1 items-center justify-center px-3 pb-3 sm:px-16">
-            <img key={item.src} src={item.src} alt={item.alt} className="viewer-img" />
+            {item.video ? (
+              // Opened by the visitor, so it may start playing — except under reduced motion. Controls always shown.
+              <video key={item.video} src={item.video} poster={item.src} controls playsInline aria-label={item.alt} className="viewer-img"
+                autoPlay={typeof window !== "undefined" && !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches} />
+            ) : (
+              <img key={item.src} src={item.src} alt={item.alt} className="viewer-img" />
+            )}
             {many && (
               <>
                 <button type="button" onClick={() => go(-1)} className="viewer-btn absolute start-2 top-1/2 -translate-y-1/2" aria-label={t("sd_prev")}><ChevronLeft className="size-5 rtl:-scale-x-100" aria-hidden /></button>

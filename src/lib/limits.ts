@@ -32,12 +32,25 @@ export function planLimitKindOf(err: Parameters<typeof limitKindOf>[0]): keyof t
   return m ? (m[1] as keyof typeof PLAN_KEYS) : null;
 }
 
-/** i18n key + values for a daily-quota or plan-limit refusal, or null for any other error. */
+/**
+ * Pro-only tools refused by the database (migration 20261030120000_pro_tools.sql): "plan_required:<kind>" when an
+ * account without Pro adds a video, picks a carnet theme or reads statistics.
+ */
+const PRO_KEYS = { motion: "plan_required_motion", themes: "plan_required_themes", stats: "plan_required_stats" } as const satisfies Record<string, TKey>;
+export function planRequiredKindOf(err: Parameters<typeof limitKindOf>[0]): keyof typeof PRO_KEYS | null {
+  const msg = typeof err === "string" ? err : err?.message;
+  const m = /^plan_required:(motion|themes|stats)$/.exec(msg?.trim() ?? "");
+  return m ? (m[1] as keyof typeof PRO_KEYS) : null;
+}
+
+/** i18n key + values for a daily-quota, plan-limit or Pro-only refusal, or null for any other error. */
 export function limitMessage(err: Parameters<typeof limitKindOf>[0]): { key: TKey; vars: { n: number } } | null {
   const kind = limitKindOf(err);
   if (kind) return { key: KEYS[kind], vars: { n: DAILY_LIMITS[kind] } };
   const plan = planLimitKindOf(err);
-  return plan ? { key: PLAN_KEYS[plan].key, vars: { n: PLAN_KEYS[plan].n } } : null;
+  if (plan) return { key: PLAN_KEYS[plan].key, vars: { n: PLAN_KEYS[plan].n } };
+  const pro = planRequiredKindOf(err);
+  return pro ? { key: PRO_KEYS[pro], vars: { n: 0 } } : null;
 }
 
 /**

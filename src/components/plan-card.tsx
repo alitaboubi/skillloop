@@ -6,6 +6,7 @@ import { useI18n, type TKey } from "@/lib/i18n";
 import { FOUNDERS_CAP, PLAN_LIMITS, PRO_PRICE_TND, foundersLeftQuery, isPro, planQuery, trialDaysLeft } from "@/lib/plan";
 import { FaqBlock, FinalCta, PageIntro, SectionHeading } from "@/components/page-sections";
 import { BrandBackdrop, LoopProgress, PointerField } from "@/components/brand";
+import { PRO_TOOLS_ENABLED } from "@/lib/pro-tools";
 
 /** Dashboard « Mon abonnement » (only rendered when PRO_PLAN_ENABLED). Real data only; no payment exists yet. */
 export function PlanCard({ userId, publishedServices }: { userId: string; publishedServices: number }) {
@@ -27,13 +28,27 @@ export function PlanCard({ userId, publishedServices }: { userId: string; publis
           : p.status === "ended" ? t("plan_ended_d", { s: PLAN_LIMITS.free.services, p: PLAN_LIMITS.free.portfolio })
           : publishedServices === 0 ? t("plan_free_start_d") : t("plan_free_d", { s: PLAN_LIMITS.free.services, p: PLAN_LIMITS.free.portfolio })}
       </p>
-      <Link to="/pricing" className="link-sea mt-3 inline-block text-sm font-semibold">{t("plan_see")}</Link>
+      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+        {pro && <Link to="/dashboard" search={{ mode: "provider", section: "pro" }} className="btn btn-outline min-h-10"><Sparkles className="size-4" aria-hidden />{t("plan_tools")}</Link>}
+        <Link to="/pricing" className="link-sea text-sm font-semibold">{t("plan_see")}</Link>
+      </div>
     </section>
   );
 }
 
-const NOW: TKey[] = ["pc_pro_now1", "pc_pro_now2", "pc_pro_now3", "pc_pro_now4"];
-const SOON: TKey[] = ["pc_pro_soon1", "pc_pro_soon2", "pc_pro_soon3", "pc_pro_soon4"];
+/**
+ * Pro tools and whether they are live: the card & QR needs only the plan; videos, statistics and themes need
+ * migration 20261030120000_pro_tools.sql (VITE_PRO_TOOLS). Anything not live stays labelled « Bientôt ».
+ */
+const TOOLS: { k: TKey; row: TKey; live: boolean }[] = [
+  { k: "pc_pro_motion", row: "pc_row_motion", live: PRO_TOOLS_ENABLED },
+  { k: "pc_pro_qr", row: "pc_row_qr", live: true },
+  { k: "pc_pro_stats", row: "pc_row_stats", live: PRO_TOOLS_ENABLED },
+  { k: "pc_pro_themes", row: "pc_row_themes", live: PRO_TOOLS_ENABLED },
+];
+const NOW: TKey[] = ["pc_pro_now1", "pc_pro_now2", "pc_pro_now3", "pc_pro_now4", ...TOOLS.filter((x) => x.live).map((x) => x.k)];
+const SOON: TKey[] = TOOLS.filter((x) => !x.live).map((x) => x.k);
+const FAQ = PRO_TOOLS_ENABLED ? [1, 2, 3, 4, 5] : [1, 2, 3, 4];
 const FREE: TKey[] = ["pc_free1", "pc_free2", "pc_free3", "pc_free4"];
 type Cell = "yes" | "no" | "soon" | TKey | number;
 const ROWS: { k: TKey; free: Cell; pro: Cell }[] = [
@@ -44,13 +59,10 @@ const ROWS: { k: TKey; free: Cell; pro: Cell }[] = [
   { k: "pc_row_share", free: "yes", pro: "yes" },
   { k: "pc_row_proof", free: "yes", pro: "yes" },
   { k: "pc_row_social", free: "no", pro: "pc_founders_only" },
-  { k: "pc_row_motion", free: "no", pro: "soon" },
-  { k: "pc_row_qr", free: "no", pro: "soon" },
-  { k: "pc_row_stats", free: "no", pro: "soon" },
-  { k: "pc_row_themes", free: "no", pro: "soon" },
+  ...TOOLS.map((x): { k: TKey; free: Cell; pro: Cell } => ({ k: x.row, free: "no", pro: x.live ? "yes" : "soon" })),
 ];
 
-/** Public /pricing (route renders it only when PRO_PLAN_ENABLED). Features not built yet are labelled « Bientôt ». */
+/** Public /pricing (route renders it only when PRO_PLAN_ENABLED). Tools not live yet are labelled « Bientôt » (TOOLS). */
 export function PricingPage() {
   const { t, lang } = useI18n();
   const [yearly, setYearly] = useState(false);
@@ -112,10 +124,14 @@ export function PricingPage() {
             <ul className="relative mt-8 space-y-3.5">
               {NOW.map((k) => <li key={k} className="flex items-start gap-3 text-sm"><Check className="mt-0.5 size-4 shrink-0 text-lime" aria-hidden />{t(k, vars)}</li>)}
             </ul>
-            <p className="relative mt-6 border-t border-ink-foreground/15 pt-5 text-sm font-bold uppercase tracking-wider text-clay">{t("pc_soon_t")}</p>
-            <ul className="relative mt-3 space-y-3">
-              {SOON.map((k) => <li key={k} className="flex items-start gap-3 text-sm text-ink-muted"><Clock className="mt-0.5 size-4 shrink-0" aria-hidden />{t(k, vars)}</li>)}
-            </ul>
+            {SOON.length > 0 && (
+              <>
+                <p className="relative mt-6 border-t border-ink-foreground/15 pt-5 text-sm font-bold uppercase tracking-wider text-clay">{t("pc_soon_t")}</p>
+                <ul className="relative mt-3 space-y-3">
+                  {SOON.map((k) => <li key={k} className="flex items-start gap-3 text-sm text-ink-muted"><Clock className="mt-0.5 size-4 shrink-0" aria-hidden />{t(k, vars)}</li>)}
+                </ul>
+              </>
+            )}
           </section>
         </div>
 
@@ -157,7 +173,7 @@ export function PricingPage() {
           <p className="mt-2 max-w-prose">{t("pc_promise_d")}</p>
         </section>
         <section className="mt-12">
-          <FaqBlock items={[1, 2, 3, 4].map((i) => ({ q: t(`pc_q${i}` as TKey), a: t(`pc_a${i}` as TKey, { price: PRO_PRICE_TND.month, s: PLAN_LIMITS.free.services, p: PLAN_LIMITS.free.portfolio }) }))} />
+          <FaqBlock items={FAQ.map((i) => ({ q: t(`pc_q${i}` as TKey), a: t(`pc_a${i}` as TKey, { price: PRO_PRICE_TND.month, s: PLAN_LIMITS.free.services, p: PLAN_LIMITS.free.portfolio }) }))} />
         </section>
       </div>
       <FinalCta title={t("pc_cta_t")}><Link to="/offer" className="btn btn-lime">{t("pc_cta_pro")}</Link></FinalCta>

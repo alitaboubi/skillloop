@@ -3,7 +3,7 @@
 // The connection string is typed here (hidden) — never stored in .env, the repo, or any file.
 // Usage: node scripts/db-test.mjs   (paste the "Session pooler" connection string when asked)
 // Dry run of a migration that is NOT applied yet:
-//   node scripts/db-test.mjs --pending supabase/migrations/<file>.sql
+//   node scripts/db-test.mjs --pending supabase/migrations/<file>.sql   (repeat --pending for dependent migrations)
 // executes that migration inside each test transaction first (its own begin/commit removed), so the tests see the new
 // rules and existing rows are validated against them — then everything is rolled back. Nothing is committed.
 // It briefly locks the affected tables while it runs (seconds).
@@ -29,11 +29,11 @@ function askHidden(q) {
   });
 }
 
-const pendingArg = process.argv.indexOf("--pending");
-const pendingFile = pendingArg > -1 ? process.argv[pendingArg + 1] : null;
-if (pendingArg > -1 && !pendingFile) { console.error("--pending needs a migration file path."); process.exit(1); }
+// --pending may be repeated for migrations that build on each other; they run in the order given.
+const pendingFiles = process.argv.flatMap((a, i) => (a === "--pending" ? [process.argv[i + 1] ?? ""] : []));
+if (pendingFiles.some((f) => !f || f.startsWith("--"))) { console.error("--pending needs a migration file path."); process.exit(1); }
 // Only the statements: the outer transaction belongs to the test file.
-const pendingSql = pendingFile ? readFileSync(pendingFile, "utf8").replace(/^[ \t]*(begin|commit);[ \t]*$/gim, "") : "";
+const pending = pendingFiles.map((name) => ({ name, sql: readFileSync(name, "utf8").replace(/^[ \t]*(begin|commit);[ \t]*$/gim, "") }));
 
 const url = process.env.SKILLLOOP_DB_URL || (await askHidden(`Connection string for project ${ref} (hidden): `));
 if (!url.includes(ref)) { console.error(`Refusing: the connection string is not for project ${ref}.`); process.exit(1); }
@@ -81,15 +81,17 @@ try {
   await withOneRetry(() => sql`select 1`, (e) => lines.push(`# connection attempt failed (${e.code}), retrying once in 3 s…`));
   for (const f of readdirSync("supabase/tests/database").filter((x) => x.endsWith(".test.sql")).sort()) {
     const raw = readFileSync(`supabase/tests/database/${f}`, "utf8");
-    // A test for a migration that isn't applied yet declares `-- requires: <table>`; without --pending it is skipped.
+    // A test for a migration that isn't applied yet declares `-- requires: <table>`; it is skipped unless one of the
+    // --pending migrations creates that object (its bare name appears in the migration's SQL).
     const needs = raw.match(/^-- requires: (\S+)/m)?.[1];
-    if (needs && !pendingSql) {
+    const bare = needs?.replace(/^\w+\./, "").replace(/\(.*$/, "");
+    if (needs && !pending.some((p) => bare && p.sql.includes(bare))) {
       const [{ found }] = await sql`select (case when ${needs} like '%(%' then to_regprocedure(${needs})::text else to_regclass(${needs})::text end) is not null as found`;
       if (!found) { lines.push(`# ${f}`, `# SKIP (needs ${needs}: migration not applied — use --pending to dry-run it)`); continue; }
     }
     // pgTAP (and the pending migration, if any) run inside the test transaction, so they are rolled back with everything else.
     // Segments map an error position back to "<file> line N".
-    const segments = testSegments(f, raw, pendingFile, pendingSql);
+    const segments = testSegments(f, raw, pending);
     if (!segments) { lines.push(`# ${f}`, "# ERROR: test file has no `begin;` line"); failed++; continue; }
     const text = segments.map((x) => x.text).join("");
     lines.push(`# ${f}`);
@@ -127,7 +129,7 @@ try {
 } finally {
   await sql.end({ timeout: 5 });
 }
-if (pendingFile) lines.push(`# dry run of ${pendingFile}: executed in each test transaction and rolled back (not applied)`);
+if (pending.length) lines.push(`# dry run of ${pendingFiles.join(", ")}: executed in each test transaction and rolled back (not applied)`);
 lines.push(`# passed ${passed}, failed ${failed}`);
 mkdirSync("supabase/.temp", { recursive: true });
 writeFileSync("supabase/.temp/db-test.log", lines.join("\n") + "\n");

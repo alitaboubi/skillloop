@@ -1,13 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { limitMessage } from "@/lib/limits";
 import { useQueryClient } from "@tanstack/react-query";
-import { Eye, ImageIcon, Lock, Pencil, Plus, Trash2 } from "lucide-react";
+import { Eye, Film, ImageIcon, Lock, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { applyContactOps, deletePortfolioItem, savePortfolioItem, saveProfessionalDetails, validatePortfolio } from "@/lib/marketplace-writes";
 import { COMMITMENTS, COMMITMENT_KEYS, METHOD_STEPS, METHOD_STEP_MAX, WARRANTY_MAX_DAYS, readCarnet, validateCarnet, writeCarnet, type CarnetDraft, type Commitment } from "@/lib/carnet";
 import { BEFORE_AFTER_ENABLED } from "@/lib/before-after";
+import { PRO_TOOLS_ENABLED } from "@/lib/pro-tools";
+import { MOTION_MAX_BYTES, MOTION_MAX_SECONDS, MOTION_TYPES, checkVideoFile, probeVideo, type MotionError } from "@/lib/motion";
+import { ProLock } from "@/components/pro-tools";
+import { useIsPro } from "@/lib/plan";
 import { profileQuery } from "@/lib/profiles-db";
 import type { TKey } from "@/lib/i18n";
 import { CONTACT_KINDS, contactOps, normalizeContact, type ContactDraft, type ContactKind, type ContactRow } from "@/lib/profile-contacts";
@@ -18,6 +22,7 @@ import { CONTACT_META } from "@/components/contact-meta";
 export type PortfolioItem = {
   id: string; title: string; description: string | null; image_url: string; image?: string | undefined;
   before_image_url?: string | null | undefined; before?: string | undefined;
+  video_url?: string | null | undefined; video?: string | undefined;
 };
 
 /* ---------- Carnet: method + commitments ---------- */
@@ -154,6 +159,7 @@ export function PortfolioEditor({ userId, items }: { userId: string; items: Port
                 <div className="relative aspect-[4/3] bg-muted">
                   {x.image ? <img src={x.image} alt={x.title} loading="lazy" className="size-full object-cover" /> : <span className="media-fallback"><ImageIcon className="size-8" aria-hidden /></span>}
                   {x.before && <span className="tag tag-ink absolute start-2 top-2">{t("ba_before")} / {t("ba_after")}</span>}
+                  {x.video && <span className="tag tag-ink absolute end-2 top-2"><Film className="size-3.5" aria-hidden />{t("mo_badge")}</span>}
                 </div>
                 <div className="flex flex-1 flex-col gap-1 p-3">
                   <p dir="auto" className="break-words font-semibold">{x.title}</p>
@@ -196,6 +202,31 @@ function PortfolioForm({ userId, item, onDone }: { userId: string; item?: Portfo
   const [consentErr, setConsentErr] = useState(false);
   const [errors, setErrors] = useState<ReturnType<typeof validatePortfolio>>({});
   const [busy, setBusy] = useState(false);
+  // Short video (Pro): the new file, its poster frame (the cover when there is no photo) and a local preview.
+  const pro = useIsPro(userId);
+  const [video, setVideo] = useState<{ file: File; poster: File; preview: string } | null>(null);
+  const [videoRemoved, setVideoRemoved] = useState(false);
+  const [videoErr, setVideoErr] = useState<MotionError | null>(null);
+  const [probing, setProbing] = useState(false);
+  useEffect(() => () => { if (video) URL.revokeObjectURL(video.preview); }, [video]);
+  const shownVideo = video?.preview ?? (videoRemoved ? null : item?.video ?? null);
+  const pickVideo = async (f: File | undefined) => {
+    setVideoErr(null);
+    if (!f) return;
+    const bad = checkVideoFile(f);
+    if (bad) { setVideoErr(bad); return; }
+    setProbing(true);
+    try {
+      const probed = await probeVideo(f);
+      setVideo({ file: f, poster: probed.poster, preview: URL.createObjectURL(f) });
+      setVideoRemoved(false);
+      clear("image");
+    } catch (e) {
+      setVideoErr(((e as Error).message as MotionError) || "motion_err_read");
+    } finally {
+      setProbing(false);
+    }
+  };
   const fid = item?.id ?? "new";
   const clear = (k: keyof typeof errors) => setErrors((c) => { const n = { ...c }; delete n[k]; return n; });
   const err = (k: keyof typeof errors) => errors[k] && <p id={`pf-${fid}-${k}-err`} className="mt-1 text-sm text-destructive">{t(errors[k]!.key, { n: errors[k]!.n ?? "" })}</p>;
@@ -203,7 +234,8 @@ function PortfolioForm({ userId, item, onDone }: { userId: string; item?: Portfo
   return (
     <form noValidate aria-busy={busy} className="space-y-4 rounded-2xl border border-sea/30 bg-sea-soft/40 p-4" onSubmit={async (e) => {
       e.preventDefault();
-      const v = validatePortfolio({ title, description, hasImage: !!file || (!!item && !imageRemoved) });
+      const hasPhoto = !!file || (!!item && !imageRemoved);
+      const v = validatePortfolio({ title, description, hasImage: hasPhoto || !!video });
       setErrors(v);
       const first = (Object.keys(v) as (keyof typeof v)[])[0];
       if (first) { document.getElementById(`pf-${fid}-${first}`)?.focus(); return; }
@@ -211,7 +243,10 @@ function PortfolioForm({ userId, item, onDone }: { userId: string; item?: Portfo
       if (BEFORE_AFTER_ENABLED && beforeFile && !consent) { setConsentErr(true); document.getElementById(`pf-${fid}-consent`)?.focus(); return; }
       setBusy(true);
       const before = BEFORE_AFTER_ENABLED ? { file: beforeFile, remove: beforeRemoved, previous: item?.before_image_url ?? null, consent } : undefined;
-      const r = await savePortfolioItem(supabase, userId, { ...(item ? { id: item.id } : {}), title, description, previousImage: item?.image_url ?? null }, file, before);
+      const motion = PRO_TOOLS_ENABLED ? { file: video?.file ?? null, remove: videoRemoved, previous: item?.video_url ?? null } : undefined;
+      // Without a photo, the video's poster frame is the cover.
+      const cover = file ?? (!hasPhoto && video ? video.poster : null);
+      const r = await savePortfolioItem(supabase, userId, { ...(item ? { id: item.id } : {}), title, description, previousImage: item?.image_url ?? null }, cover, before, motion);
       setBusy(false);
       // Inputs stay as typed on failure so nothing is lost.
       if (r.error !== null) { const lim = limitMessage(r.error); toast.error(lim ? t(lim.key, lim.vars) : t(r.error === "upload" ? "err_upload" : r.error === "consent" ? "ba_err_consent" : "err_generic")); return; }
@@ -224,6 +259,31 @@ function PortfolioForm({ userId, item, onDone }: { userId: string; item?: Portfo
         <PhotoPicker alt="f_project_photo" image={imageRemoved ? null : item?.image ?? null} onPick={(fl) => { setFile(fl); setImageRemoved(!fl); if (fl) clear("image"); }} />
         {err("image")}
       </div>
+      {PRO_TOOLS_ENABLED && (
+        <div className="space-y-3 rounded-xl border bg-card p-3">
+          <div>
+            <p className="flex flex-wrap items-center gap-2 text-sm font-semibold"><Film className="size-4 text-clay-strong" aria-hidden />{t("mo_label")}<span className="tag tag-sea">{t("plan_pro_name")}</span></p>
+            <p id={`pf-${fid}-video-help`} className="mt-1 text-sm text-muted-foreground">{t("mo_help", { s: MOTION_MAX_SECONDS, mb: MOTION_MAX_BYTES / 1024 / 1024 })}</p>
+          </div>
+          {pro === false && !shownVideo ? <ProLock text="pro_lock_motion" compact /> : (
+            <>
+              {shownVideo && <video key={shownVideo} src={shownVideo} controls muted playsInline preload="metadata" aria-label={t("mo_label")} className="aspect-[4/3] w-full max-w-sm rounded-lg bg-ink object-contain" />}
+              <div className="flex flex-wrap gap-2">
+                {pro && (
+                  <label className="btn btn-outline min-h-10 cursor-pointer has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
+                    <Film className="size-4" aria-hidden />{t("mo_pick")}
+                    <input type="file" accept={Object.keys(MOTION_TYPES).join(",")} className="sr-only" disabled={probing || busy} aria-describedby={`pf-${fid}-video-help`}
+                      onChange={(e) => { void pickVideo(e.target.files?.[0]); e.target.value = ""; }} />
+                  </label>
+                )}
+                {shownVideo && <button type="button" disabled={busy} className="btn btn-outline min-h-10 hover:border-destructive hover:text-destructive" onClick={() => { setVideo(null); setVideoRemoved(true); }}><Trash2 className="size-4" aria-hidden />{t("mo_remove")}</button>}
+              </div>
+              {probing && <p role="status" className="text-sm text-muted-foreground">{t("mo_reading")}</p>}
+              {videoErr && <p role="alert" className="text-sm text-destructive">{t(videoErr)}</p>}
+            </>
+          )}
+        </div>
+      )}
       {BEFORE_AFTER_ENABLED && (
         <div className="space-y-3 rounded-xl border bg-card p-3">
           <div>

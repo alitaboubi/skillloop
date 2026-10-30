@@ -99,3 +99,17 @@ with two accounts (founder trial → expiry → downgrade), and the ad text chec
 ## Status (2026-10-29)
 - Phase 0: live copy fixed (deployed c46403f). Legal/VAT and the showcase profile: postponed by Ali.
 - Phase 1: built behind VITE_PRO_PLAN (off); migration 20261029120000_subscriptions.sql prepared, not applied. Deviation from the draft: when a trial ends nothing is unpublished — limits only apply to new publications/portfolio items (simpler, kinder, no scheduled job needed).
+- Phase 2 (2026-10-30): the four « Bientôt » tools are built. Carte & QR is live with the plan (VITE_PRO_PLAN); videos,
+  statistics and carnet themes need migration 20261030120000_pro_tools.sql (PREPARED, not applied; requires 20261028 and
+  20261029 first) and VITE_PRO_TOOLS=on. Until then /pricing keeps them labelled « Bientôt ».
+  - **Carte & QR:** hand-written QR encoder (src/lib/qr.ts, level M, versions 1–15 — no dependency; verified with a real
+    decoder) + one SVG for preview, PNG (600 dpi), SVG and print: business card 85 × 55 mm, sticker 80 × 80 mm. The QR
+    opens /pros/<id>?via=qr; the scan is counted and the parameter removed from the address.
+  - **Portfolio en mouvement:** ≤ 15 s, ≤ 8 MB, MP4/WebM/MOV in <uid>/motion/; a 4:3 poster frame is taken in the browser
+    and is the cover when there is no photo. The database refuses new videos without Pro (row trigger + storage trigger);
+    published videos stay when Pro ends.
+  - **Statistiques:** daily counters only (no IP, no visitor id, no referrer) in private.page_stats; anyone can add +1
+    (owner ignored, 5,000/day cap per counter, views once per browser session); readable by the pro only while Pro, so
+    history is there when they upgrade. Indicative numbers, never a promise of clients.
+  - **Thèmes de carnet:** sea / clay / olive / night (cover + carnet accent); choosing needs Pro, shown only while Pro.
+  - After Pro ends: content stays (videos), tools stop (theme paused, stats hidden, card downloads locked).

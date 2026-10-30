@@ -73,8 +73,9 @@ select is(public.consume_ai_quota('test-secret')->>'outcome', 'global_limit', 'g
 
 reset role;
 select set_config('request.jwt.claims', '', true);
-select is((select count(*)::int from private.quota_events where kind = 'ai'), 3, 'kept slots: 3 (A''s three allowed requests)');
-select is((select count(*)::int from private.quota_events where kind = 'ai_released'), 2, 'released slots are kept as markers (2), not deleted');
+-- Only this test's users: the project may already hold real AI usage.
+select is((select count(*)::int from private.quota_events where kind = 'ai' and user_id in ('11111111-1111-1111-1111-111111111111', '33333333-3333-3333-3333-333333333333')), 3, 'kept slots: 3 (A''s three allowed requests)');
+select is((select count(*)::int from private.quota_events where kind = 'ai_released' and user_id in ('11111111-1111-1111-1111-111111111111', '33333333-3333-3333-3333-333333333333')), 2, 'released slots are kept as markers (2), not deleted');
 select ok(not has_function_privilege('anon', 'public.consume_ai_quota(text)', 'execute'), 'visitors cannot call it');
 
 select * from finish();

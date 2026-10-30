@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { IMAGE_BUCKET } from "./services-db";
 import { UPLOAD_LIMIT_ERROR, uploadLimitReached } from "./limits";
+import { motionPath, type MotionType } from "./motion";
 import type { ContactOp } from "./profile-contacts";
 
 /** Multi-step marketplace writes. The client is a parameter so the step order and cleanup are unit-tested. */
@@ -140,6 +141,11 @@ export type PortfolioInput = { id?: string; title: string; description: string; 
  * (the database refuses it otherwise and stamps the consent time itself); `remove` clears it; else it is kept.
  */
 export type BeforePhoto = { file: File | null; remove: boolean; previous: string | null; consent: boolean };
+/**
+ * Optional short video (Pro, only while VITE_PRO_TOOLS is on; src/lib/motion.ts): a new `file` is uploaded to the motion
+ * folder (its poster frame is the item's image, passed as `file` to savePortfolioItem); `remove` clears it; else kept.
+ */
+export type MotionVideo = { file: File | null; remove: boolean; previous: string | null };
 
 /** Portfolio validation: the image is required by the schema (image_url not null), title 2–120, description ≤ 1000. */
 export function validatePortfolio(p: { title: string; description: string; hasImage: boolean }): Partial<Record<"title" | "description" | "image", { key: "err_required" | "err_short" | "err_long" | "err_image_required"; n?: number }>> {
@@ -157,7 +163,7 @@ export function validatePortfolio(p: { title: string; description: string; hasIm
  * Creates or updates a portfolio item. A new image is uploaded first and removed again if the write fails;
  * a replaced image is removed only after the row points at the new one.
  */
-export async function savePortfolioItem(db: Db, userId: string, p: PortfolioInput, file: File | null, before?: BeforePhoto): Promise<Result<{ id: string }>> {
+export async function savePortfolioItem(db: Db, userId: string, p: PortfolioInput, file: File | null, before?: BeforePhoto, video?: MotionVideo): Promise<Result<{ id: string }>> {
   const uploaded: string[] = [];
   const upload = async (f: File) => {
     const ext = f.type === "image/jpeg" ? "jpg" : f.type.split("/")[1];
@@ -190,6 +196,17 @@ export async function savePortfolioItem(db: Db, userId: string, p: PortfolioInpu
     } else if (before.remove) beforeUrl = null;
     fields["before_image_url"] = beforeUrl;
   }
+  let videoUrl = video?.previous ?? null;
+  if (video) {
+    if (video.file) {
+      const path = motionPath(userId, video.file.type as MotionType);
+      const up = await db.storage.from(IMAGE_BUCKET).upload(path, video.file, { contentType: video.file.type });
+      if (up.error) return failUpload();
+      uploaded.push(path);
+      videoUrl = path;
+    } else if (video.remove) videoUrl = null;
+    fields["video_url"] = videoUrl;
+  }
   const res = p.id
     ? await db.from("portfolio_items").update(fields as never).eq("id", p.id).select("id").single()
     : await db.from("portfolio_items").insert({ ...fields, owner_id: userId } as never).select("id").single();
@@ -200,16 +217,17 @@ export async function savePortfolioItem(db: Db, userId: string, p: PortfolioInpu
   const replaced = [
     ...(p.previousImage && p.previousImage !== image_url ? [p.previousImage] : []),
     ...(before?.previous && before.previous !== beforeUrl ? [before.previous] : []),
+    ...(video?.previous && video.previous !== videoUrl ? [video.previous] : []),
   ];
   if (replaced.length) await db.storage.from(IMAGE_BUCKET).remove(replaced);
   return { data: { id: res.data.id }, error: null };
 }
 
 /** Deletes the row first (so nothing public points at a missing file), then its image. */
-export async function deletePortfolioItem(db: Db, item: { id: string; image_url: string; before_image_url?: string | null | undefined }): Promise<string | null> {
+export async function deletePortfolioItem(db: Db, item: { id: string; image_url: string; before_image_url?: string | null | undefined; video_url?: string | null | undefined }): Promise<string | null> {
   const { error } = await db.from("portfolio_items").delete().eq("id", item.id);
   if (error) return error.message;
-  await db.storage.from(IMAGE_BUCKET).remove(item.before_image_url ? [item.image_url, item.before_image_url] : [item.image_url]);
+  await db.storage.from(IMAGE_BUCKET).remove([item.image_url, ...(item.before_image_url ? [item.before_image_url] : []), ...(item.video_url ? [item.video_url] : [])]);
   return null;
 }
 

@@ -1,4 +1,4 @@
-import { queryOptions } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -52,3 +52,9 @@ export const foundersLeftQuery = () => queryOptions({
     return typeof data === "number" ? data : null;
   },
 });
+
+/** The signed-in user's Pro state for gating Pro tools in the UI: undefined while loading, false on any error. */
+export function useIsPro(userId: string): boolean | undefined {
+  const q = useQuery(planQuery(userId));
+  return q.data ? isPro(q.data) : q.isError || !PRO_PLAN_ENABLED ? false : undefined;
+}

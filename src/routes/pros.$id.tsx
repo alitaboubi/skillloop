@@ -1,7 +1,8 @@
-import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, notFound, useNavigate, useRouter } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronRight, Copy, ImageIcon, Languages, MapPin, Pencil, Wifi } from "lucide-react";
+import { Check, ChevronRight, Copy, ImageIcon, Languages, MapPin, Pencil, Play, Wifi } from "lucide-react";
 import { toast } from "sonner";
 import { CONTACT_META } from "@/components/contact-meta";
 import { CONTACT_KINDS, contactHref, contactLabel, isPublicContactValid, type ContactKind } from "@/lib/profile-contacts";
@@ -17,21 +18,28 @@ import { BrandBackdrop, CATEGORY_ICONS, PointerField } from "@/components/brand"
 import { ShareKit } from "@/components/share-kit";
 import { profilePath } from "@/lib/share";
 import { CATEGORIES, type CategoryId, type Service } from "@/lib/data";
-import { COMMITMENT_KEYS, hasCarnet, readCarnet } from "@/lib/carnet";
+import { COMMITMENT_KEYS, hasCarnet, readCarnet, readTheme } from "@/lib/carnet";
+import { PRO_TOOLS_ENABLED, hasProQuery, recordPageEvent } from "@/lib/pro-tools";
+
+/** Pro state for the theme; any failure (function missing, network) is "no theme" — never a broken page. */
+const loadHasPro = (qc: import("@tanstack/react-query").QueryClient, id: string) =>
+  PRO_TOOLS_ENABLED ? qc.ensureQueryData(hasProQuery(id)).catch(() => false) : Promise.resolve(false);
 
 export const Route = createFileRoute("/pros/$id")({
+  // ?via=qr marks a scan of the pro's printed card (counted once, then removed from the address).
+  validateSearch: z.object({ via: z.literal("qr").optional().catch(undefined) }),
   loader: async ({ params, context }) => {
     if (!isUuid(params.id)) throw notFound();
     // Server render: anonymous read (public contacts, published services only). In the browser the user's session is
     // used, as before (owners see their own private contacts in the editor, never on this page).
     if (typeof window === "undefined") {
-      const data = await fetchPublicProfile(params.id);
+      const [data, hasPro] = await Promise.all([fetchPublicProfile(params.id), loadHasPro(context.queryClient, params.id)]);
       if (!data) throw notFound();
-      return data;
+      return { ...data, hasPro };
     }
-    const profile = await context.queryClient.ensureQueryData(profileQuery(params.id));
+    const [profile, hasPro] = await Promise.all([context.queryClient.ensureQueryData(profileQuery(params.id)), loadHasPro(context.queryClient, params.id)]);
     if (!profile) throw notFound();
-    return { profile, services: null as Service[] | null };
+    return { profile, services: null as Service[] | null, hasPro };
   },
   head: ({ loaderData }) => profileSeo(loaderData?.profile),
   notFoundComponent: NotFound,
@@ -73,7 +81,15 @@ function Page() {
   const { t, lang } = useI18n();
   const { user } = useAuth();
   const data = Route.useLoaderData();
+  const { via } = Route.useSearch();
+  const navigate = useNavigate();
   const q = useQuery({ ...profileQuery(id), initialData: data.profile });
+  const proQ = useQuery({ ...hasProQuery(id), initialData: data.hasPro });
+  // The pro's statistics: a visit (or a scan of their card), once per visitor session; the database ignores the owner.
+  useEffect(() => {
+    recordPageEvent(via === "qr" ? "qr_scan" : "profile_view", id);
+    if (via) void navigate({ to: "/pros/$id", params: { id }, search: {}, replace: true });
+  }, [id, via, navigate]);
   const all = useAllServices();
   const [viewer, setViewer] = useState<number | null>(null);
 
@@ -100,15 +116,17 @@ function Page() {
     .sort((a, b) => CONTACT_KINDS.indexOf(a.kind as ContactKind) - CONTACT_KINDS.indexOf(b.kind as ContactKind));
   const copy = (v: string) => navigator.clipboard?.writeText(v).then(() => toast.success(t("copied")), () => {});
   const shown = p.portfolio.filter((x) => x.image);
-  const portfolio: MediaItem[] = shown.map((x) => ({ src: x.image!, alt: x.title, caption: x.title, description: x.description }));
+  const portfolio: MediaItem[] = shown.map((x) => ({ src: x.image!, alt: x.title, caption: x.title, description: x.description, video: x.video }));
   // Before/after pairs (only once that feature is on): the "before" photo sits at the start side of the "after" one.
   const befores = shown.map((x) => x.before);
   const since = p.created_at ? new Intl.DateTimeFormat(lang === "ar" ? "ar-TN" : lang, { month: "long", year: "numeric" }).format(new Date(p.created_at)) : null;
   const hasDetails = !!(spoken || availability || typeof pd["accepting"] === "boolean");
   const carnet = readCarnet(pd);
+  // Carnet theme (SkillLoop Pro): applied only while the pro has Pro; the stored choice is kept otherwise.
+  const theme = PRO_TOOLS_ENABLED && proQ.data ? readTheme(pd) : null;
 
   return (
-    <div className="pb-16">
+    <div className={`pb-16 ${theme ? `ctheme ctheme-${theme}` : ""}`}>
       <div className="profile-cover relative overflow-hidden">
         <BrandBackdrop variant="intro" />
         <PointerField />
@@ -199,8 +217,8 @@ function Page() {
                     <div className="flex flex-wrap items-center gap-3"><h2 id="pp-carnet" className="text-xl font-bold">{t("carnet_method")}</h2><TrustBadge level="declared" /></div>
                     <ol className="mt-4 grid gap-3 sm:grid-cols-3">
                       {carnet.method.map((step, i) => (
-                        <li key={i} className="panel flex gap-3 p-4">
-                          <span aria-hidden className="grid size-8 shrink-0 place-items-center rounded-full bg-clay/15 text-sm font-bold text-clay-strong">{i + 1}</span>
+                        <li key={i} className="ct-step panel flex gap-3 p-4">
+                          <span aria-hidden className="ct-num grid size-8 shrink-0 place-items-center rounded-full bg-clay/15 text-sm font-bold text-clay-strong">{i + 1}</span>
                           <p dir="auto" className="min-w-0 break-words text-sm leading-relaxed">{step}</p>
                         </li>
                       ))}
@@ -216,7 +234,7 @@ function Page() {
                     <ul className="mt-4 grid gap-2 sm:grid-cols-2">
                       {carnet.commitments.map((c) => (
                         <li key={c} className="flex items-center gap-3 text-sm">
-                          <span aria-hidden className="grid size-7 shrink-0 place-items-center rounded-full bg-sea-soft text-sea"><Check className="size-4" /></span>
+                          <span aria-hidden className="ct-check grid size-7 shrink-0 place-items-center rounded-full bg-sea-soft text-sea"><Check className="size-4" /></span>
                           {c === "warranty" ? t("cm_warranty_days", { n: carnet.warrantyDays ?? "" }) : t(COMMITMENT_KEYS[c])}
                         </li>
                       ))}
@@ -270,9 +288,9 @@ function Page() {
                           </button>
                         </div>
                       ) : (
-                        <button type="button" onClick={() => setViewer(i)} className={`media-trigger rounded-2xl ${featured ? "xl:flex-1" : ""}`} aria-label={t("pp_open_project", { t: x.alt })}>
+                        <button type="button" onClick={() => setViewer(i)} className={`media-trigger relative rounded-2xl ${featured ? "xl:flex-1" : ""}`} aria-label={t(x.video ? "pp_open_video" : "pp_open_project", { t: x.alt })}>
                           <FramedImage src={x.src} alt="" className={featured ? "aspect-[4/3] sm:aspect-[16/9] xl:aspect-auto xl:h-full xl:min-h-[18rem]" : "aspect-[4/3]"} />
-                          <EnlargeHint />
+                          {x.video ? <span aria-hidden className="tag tag-ink absolute start-3 top-3"><Play className="size-3.5 fill-current" />{t("mo_badge")}</span> : <EnlargeHint />}
                         </button>
                       )}
                       <h3 dir="auto" className="mt-3 break-words font-semibold">{x.caption}</h3>
@@ -309,7 +327,7 @@ function Page() {
                         const phone = c.kind === "phone" || c.kind === "whatsapp";
                         return (
                           <li key={c.id} className="flex items-center gap-1">
-                            <a href={contactHref(c.kind, c.value)} {...(c.kind === "phone" ? {} : { target: "_blank", rel: "noopener noreferrer nofollow" })} className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-xl px-2 text-sm transition-colors hover:bg-muted">
+                            <a href={contactHref(c.kind, c.value)} onClick={() => recordPageEvent("contact_click", p.id)} {...(c.kind === "phone" ? {} : { target: "_blank", rel: "noopener noreferrer nofollow" })} className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-xl px-2 text-sm transition-colors hover:bg-muted">
                               <meta.icon className="size-4 shrink-0 text-sea" aria-hidden />
                               <span className="min-w-0"><span className="block text-xs text-muted-foreground">{t(meta.label)}</span><span dir="ltr" className="block truncate font-medium">{contactLabel(c.kind, c.value)}</span></span>
                             </a>

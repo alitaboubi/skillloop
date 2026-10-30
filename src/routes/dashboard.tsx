@@ -21,11 +21,13 @@ import { profilePath } from "@/lib/share";
 import { ProfilePhoto } from "@/components/media-viewer";
 import { PRO_PLAN_ENABLED } from "@/lib/plan";
 import { PlanCard } from "@/components/plan-card";
+import { ProToolsSection } from "@/components/pro-tools";
 
-const SECTIONS = ["overview", "services", "requests", "portfolio", "preview"] as const;
+const SECTIONS = ["overview", "services", "requests", "portfolio", "preview", "pro"] as const;
 type Section = (typeof SECTIONS)[number];
 type Mode = "client" | "provider";
-const MODE_SECTIONS: Record<Mode, readonly Section[]> = { client: ["overview", "requests"], provider: SECTIONS };
+// "pro" (Pro tools: statistics, card & QR) exists only with the plan.
+const MODE_SECTIONS: Record<Mode, readonly Section[]> = { client: ["overview", "requests"], provider: SECTIONS.filter((x) => x !== "pro" || PRO_PLAN_ENABLED) };
 
 export const Route = createFileRoute("/dashboard")({
   validateSearch: z.object({
@@ -48,7 +50,7 @@ const myServicesQuery = (userId: string) => ({
 /** Checklist items jump to the matching field in profile settings. */
 const CHECK_ANCHOR: Partial<Record<TKey, string>> = { db_check_photo: "photo", db_check_bio: "bio", db_check_availability: "availability", db_check_carnet: "carnet" };
 
-const SECTION_LABEL: Record<Section, TKey> = { overview: "db_overview", services: "my_services", requests: "received_requests", portfolio: "db_portfolio", preview: "db_preview" };
+const SECTION_LABEL: Record<Section, TKey> = { overview: "db_overview", services: "my_services", requests: "received_requests", portfolio: "db_portfolio", preview: "db_preview", pro: "db_pro_tools" };
 
 function Page() {
   const { t } = useI18n();
@@ -104,6 +106,8 @@ function Page() {
             <Requests userId={user.id} received />
           ) : section === "portfolio" ? (
             <Portfolio userId={user.id} />
+          ) : section === "pro" ? (
+            <ProToolsSection userId={user.id} />
           ) : (
             <Preview userId={user.id} />
           )}

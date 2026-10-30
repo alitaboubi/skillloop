@@ -64,3 +64,25 @@ export function writeCarnet(details: unknown, d: CarnetDraft): Record<string, un
   if (commitments.includes("warranty")) next["warranty_days"] = Number(d.warrantyDays.trim());
   return next;
 }
+
+/**
+ * Carnet themes (SkillLoop Pro): a cover and accent for the public page, stored as professional_details.carnet_theme.
+ * No theme = the standard SkillLoop look. The database refuses a new theme without Pro ("plan_required:themes"), and the
+ * public page applies it only while the pro has Pro (the stored choice is kept for a renewal). Styles: .ctheme-* in
+ * src/styles.css.
+ */
+export const CARNET_THEMES = ["sea", "clay", "olive", "night"] as const;
+export type CarnetTheme = (typeof CARNET_THEMES)[number];
+export const THEME_KEYS: Record<CarnetTheme, TKey> = { sea: "ct_sea", clay: "ct_clay", olive: "ct_olive", night: "ct_night" };
+
+export function readTheme(details: unknown): CarnetTheme | null {
+  const v = ((details && typeof details === "object" ? details : {}) as Record<string, unknown>)["carnet_theme"];
+  return (CARNET_THEMES as readonly unknown[]).includes(v) ? (v as CarnetTheme) : null;
+}
+
+/** Sets or clears the theme; other keys are kept. */
+export function writeTheme(details: unknown, theme: CarnetTheme | null): Record<string, unknown> {
+  const next = { ...((details && typeof details === "object" ? details : {}) as Record<string, unknown>) };
+  if (theme) next["carnet_theme"] = theme; else delete next["carnet_theme"];
+  return next;
+}

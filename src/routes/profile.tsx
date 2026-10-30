@@ -16,6 +16,8 @@ import { myRequestsQuery } from "@/lib/requests-db";
 import { profileQuery } from "@/lib/profiles-db";
 import { PhotoPicker } from "@/components/photo-picker";
 import { CarnetEditor, ContactsEditor, PortfolioEditor } from "@/components/profile-editors";
+import { ThemePicker } from "@/components/pro-tools";
+import { PRO_TOOLS_ENABLED } from "@/lib/pro-tools";
 import { DeleteAccount } from "@/components/delete-account";
 import { RequestActions } from "@/components/request-actions";
 import { signImages } from "@/lib/services-db";
@@ -169,6 +171,7 @@ function Settings({ userId }: { userId: string }) {
     <div className="space-y-6">
       <SettingsForm userId={userId} p={q.data} />
       <CarnetEditor userId={userId} details={q.data.professional_details} />
+      {PRO_TOOLS_ENABLED && <ThemePicker userId={userId} details={q.data.professional_details} />}
       <PortfolioEditor userId={userId} items={q.data.portfolio} />
       <ContactsEditor userId={userId} saved={q.data.contacts} />
       <DeleteAccount userId={userId} />

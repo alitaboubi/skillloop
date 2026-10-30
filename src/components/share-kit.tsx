@@ -8,7 +8,7 @@ import { absoluteUrl, whatsappShareUrl } from "@/lib/share";
  * Copy link · Share (only where the browser supports it) · WhatsApp. `full` also shows the public link itself,
  * which is the fallback when copying is not allowed.
  */
-export function ShareKit({ path, title, text, full = false, label }: { path: string; title: string; text: TKey; full?: boolean; label?: TKey }) {
+export function ShareKit({ path, title, text, full = false, label, onShare }: { path: string; title: string; text: TKey; full?: boolean; label?: TKey; onShare?: () => void }) {
   const { t } = useI18n();
   const id = useId();
   const input = useRef<HTMLInputElement>(null);
@@ -24,13 +24,14 @@ export function ShareKit({ path, title, text, full = false, label }: { path: str
     try {
       await navigator.clipboard.writeText(url);
       toast.success(t("share_copied"));
+      onShare?.();
     } catch {
       input.current?.select();
       toast.error(t("share_copy_failed"));
     }
   };
   const share = async () => {
-    try { await navigator.share({ title, text: t(text), url }); } catch { /* dismissed by the user */ }
+    try { await navigator.share({ title, text: t(text), url }); onShare?.(); } catch { /* dismissed by the user */ }
   };
 
   return (
@@ -45,7 +46,7 @@ export function ShareKit({ path, title, text, full = false, label }: { path: str
         <button type="button" onClick={copy} disabled={!url} className="btn btn-outline min-h-10"><Copy className="size-4" aria-hidden />{t("share_copy")}</button>
         {canShare && <button type="button" onClick={share} className="btn btn-outline min-h-10"><Share2 className="size-4" aria-hidden />{t("share_native")}</button>}
         {url && (
-          <a href={whatsappShareUrl(t(text), url)} target="_blank" rel="noopener noreferrer" className="btn btn-outline min-h-10">
+          <a href={whatsappShareUrl(t(text), url)} target="_blank" rel="noopener noreferrer" onClick={onShare} className="btn btn-outline min-h-10">
             <MessageCircle className="size-4" aria-hidden />{t("share_whatsapp")}
           </a>
         )}

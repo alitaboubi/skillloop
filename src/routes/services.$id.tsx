@@ -21,6 +21,7 @@ import { requestGate } from "@/lib/request-timeline";
 import { addPromptLine } from "@/lib/conversations";
 import { vtName } from "@/lib/view-transitions";
 import { ShareKit } from "@/components/share-kit";
+import { recordPageEvent } from "@/lib/pro-tools";
 import { CATEGORY_ICONS } from "@/components/brand";
 import { servicePath } from "@/lib/share";
 
@@ -68,6 +69,8 @@ function Page() {
   const { id } = Route.useParams();
   // Seeded by the loader (server HTML); refreshed in the browser with the user's session.
   const q = useQuery({ ...serviceQuery(id), initialData: service });
+  // The pro's statistics (Pro tools): one view per visitor session; the database ignores the owner and drafts.
+  useEffect(() => recordPageEvent("service_view", id), [id]);
   return <Detail s={q.data ?? service} />;
 }
 
@@ -307,7 +310,7 @@ function TrustPanel({ s }: { s: Service }) {
         </ul>
       )}
       <p className="mt-4 flex items-start gap-2.5 border-t pt-4 text-sm text-muted-foreground"><Info className="mt-0.5 size-4 shrink-0" aria-hidden />{t("trust_no_payment")}</p>
-      <div className="mt-4"><ShareKit path={servicePath(s.id)} title={s.title} text="share_service_text" label="share_this" /></div>
+      <div className="mt-4"><ShareKit path={servicePath(s.id)} title={s.title} text="share_service_text" label="share_this" onShare={() => recordPageEvent("share", s.id)} /></div>
     </section>
   );
 }

@@ -5,14 +5,15 @@
  * (if any), rest of the test file. Each segment knows its source file and first line, so an error position maps back
  * to "<file> line N". Returns null when the file has no `begin;` line.
  */
-export function testSegments(name, raw, pendingFile, pendingSql) {
+/** `pending`: [{ name, sql }] migrations to run first (dry run), in order. */
+export function testSegments(name, raw, pending = []) {
   const m = /^begin;[ \t]*$/m.exec(raw);
   if (!m) return null;
   const cut = m.index + m[0].length;
   return [
     { name, text: raw.slice(0, cut), firstLine: 1 },
     { name: "(runner: pgTAP setup)", text: "\ncreate extension if not exists pgtap with schema extensions;\n", firstLine: 1 },
-    ...(pendingSql ? [{ name: pendingFile, text: pendingSql + "\n", firstLine: 1 }] : []),
+    ...pending.map((p) => ({ name: p.name, text: p.sql + "\n", firstLine: 1 })),
     { name, text: raw.slice(cut), firstLine: raw.slice(0, cut).split("\n").length },
   ];
 }
