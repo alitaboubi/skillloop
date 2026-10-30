@@ -45,3 +45,6 @@ supabase/.branches
 
 # Local screenshots (may contain private information) — never committed
 skillloop-screens/
+
+# graphify knowledge graph (rebuilt locally)
+graphify-out/
