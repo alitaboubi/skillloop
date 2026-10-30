@@ -8,6 +8,7 @@ import { FaqBlock, FinalCta, PageIntro, SectionHeading } from "@/components/page
 import { BrandBackdrop, LoopProgress, PointerField } from "@/components/brand";
 import { PRO_TOOLS_ENABLED } from "@/lib/pro-tools";
 import { useProSteps } from "@/lib/pro-onboarding";
+import { useAuth } from "@/lib/auth";
 
 /** Dashboard « Mon abonnement » (only rendered when PRO_PLAN_ENABLED). Real data only; no payment exists yet. */
 export function PlanCard({ userId, publishedServices }: { userId: string; publishedServices: number }) {
@@ -73,6 +74,11 @@ const ROWS: { k: TKey; free: Cell; pro: Cell }[] = [
 /** Public /pricing (route renders it only when PRO_PLAN_ENABLED). Tools not live yet are labelled « Bientôt » (TOOLS). */
 export function PricingPage() {
   const { t, lang } = useI18n();
+  // Signed-in pros see their own plan here, never an offer they already have (the server render stays generic).
+  const { user } = useAuth();
+  const plan = useQuery(planQuery(user?.id ?? "")).data;
+  const mine: "pro" | "ended" | "free" | null = !user || !plan ? null : isPro(plan) ? "pro" : plan.status === "ended" ? "ended" : "free";
+  const current = <span className="badge badge-success"><Check className="size-3.5" aria-hidden />{t("pc_current")}</span>;
   const [yearly, setYearly] = useState(false);
   const placesLeft: number | null | undefined = useQuery(foundersLeftQuery()).data;
   const vars = { s: PLAN_LIMITS.free.services, p: PLAN_LIMITS.free.portfolio, pp: PLAN_LIMITS.pro.portfolio };
@@ -105,7 +111,9 @@ export function PricingPage() {
             <h2 id="pr-free" className="text-lg font-bold">{t("plan_free_name")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">{t("pc_free_for")}</p>
             <p className="mt-6 flex items-baseline gap-2"><span className="text-6xl font-extrabold tracking-tight tabular-nums">0</span><span className="font-semibold text-muted-foreground">{t("pc_forever")}</span></p>
-            <Link to="/offer" className="btn btn-outline mt-6 w-full">{t("pc_cta_free")}</Link>
+            {mine === "pro" ? <p className="mt-6 flex min-h-11 items-center justify-center rounded-full bg-surface-sunken px-4 text-sm font-semibold text-muted-foreground">{t("pc_in_pro")}</p>
+              : mine === "ended" ? <p className="mt-6 flex min-h-11 items-center justify-center">{current}</p>
+              : <Link to="/offer" className="btn btn-outline mt-6 w-full">{t("pc_cta_free")}</Link>}
             <ul className="mt-8 space-y-3.5">
               {FREE.map((k) => <li key={k} className="flex items-start gap-3 text-sm"><Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />{t(k, vars)}</li>)}
             </ul>
@@ -117,7 +125,7 @@ export function PricingPage() {
             <PointerField />
             <div className="relative flex flex-wrap items-center justify-between gap-3">
               <h2 id="pr-pro" className="flex items-center gap-2 text-lg font-bold"><Sparkles className="size-5 text-lime" aria-hidden />{t("plan_pro_name")}</h2>
-              <span className="rounded-full bg-lime px-3 py-1 text-sm font-bold text-lime-foreground">{t("pc_recommended")}</span>
+              <span className="rounded-full bg-lime px-3 py-1 text-sm font-bold text-lime-foreground">{t(mine === "pro" ? "pc_current" : "pc_recommended")}</span>
             </div>
             <p className="relative mt-1 text-sm text-ink-muted">{t("pc_pro_for")}</p>
             <div key={String(yearly)} className="swap-in relative mt-6">
@@ -127,8 +135,17 @@ export function PricingPage() {
               </p>
               <p className="mt-1 text-sm text-ink-muted">{yearly ? t("pc_year_equals", { n: perMonthOfYear }) : t("pc_or_year", { n: PRO_PRICE_TND.year })}</p>
             </div>
-            <p className="relative mt-5 flex items-start gap-2 rounded-2xl border border-lime/30 bg-lime/10 px-4 py-3 text-sm font-semibold"><Crown className="mt-0.5 size-4 shrink-0 text-lime" aria-hidden />{t("pc_founder_strip")}</p>
-            <Link to="/offer" className="btn btn-lime relative mt-6 w-full">{t("pc_cta_pro")}</Link>
+            {(plan?.founder || !mine || mine === "free") && (
+              <p className="relative mt-5 flex items-start gap-2 rounded-2xl border border-lime/30 bg-lime/10 px-4 py-3 text-sm font-semibold"><Crown className="mt-0.5 size-4 shrink-0 text-lime" aria-hidden />{t(plan?.founder ? "pc_you_founder" : "pc_founder_strip")}</p>
+            )}
+            {mine === "pro" ? (
+              <>
+                <Link to="/dashboard" search={{ mode: "provider", section: "pro" }} className="btn btn-lime relative mt-6 w-full"><Sparkles className="size-4" aria-hidden />{t("plan_open_space")}</Link>
+                {plan?.status === "trial" && <p className="relative mt-2 text-center text-sm text-ink-muted">{t("ph_trial", { n: trialDaysLeft(plan) })}</p>}
+              </>
+            ) : mine === "ended" ? (
+              <p className="relative mt-6 rounded-2xl border border-ink-foreground/20 px-4 py-3 text-sm text-ink-muted">{t("pc_ended_cta")}</p>
+            ) : <Link to="/offer" className="btn btn-lime relative mt-6 w-full">{t("pc_cta_pro")}</Link>}
             <ul className="relative mt-8 space-y-3.5">
               {NOW.map((k) => <li key={k} className="flex items-start gap-3 text-sm"><Check className="mt-0.5 size-4 shrink-0 text-lime" aria-hidden />{t(k, vars)}</li>)}
             </ul>
@@ -184,7 +201,9 @@ export function PricingPage() {
           <FaqBlock items={FAQ.map((i) => ({ q: t(`pc_q${i}` as TKey), a: t(`pc_a${i}` as TKey, { price: PRO_PRICE_TND.month, s: PLAN_LIMITS.free.services, p: PLAN_LIMITS.free.portfolio }) }))} />
         </section>
       </div>
-      <FinalCta title={t("pc_cta_t")}><Link to="/offer" className="btn btn-lime">{t("pc_cta_pro")}</Link></FinalCta>
+      {mine === "pro" ? (
+        <FinalCta title={t("pc_cta_t_pro")}><Link to="/dashboard" search={{ mode: "provider", section: "pro" }} className="btn btn-lime">{t("plan_open_space")}</Link></FinalCta>
+      ) : mine !== "ended" && <FinalCta title={t("pc_cta_t")}><Link to="/offer" className="btn btn-lime">{t("pc_cta_pro")}</Link></FinalCta>}
     </>
   );
 }
