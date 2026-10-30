@@ -7,11 +7,13 @@ import { FOUNDERS_CAP, PLAN_LIMITS, PRO_PRICE_TND, foundersLeftQuery, isPro, pla
 import { FaqBlock, FinalCta, PageIntro, SectionHeading } from "@/components/page-sections";
 import { BrandBackdrop, LoopProgress, PointerField } from "@/components/brand";
 import { PRO_TOOLS_ENABLED } from "@/lib/pro-tools";
+import { useProSteps } from "@/lib/pro-onboarding";
 
 /** Dashboard « Mon abonnement » (only rendered when PRO_PLAN_ENABLED). Real data only; no payment exists yet. */
 export function PlanCard({ userId, publishedServices }: { userId: string; publishedServices: number }) {
   const { t } = useI18n();
   const q = useQuery(planQuery(userId));
+  const started = useProSteps(userId, !!q.data && isPro(q.data));
   if (q.isLoading || q.isError || !q.data) return null;
   const p = q.data;
   const pro = isPro(p);
@@ -29,7 +31,13 @@ export function PlanCard({ userId, publishedServices }: { userId: string; publis
           : publishedServices === 0 ? t("plan_free_start_d") : t("plan_free_d", { s: PLAN_LIMITS.free.services, p: PLAN_LIMITS.free.portfolio })}
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
-        {pro && <Link to="/dashboard" search={{ mode: "provider", section: "pro" }} className="btn btn-outline min-h-10"><Sparkles className="size-4" aria-hidden />{t("plan_tools")}</Link>}
+        {pro && <Link to="/dashboard" search={{ mode: "provider", section: "pro" }} className="btn btn-lime min-h-10"><Sparkles className="size-4" aria-hidden />{t("plan_open_space")}</Link>}
+        {pro && !started.loading && started.done < started.steps.length && (
+          <span className="flex items-center gap-2 text-sm text-muted-foreground">
+            <LoopProgress value={started.done} total={started.steps.length} label={t("plan_progress", { n: started.done, total: started.steps.length })} className="w-8" />
+            {t("plan_progress", { n: started.done, total: started.steps.length })}
+          </span>
+        )}
         <Link to="/pricing" className="link-sea text-sm font-semibold">{t("plan_see")}</Link>
       </div>
     </section>

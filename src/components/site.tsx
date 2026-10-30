@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Menu, X, MapPin, Wifi, Star, BadgeCheck, Sun, Moon, Monitor, Home, Search, MessageSquare, User, PlusCircle, ChevronDown, LayoutDashboard, Briefcase, Settings, LogOut } from "lucide-react";
+import { Menu, X, MapPin, Wifi, Star, BadgeCheck, Sun, Moon, Monitor, Home, Search, MessageSquare, User, PlusCircle, ChevronDown, LayoutDashboard, Briefcase, Settings, LogOut, Sparkles } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { profileQuery } from "@/lib/profiles-db";
 import { useTheme, type ThemePref } from "@/lib/theme";
@@ -15,7 +15,7 @@ import { publishedServicesQuery } from "@/lib/services-db";
 import { CATEGORY_ICONS, PointerField } from "@/components/brand";
 import { peek } from "@/lib/peek";
 import { Avatar } from "@/components/media-viewer";
-import { PRO_PLAN_ENABLED } from "@/lib/plan";
+import { PRO_PLAN_ENABLED, useIsPro } from "@/lib/plan";
 
 // Loaded on first open only, so cmdk stays out of every page's initial bundle.
 const SearchPalette = lazy(() => import("@/components/search-palette").then((m) => ({ default: m.SearchPalette })));
@@ -237,6 +237,7 @@ function AccountMenu() {
   const { user } = useAuth();
   const signOut = useSignOut();
   const prof = useQuery({ ...profileQuery(user?.id ?? ""), enabled: !!user });
+  const pro = useIsPro(user?.id ?? "");
   if (!user) return null;
   const name = prof.data?.display_name || user.email?.split("@")[0] || "—";
   const initial = (name.trim()[0] ?? "?").toUpperCase();
@@ -251,11 +252,15 @@ function AccountMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64 rounded-2xl p-1.5">
         <div className="px-2 py-2">
-          <p dir="auto" className="truncate text-sm font-bold">{name}</p>
+          <p className="flex min-w-0 items-center gap-2">
+            <span dir="auto" className="truncate text-sm font-bold">{name}</span>
+            {pro && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-ink px-2 py-0.5 text-sm font-bold text-lime"><Sparkles className="size-3.5" aria-hidden />Pro</span>}
+          </p>
           {user.email && <p dir="ltr" className="truncate text-start text-xs text-muted-foreground">{user.email}</p>}
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild className="gap-2 rounded-xl py-2"><Link to="/dashboard"><LayoutDashboard className="size-4" aria-hidden />{t("dashboard")}</Link></DropdownMenuItem>
+        {pro && <DropdownMenuItem asChild className="gap-2 rounded-xl py-2 font-semibold"><Link to="/dashboard" search={{ mode: "provider", section: "pro" }}><Sparkles className="size-4 text-clay-strong" aria-hidden />{t("menu_pro_space")}</Link></DropdownMenuItem>}
         <DropdownMenuItem asChild className="gap-2 rounded-xl py-2"><Link to="/pros/$id" params={{ id: user.id }}><User className="size-4" aria-hidden />{t("view_public_profile")}</Link></DropdownMenuItem>
         <DropdownMenuItem asChild className="gap-2 rounded-xl py-2"><Link to="/profile" search={{ space: "pro", tab: "services" }}><Briefcase className="size-4" aria-hidden />{t("my_services")}</Link></DropdownMenuItem>
         <DropdownMenuItem asChild className="gap-2 rounded-xl py-2"><Link to="/profile" search={{ tab: "settings" }}><Settings className="size-4" aria-hidden />{t("settings")}</Link></DropdownMenuItem>

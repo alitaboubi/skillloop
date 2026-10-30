@@ -5,6 +5,7 @@ import { PRO_TOOLS_ENABLED, addDays, shouldRecord, summarizeStats } from "@/lib/
 import { MOTION_MAX_BYTES, checkDuration, checkVideoFile, cropTo43, formatDuration, motionPath } from "@/lib/motion";
 import { readTheme, writeTheme } from "@/lib/carnet";
 import { limitMessage, planRequiredKindOf } from "@/lib/limits";
+import { markCardSaved, proSteps, readCardSaved } from "@/lib/pro-onboarding";
 
 describe("QR encoder (ISO/IEC 18004, level M)", () => {
   it("computes Reed–Solomon codewords (known 1-M vector)", () => {
@@ -152,5 +153,23 @@ describe("Carnet themes and Pro refusals", () => {
     expect(planRequiredKindOf({ message: "plan_required:themes" })).toBe("themes");
     expect(planRequiredKindOf("plan_required:everything")).toBeNull();
     expect(limitMessage("plan_required:stats")?.key).toBe("plan_required_stats");
+  });
+});
+
+describe("Démarrer avec Pro (guided steps)", () => {
+  const base = { hasVideo: false, hasTheme: false, cardSaved: false, hasVisits: false };
+  it("lists the four tools in order, each done from real state", () => {
+    const s = proSteps({ ...base, tools: true, hasTheme: true, hasVisits: true });
+    expect(s.map((x) => x.id)).toEqual(["video", "theme", "card", "visit"]);
+    expect(s.filter((x) => x.done).map((x) => x.id)).toEqual(["theme", "visit"]);
+  });
+  it("offers only the card while the other tools are off", () => {
+    expect(proSteps({ ...base, tools: false }).map((x) => x.id)).toEqual(["card"]);
+  });
+  it("remembers a downloaded card on this device only", () => {
+    expect(readCardSaved("u1")).toBe(false);
+    markCardSaved("u1");
+    expect(readCardSaved("u1")).toBe(true);
+    expect(readCardSaved("u2")).toBe(false);
   });
 });

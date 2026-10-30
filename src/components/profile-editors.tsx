@@ -10,7 +10,7 @@ import { COMMITMENTS, COMMITMENT_KEYS, METHOD_STEPS, METHOD_STEP_MAX, WARRANTY_M
 import { BEFORE_AFTER_ENABLED } from "@/lib/before-after";
 import { PRO_TOOLS_ENABLED } from "@/lib/pro-tools";
 import { MOTION_MAX_BYTES, MOTION_MAX_SECONDS, MOTION_TYPES, checkVideoFile, probeVideo, type MotionError } from "@/lib/motion";
-import { ProLock } from "@/components/pro-tools";
+import { ProLock } from "@/components/pro-lock";
 import { useIsPro } from "@/lib/plan";
 import { profileQuery } from "@/lib/profiles-db";
 import type { TKey } from "@/lib/i18n";
@@ -189,7 +189,8 @@ export function PortfolioEditor({ userId, items }: { userId: string; items: Port
   );
 }
 
-function PortfolioForm({ userId, item, onDone }: { userId: string; item?: PortfolioItem; onDone: () => void }) {
+/** New or edited portfolio item. `videoFirst` (Pro space "add a video"): the video comes first and the photo is optional. */
+export function PortfolioForm({ userId, item, onDone, videoFirst = false }: { userId: string; item?: PortfolioItem; onDone: () => void; videoFirst?: boolean }) {
   const { t } = useI18n();
   const qc = useQueryClient();
   const [title, setTitle] = useState(item?.title ?? "");
@@ -230,6 +231,38 @@ function PortfolioForm({ userId, item, onDone }: { userId: string; item?: Portfo
   const fid = item?.id ?? "new";
   const clear = (k: keyof typeof errors) => setErrors((c) => { const n = { ...c }; delete n[k]; return n; });
   const err = (k: keyof typeof errors) => errors[k] && <p id={`pf-${fid}-${k}-err`} className="mt-1 text-sm text-destructive">{t(errors[k]!.key, { n: errors[k]!.n ?? "" })}</p>;
+  const photoBlock = (
+    <div id={`pf-${fid}-image`} tabIndex={-1} className="rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <p className="mb-2 text-sm font-semibold">{videoFirst ? t("mo_photo_optional") : `${t("f_project_photo")} *`}</p>
+        <PhotoPicker alt="f_project_photo" image={imageRemoved ? null : item?.image ?? null} onPick={(fl) => { setFile(fl); setImageRemoved(!fl); if (fl) clear("image"); }} />
+        {err("image")}
+      </div>
+  );
+  const videoBlock = PRO_TOOLS_ENABLED && (
+        <div className="space-y-3 rounded-xl border bg-card p-3">
+          <div>
+            <p className="flex flex-wrap items-center gap-2 text-sm font-semibold"><Film className="size-4 text-clay-strong" aria-hidden />{t("mo_label")}<span className="tag tag-sea">{t("plan_pro_name")}</span></p>
+            <p id={`pf-${fid}-video-help`} className="mt-1 text-sm text-muted-foreground">{t("mo_help", { s: MOTION_MAX_SECONDS, mb: MOTION_MAX_BYTES / 1024 / 1024 })}</p>
+          </div>
+          {pro === false && !shownVideo ? <ProLock text="pro_lock_motion" compact /> : (
+            <>
+              {shownVideo && <video key={shownVideo} src={shownVideo} controls muted playsInline preload="metadata" aria-label={t("mo_label")} className="aspect-[4/3] w-full max-w-sm rounded-lg bg-ink object-contain" />}
+              <div className="flex flex-wrap gap-2">
+                {pro && (
+                  <label className="btn btn-outline min-h-10 cursor-pointer has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
+                    <Film className="size-4" aria-hidden />{t("mo_pick")}
+                    <input type="file" accept={Object.keys(MOTION_TYPES).join(",")} className="sr-only" disabled={probing || busy} aria-describedby={`pf-${fid}-video-help`}
+                      onChange={(e) => { void pickVideo(e.target.files?.[0]); e.target.value = ""; }} />
+                  </label>
+                )}
+                {shownVideo && <button type="button" disabled={busy} className="btn btn-outline min-h-10 hover:border-destructive hover:text-destructive" onClick={() => { setVideo(null); setVideoRemoved(true); }}><Trash2 className="size-4" aria-hidden />{t("mo_remove")}</button>}
+              </div>
+              {probing && <p role="status" className="text-sm text-muted-foreground">{t("mo_reading")}</p>}
+              {videoErr && <p role="alert" className="text-sm text-destructive">{t(videoErr)}</p>}
+            </>
+          )}
+        </div>
+  );
 
   return (
     <form noValidate aria-busy={busy} className="space-y-4 rounded-2xl border border-sea/30 bg-sea-soft/40 p-4" onSubmit={async (e) => {
@@ -254,36 +287,7 @@ function PortfolioForm({ userId, item, onDone }: { userId: string; item?: Portfo
       qc.invalidateQueries({ queryKey: ["profile", userId] });
       onDone();
     }}>
-      <div id={`pf-${fid}-image`} tabIndex={-1} className="rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring">
-        <p className="mb-2 text-sm font-semibold">{t("f_project_photo")} *</p>
-        <PhotoPicker alt="f_project_photo" image={imageRemoved ? null : item?.image ?? null} onPick={(fl) => { setFile(fl); setImageRemoved(!fl); if (fl) clear("image"); }} />
-        {err("image")}
-      </div>
-      {PRO_TOOLS_ENABLED && (
-        <div className="space-y-3 rounded-xl border bg-card p-3">
-          <div>
-            <p className="flex flex-wrap items-center gap-2 text-sm font-semibold"><Film className="size-4 text-clay-strong" aria-hidden />{t("mo_label")}<span className="tag tag-sea">{t("plan_pro_name")}</span></p>
-            <p id={`pf-${fid}-video-help`} className="mt-1 text-sm text-muted-foreground">{t("mo_help", { s: MOTION_MAX_SECONDS, mb: MOTION_MAX_BYTES / 1024 / 1024 })}</p>
-          </div>
-          {pro === false && !shownVideo ? <ProLock text="pro_lock_motion" compact /> : (
-            <>
-              {shownVideo && <video key={shownVideo} src={shownVideo} controls muted playsInline preload="metadata" aria-label={t("mo_label")} className="aspect-[4/3] w-full max-w-sm rounded-lg bg-ink object-contain" />}
-              <div className="flex flex-wrap gap-2">
-                {pro && (
-                  <label className="btn btn-outline min-h-10 cursor-pointer has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
-                    <Film className="size-4" aria-hidden />{t("mo_pick")}
-                    <input type="file" accept={Object.keys(MOTION_TYPES).join(",")} className="sr-only" disabled={probing || busy} aria-describedby={`pf-${fid}-video-help`}
-                      onChange={(e) => { void pickVideo(e.target.files?.[0]); e.target.value = ""; }} />
-                  </label>
-                )}
-                {shownVideo && <button type="button" disabled={busy} className="btn btn-outline min-h-10 hover:border-destructive hover:text-destructive" onClick={() => { setVideo(null); setVideoRemoved(true); }}><Trash2 className="size-4" aria-hidden />{t("mo_remove")}</button>}
-              </div>
-              {probing && <p role="status" className="text-sm text-muted-foreground">{t("mo_reading")}</p>}
-              {videoErr && <p role="alert" className="text-sm text-destructive">{t(videoErr)}</p>}
-            </>
-          )}
-        </div>
-      )}
+      {videoFirst ? <>{videoBlock}{photoBlock}</> : <>{photoBlock}{videoBlock}</>}
       {BEFORE_AFTER_ENABLED && (
         <div className="space-y-3 rounded-xl border bg-card p-3">
           <div>

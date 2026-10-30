@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { rememberCurrentPage } from "@/lib/return-to";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
-import { ArrowRight, Clock, PauseCircle, Pencil, CheckCircle2, Circle, Briefcase, ExternalLink, Inbox, Image as ImageIcon, LayoutDashboard, PlusCircle, Search, MapPin } from "lucide-react";
+import { ArrowRight, Clock, Sparkles, PauseCircle, Pencil, CheckCircle2, Circle, Briefcase, ExternalLink, Inbox, Image as ImageIcon, LayoutDashboard, PlusCircle, Search, MapPin } from "lucide-react";
 import { useI18n, type TKey } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,9 +21,9 @@ import { profilePath } from "@/lib/share";
 import { ProfilePhoto } from "@/components/media-viewer";
 import { PRO_PLAN_ENABLED } from "@/lib/plan";
 import { PlanCard } from "@/components/plan-card";
-import { ProToolsSection } from "@/components/pro-tools";
+import { ProHub } from "@/components/pro-tools";
 
-const SECTIONS = ["overview", "services", "requests", "portfolio", "preview", "pro"] as const;
+const SECTIONS = ["overview", "pro", "services", "requests", "portfolio", "preview"] as const;
 type Section = (typeof SECTIONS)[number];
 type Mode = "client" | "provider";
 // "pro" (Pro tools: statistics, card & QR) exists only with the plan.
@@ -91,6 +91,7 @@ function Page() {
         <nav aria-label={t("db_sections")} className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
           {sections.map((k) => (
             <Link key={k} to="/dashboard" search={{ mode, section: k }} aria-current={section === k ? "page" : undefined} aria-pressed={section === k} className="chip shrink-0">
+              {k === "pro" && <Sparkles className="size-4 text-clay-strong" aria-hidden />}
               {t(k === "requests" && mode === "client" ? "my_requests" : SECTION_LABEL[k])}
             </Link>
           ))}
@@ -107,7 +108,7 @@ function Page() {
           ) : section === "portfolio" ? (
             <Portfolio userId={user.id} />
           ) : section === "pro" ? (
-            <ProToolsSection userId={user.id} />
+            <ProHub userId={user.id} />
           ) : (
             <Preview userId={user.id} />
           )}

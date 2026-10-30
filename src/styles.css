@@ -1045,6 +1045,8 @@
 .ct-swatch { position: relative; display: block; height: 3.5rem; border-radius: var(--radius-md); background: var(--gradient-hero); overflow: hidden; }
 .ct-swatch-dot { position: absolute; inset-inline-end: 0.5rem; bottom: 0.5rem; width: 0.875rem; height: 0.875rem; border-radius: 9999px; background: var(--ct-accent, var(--clay)); box-shadow: 0 0 0 2px var(--card); }
 .ctheme.ct-swatch { background: var(--ct-cover); }
+.ct-preview { height: 6.5rem; margin: 0; }
+.ct-preview .ct-swatch-dot { position: static; }
 
 /* ---------- Homepage / marketplace surfaces ---------- */
 

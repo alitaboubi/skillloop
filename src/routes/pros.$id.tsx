@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound, useNavigate, useRouter } from "@tansta
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronRight, Copy, ImageIcon, Languages, MapPin, Pencil, Play, Wifi } from "lucide-react";
+import { Check, ChevronRight, Copy, ImageIcon, Languages, MapPin, Pencil, Play, Sparkles, Wifi } from "lucide-react";
 import { toast } from "sonner";
 import { CONTACT_META } from "@/components/contact-meta";
 import { CONTACT_KINDS, contactHref, contactLabel, isPublicContactValid, type ContactKind } from "@/lib/profile-contacts";
@@ -168,6 +168,12 @@ function Page() {
                 {typeof pd["accepting"] === "boolean" && <span className={`avail-chip ${pd["accepting"] ? "avail-open" : "avail-closed"}`}>{t(pd["accepting"] ? "avail_open" : "avail_closed")}</span>}
                 {/* These facts come from the pro: labelled as declared (levels of proof). */}
                 {(place || spoken || typeof pd["accepting"] === "boolean") && <TrustBadge level="declared" />}
+                {/* A subscription fact, labelled as such — never a level of proof. */}
+                {PRO_TOOLS_ENABLED && proQ.data && (
+                  <span className="tag bg-ink text-lime" title={t("pp_pro_member_note")}>
+                    <Sparkles className="size-3.5" aria-hidden />{t("pp_pro_member")}<span className="sr-only"> — {t("pp_pro_member_note")}</span>
+                  </span>
+                )}
               </div>
               {fields.length > 0 && (
                 <ul aria-label={t("pp_fields")} className="mt-3 flex flex-wrap gap-2">

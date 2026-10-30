@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Film, Lock, Palette, Printer, QrCode, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, Circle, Crown, Download, ExternalLink, Film, Palette, Play, Plus, Printer, QrCode, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n, type TKey } from "@/lib/i18n";
-import { useIsPro } from "@/lib/plan";
+import { planQuery, trialDaysLeft, useIsPro } from "@/lib/plan";
 import { PRO_TOOLS_ENABLED, STATS_DAYS, myStatsQuery, type StatKind } from "@/lib/pro-tools";
 import { CARD_SIZE_MM, buildCardSvg, qrLink, type CardVariant } from "@/lib/pro-card";
 import { CARNET_THEMES, THEME_KEYS, readTheme, writeTheme, type CarnetTheme } from "@/lib/carnet";
@@ -14,20 +14,12 @@ import { limitMessage } from "@/lib/limits";
 import { saveProfessionalDetails } from "@/lib/marketplace-writes";
 import { profileQuery } from "@/lib/profiles-db";
 import { EmptyState, ErrorState, ListSkeleton } from "@/components/states";
-
-/** Locked state of a Pro tool: what it does, and the way to /pricing. Never fake data. */
-export function ProLock({ text, compact = false }: { text: TKey; compact?: boolean }) {
-  const { t } = useI18n();
-  return (
-    <div className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-sea/40 bg-sea-soft/50 ${compact ? "p-3" : "p-4"}`}>
-      <p className="flex min-w-0 max-w-prose items-start gap-2 text-sm">
-        <Lock className="mt-0.5 size-4 shrink-0 text-sea" aria-hidden />
-        <span><span className="font-semibold">{t("pro_lock_t")}</span> · {t(text)}</span>
-      </p>
-      <Link to="/pricing" className="btn btn-outline min-h-10 shrink-0"><Sparkles className="size-4" aria-hidden />{t("pro_lock_cta")}</Link>
-    </div>
-  );
-}
+import { ProLock } from "@/components/pro-lock";
+import { ShareKit } from "@/components/share-kit";
+import { profilePath } from "@/lib/share";
+import { PortfolioForm } from "@/components/profile-editors";
+import { BrandBackdrop, LoopProgress, PointerField } from "@/components/brand";
+import { markCardSaved, useProSteps, type ProStepId } from "@/lib/pro-onboarding";
 
 function ToolPanel({ id, icon: Icon, title, sub, children }: { id: string; icon: typeof QrCode; title: TKey; sub?: ReactNode; children: ReactNode }) {
   const { t } = useI18n();
@@ -77,7 +69,8 @@ export function StatsPanel({ userId, pro }: { userId: string; pro: boolean }) {
               ))}
             </dl>
             {s.empty ? (
-              <EmptyState title={t("st_empty_t")} sub={t("st_empty_d")} />
+              <EmptyState title={t("st_empty_t")} sub={t("st_empty_d")}
+                action={<ShareKit path={profilePath(userId)} title={t("st_title")} text="share_profile_text" label="share_profile" />} />
             ) : (
               <figure>
                 <figcaption className="flex items-baseline justify-between gap-3 text-sm font-semibold">
@@ -180,19 +173,38 @@ export function CardStudio({ userId, pro }: { userId: string; pro: boolean }) {
             <div className={`rounded-2xl bg-surface-sunken p-4 sm:p-6 ${variant === "sticker" ? "max-w-sm" : ""}`}>
               {svg && <img key={variant} src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`} alt={t("qc_preview_alt", { n: p?.display_name ?? "" })} className="swap-in mx-auto w-full drop-shadow-md" />}
             </div>
+            {url && (
+              <p className="mt-3 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
+                {t("qc_opens")}
+                <a href={url} target="_blank" rel="noopener noreferrer" dir="ltr" className="link-sea inline-flex min-w-0 items-center gap-1 break-all font-semibold">
+                  {url.replace(/^https?:\/\//, "").replace(/\?via=qr$/, "")}<ExternalLink className="size-3.5 shrink-0" aria-hidden />
+                </a>
+              </p>
+            )}
           </div>
           <div className="space-y-3">
             {pro ? (
               <>
                 <button type="button" disabled={!svg} className="btn btn-lime w-full" onClick={async () => {
-                  try { downloadBlob(await svgToPng(svg, variant), `${file}.png`); } catch { toast.error(t("qc_err")); }
+                  try { downloadBlob(await svgToPng(svg, variant), `${file}.png`); markCardSaved(userId); } catch { toast.error(t("qc_err")); }
                 }}><Download className="size-4" aria-hidden />{t("qc_png")}</button>
-                <button type="button" disabled={!svg} className="btn btn-outline w-full" onClick={() => downloadBlob(new Blob([svg], { type: "image/svg+xml" }), `${file}.svg`)}>
+                <button type="button" disabled={!svg} className="btn btn-outline w-full" onClick={() => { downloadBlob(new Blob([svg], { type: "image/svg+xml" }), `${file}.svg`); markCardSaved(userId); }}>
                   <Download className="size-4" aria-hidden />{t("qc_svg")}
                 </button>
-                <button type="button" disabled={!svg} className="btn btn-outline w-full" onClick={() => printSvg(svg, variant)}><Printer className="size-4" aria-hidden />{t("qc_print")}</button>
+                <button type="button" disabled={!svg} className="btn btn-outline w-full" onClick={() => { printSvg(svg, variant); markCardSaved(userId); }}><Printer className="size-4" aria-hidden />{t("qc_print")}</button>
               </>
             ) : <ProLock text="pro_lock_card" compact />}
+            <div className="rounded-2xl bg-surface-sunken p-4">
+              <p className="text-sm font-semibold">{t("qc_how_t")}</p>
+              <ol className="mt-2 space-y-2">
+                {(["qc_how1", "qc_how2", "qc_how3"] as const).map((k, i) => (
+                  <li key={k} className="flex gap-2.5 text-sm">
+                    <span aria-hidden className="grid size-6 shrink-0 place-items-center rounded-full bg-clay/15 text-sm font-bold text-clay-strong">{i + 1}</span>
+                    <span>{t(k)}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
             <p className="text-sm text-muted-foreground">{t("qc_help")}</p>
           </div>
         </div>
@@ -213,6 +225,7 @@ export function ThemePicker({ userId, details }: { userId: string; details: unkn
   const [busy, setBusy] = useState(false);
   const options: (CarnetTheme | null)[] = [null, ...CARNET_THEMES];
   const locked = pro === false;
+  const name = useQuery(profileQuery(userId)).data?.display_name ?? "";
 
   return (
     <form id="theme" aria-labelledby="ct-t" className="max-w-2xl scroll-mt-24 space-y-5 panel p-6" onSubmit={async (e) => {
@@ -231,6 +244,13 @@ export function ThemePicker({ userId, details }: { userId: string; details: unkn
         <p className="mt-1 max-w-md text-sm text-muted-foreground">{t("ct_sub")}</p>
       </div>
       {locked && saved && <p role="note" className="rounded-xl bg-surface-sunken px-3 py-2 text-sm">{t("ct_paused")}</p>}
+      {/* Live preview of the chosen cover, with the pro's own name. */}
+      <figure aria-label={t("ct_preview")} className={`ct-swatch ct-preview ${choice ? `ctheme ctheme-${choice}` : ""}`}>
+        <span key={choice ?? "default"} className="swap-in absolute inset-x-4 bottom-3 flex items-end justify-between gap-3">
+          <span dir="auto" className="min-w-0 truncate text-xl font-extrabold text-navy-foreground">{name}</span>
+          <span aria-hidden className="ct-swatch-dot static shrink-0" />
+        </span>
+      </figure>
       <fieldset disabled={locked || busy}>
         <legend className="sr-only">{t("ct_title")}</legend>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -250,31 +270,117 @@ export function ThemePicker({ userId, details }: { userId: string; details: unkn
   );
 }
 
-/* ---------- Dashboard section ---------- */
+/* ---------- Pro space (dashboard) ---------- */
 
-/** /dashboard?mode=provider&section=pro — statistics, card & QR, and shortcuts to the other Pro tools. */
-export function ProToolsSection({ userId }: { userId: string }) {
+const STEP_ANCHOR: Record<ProStepId, string> = { video: "motion", theme: "theme", card: "card", visit: "stats" };
+
+/** Status hero: who you are in Pro (trial days left, founder) — or, without Pro, what Pro brings. */
+function ProHero({ userId, pro }: { userId: string; pro: boolean }) {
   const { t } = useI18n();
-  const pro = useIsPro(userId);
-  if (pro === undefined) return <ListSkeleton rows={2} />;
+  const plan = useQuery(planQuery(userId)).data;
   return (
-    <div className="space-y-6">
-      {PRO_TOOLS_ENABLED && <StatsPanel userId={userId} pro={pro} />}
-      <CardStudio userId={userId} pro={pro} />
-      {PRO_TOOLS_ENABLED && (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="panel flex flex-col p-5">
-            <h2 className="flex items-center gap-2 font-bold"><Palette className="size-5 text-clay-strong" aria-hidden />{t("pt_theme_t")}</h2>
-            <p className="mt-1 flex-1 text-sm text-muted-foreground">{t("pt_theme_d")}</p>
-            <Link to="/profile" search={{ tab: "settings" }} hash="theme" className="btn btn-outline mt-4 min-h-10 self-start">{t("pt_theme_cta")}</Link>
+    <section aria-labelledby="ph-t" className="relative overflow-hidden rounded-3xl bg-ink-hero p-6 text-ink-foreground ring-2 ring-lime/60 sm:p-8">
+      <BrandBackdrop variant="intro" />
+      <PointerField />
+      <div className="relative">
+        <p className="flex items-center gap-2 text-sm font-bold text-lime"><Sparkles className="size-4" aria-hidden />SkillLoop Pro</p>
+        <h2 id="ph-t" className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">{t(pro ? "ph_title" : "ph_free_title")}</h2>
+        <p className="mt-2 max-w-prose text-ink-muted">{t(pro ? "ph_sub_pro" : "ph_sub_free")}</p>
+        {plan && (plan.status === "trial" || plan.status === "active" || plan.founder) && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {plan.status === "trial" && <span className="rounded-full bg-lime px-3 py-1 text-sm font-bold text-lime-foreground">{t("ph_trial", { n: trialDaysLeft(plan) })}</span>}
+            {plan.status === "active" && <span className="rounded-full bg-lime px-3 py-1 text-sm font-bold text-lime-foreground">{t("ph_active")}</span>}
+            {plan.founder && <span className="inline-flex items-center gap-1.5 rounded-full border border-clay/60 px-3 py-1 text-sm font-bold text-clay"><Crown className="size-4" aria-hidden />{t("plan_founder")}</span>}
           </div>
-          <div className="panel flex flex-col p-5">
-            <h2 className="flex items-center gap-2 font-bold"><Film className="size-5 text-clay-strong" aria-hidden />{t("pt_motion_t")}</h2>
-            <p className="mt-1 flex-1 text-sm text-muted-foreground">{t("pt_motion_d", { s: MOTION_MAX_SECONDS })}</p>
-            <Link to="/profile" search={{ tab: "settings" }} hash="portfolio" className="btn btn-outline mt-4 min-h-10 self-start">{t("pt_motion_cta")}</Link>
-          </div>
+        )}
+        <div className="mt-6 flex flex-wrap gap-3">
+          {pro
+            ? <Link to="/pros/$id" params={{ id: userId }} className="btn btn-lime"><ExternalLink className="size-4" aria-hidden />{t("ph_view_page")}</Link>
+            : <Link to="/pricing" className="btn btn-lime"><Sparkles className="size-4" aria-hidden />{t("pro_lock_cta")}</Link>}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** "Démarrer avec Pro": each step reads real state and jumps to its tool below. */
+function ProSteps({ userId }: { userId: string }) {
+  const { t } = useI18n();
+  const { steps, done } = useProSteps(userId, true);
+  return (
+    <section aria-labelledby="ph-steps" className="panel p-6">
+      <div className="flex items-center gap-4">
+        <LoopProgress value={done} total={steps.length} label={t("ph_progress", { n: done, total: steps.length })} className="w-20 shrink-0" />
+        <div>
+          <h2 id="ph-steps" className="text-lg font-bold">{t("ph_steps_t")}</h2>
+          <p className="text-sm text-muted-foreground">{t("ph_progress", { n: done, total: steps.length })}</p>
+        </div>
+      </div>
+      <ol className="mt-5 grid gap-3 sm:grid-cols-2">
+        {steps.map((x) => (
+          <li key={x.id}>
+            <a href={`#${STEP_ANCHOR[x.id]}`} className={`flex h-full gap-3 rounded-2xl border p-4 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${x.done ? "bg-surface-sunken" : ""}`}>
+              {x.done ? <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-success" aria-hidden /> : <Circle className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />}
+              <span className="min-w-0 flex-1">
+                <span className={`block font-semibold ${x.done ? "text-muted-foreground" : ""}`}>{t(x.title)}</span>
+                <span className="mt-0.5 block text-sm text-muted-foreground">{t(x.desc)}</span>
+                <span className={`mt-2 inline-flex items-center gap-1 text-sm font-semibold ${x.done ? "text-success" : "text-sea"}`}>
+                  {t(x.done ? "ph_done" : "ph_start")}{!x.done && <ArrowRight className="size-4 rtl:-scale-x-100" aria-hidden />}
+                </span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+/** Videos right here: the pro's published videos, and a video-first form to add one. */
+function VideoPanel({ userId, pro }: { userId: string; pro: boolean }) {
+  const { t } = useI18n();
+  const prof = useQuery(profileQuery(userId));
+  const [adding, setAdding] = useState(false);
+  const videos = (prof.data?.portfolio ?? []).filter((x) => x.video);
+  return (
+    <ToolPanel id="motion" icon={Film} title="ph_video_t" sub={t("pt_motion_d", { s: MOTION_MAX_SECONDS })}>
+      {!pro ? <ProLock text="pro_lock_motion" /> : (
+        <div className="space-y-5">
+          {videos.length > 0 && (
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {videos.map((x) => (
+                <li key={x.id} className="min-w-0">
+                  <video src={x.video} poster={x.image} controls playsInline preload="none" aria-label={x.title} className="aspect-[4/3] w-full rounded-2xl bg-ink object-cover" />
+                  <p dir="auto" className="mt-2 flex items-center gap-1.5 truncate text-sm font-semibold"><Play className="size-3.5 shrink-0 fill-current text-clay-strong" aria-hidden />{x.title}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+          {adding
+            ? <PortfolioForm userId={userId} videoFirst onDone={() => setAdding(false)} />
+            : <button type="button" onClick={() => setAdding(true)} className="btn btn-lime"><Plus className="size-4" aria-hidden />{t("ph_video_new")}</button>}
         </div>
       )}
+    </ToolPanel>
+  );
+}
+
+/**
+ * /dashboard?mode=provider&section=pro — the pro's SkillLoop Pro space: status, guided first steps, then every tool in
+ * place (videos, theme, card & QR, statistics). Without Pro the same tools show what they do, locked.
+ */
+export function ProHub({ userId }: { userId: string }) {
+  const pro = useIsPro(userId);
+  const prof = useQuery(profileQuery(userId));
+  if (pro === undefined || prof.isLoading) return <ListSkeleton rows={3} />;
+  return (
+    <div className="space-y-8">
+      <ProHero userId={userId} pro={pro} />
+      {pro && <ProSteps userId={userId} />}
+      {PRO_TOOLS_ENABLED && <VideoPanel userId={userId} pro={pro} />}
+      {PRO_TOOLS_ENABLED && prof.data && <ThemePicker userId={userId} details={prof.data.professional_details} />}
+      <CardStudio userId={userId} pro={pro} />
+      {PRO_TOOLS_ENABLED && <StatsPanel userId={userId} pro={pro} />}
     </div>
   );
 }
