@@ -24,7 +24,7 @@ import { markCardSaved, useProSteps, type ProStepId } from "@/lib/pro-onboarding
 function ToolPanel({ id, icon: Icon, title, sub, children }: { id: string; icon: typeof QrCode; title: TKey; sub?: ReactNode; children: ReactNode }) {
   const { t } = useI18n();
   return (
-    <section id={id} aria-labelledby={`${id}-t`} className="panel scroll-mt-24 p-6">
+    <section id={id} aria-labelledby={`${id}-t`} className="panel scroll-mt-36 p-6">
       <h2 id={`${id}-t`} className="flex items-center gap-2 text-lg font-bold"><Icon className="size-5 text-clay-strong" aria-hidden />{t(title)}</h2>
       {sub && <p className="mt-1 max-w-prose text-sm text-muted-foreground">{sub}</p>}
       <div className="mt-5">{children}</div>
@@ -228,7 +228,7 @@ export function ThemePicker({ userId, details }: { userId: string; details: unkn
   const name = useQuery(profileQuery(userId)).data?.display_name ?? "";
 
   return (
-    <form id="theme" aria-labelledby="ct-t" className="max-w-2xl scroll-mt-24 space-y-5 panel p-6" onSubmit={async (e) => {
+    <form id="theme" aria-labelledby="ct-t" className="scroll-mt-36 space-y-5 panel p-6 sm:p-8" onSubmit={async (e) => {
       e.preventDefault();
       setBusy(true);
       const fresh = await qc.fetchQuery({ ...profileQuery(userId), staleTime: 0 }).catch(() => null);

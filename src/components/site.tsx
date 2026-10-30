@@ -1,11 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Menu, X, MapPin, Wifi, Star, BadgeCheck, Sun, Moon, Monitor, Home, Search, MessageSquare, User, PlusCircle, ChevronDown, LayoutDashboard, Briefcase, Settings, LogOut, Sparkles } from "lucide-react";
+import { Menu, X, MapPin, Wifi, Star, BadgeCheck, Sun, Moon, Monitor, Home, Search, MessageSquare, User, PlusCircle, ChevronDown, LayoutDashboard, Briefcase, Settings, LogOut, Sparkles, ImageIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { profileQuery } from "@/lib/profiles-db";
 import { useTheme, type ThemePref } from "@/lib/theme";
 import { LANGS, countKey, useI18n } from "@/lib/i18n";
 import { useUnread, useUnreadLive } from "@/lib/use-unread";
+import { categoryImage } from "@/lib/category-images";
 import { CATEGORIES, type Service } from "@/lib/data";
 import { isNew, type ProSummary } from "@/lib/explore-filters";
 import { useViewTransitions, vtName } from "@/lib/view-transitions";
@@ -434,16 +435,16 @@ export function ServiceCard({ s }: { s: Service }) {
   const cat = CATEGORIES.find((c) => c.id === s.category);
   const CatIcon = CATEGORY_ICONS[s.category] ?? CATEGORY_ICONS.other;
   return (
-    <Link to="/services/$id" params={{ id: s.id }} viewTransition={vt} className="listing-card group">
+    <Link to="/services/$id" params={{ id: s.id }} viewTransition={vt} className="listing-card group" data-tilt>
       {/* The photo continues into the service page's photo (same view-transition name). */}
       <div className="relative aspect-[4/3] overflow-hidden bg-muted" style={s.hasPhoto && s.real ? { viewTransitionName: vtName("svc", s.id) } : undefined}>
         {s.hasPhoto ? (
           <img src={s.image} alt="" loading="lazy" width={944} height={704} className="size-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]" />
         ) : (
-          // No provider photo: a branded category tile instead of a stock image that could read as their work.
-          <span className="media-fallback">
-            <CatIcon className="size-10" aria-hidden />
-            <span className="mt-6 rounded-full bg-card/80 px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">{t("card_no_photo")}</span>
+          // No provider photo: the category's illustration, tinted and always labelled so it never reads as their work.
+          <span className="illus-frame">
+            <img src={categoryImage(s.category)} alt="" loading="lazy" width={800} height={600} className="illus-img" />
+            <span className="illus-label"><ImageIcon className="size-3.5" aria-hidden />{t("illus_photo")}</span>
           </span>
         )}
         {s.description.trim() && (
@@ -503,7 +504,7 @@ export function ServiceCard({ s }: { s: Service }) {
 export function ProCard({ p, compact = false }: { p: ProSummary; compact?: boolean }) {
   const { t, lang } = useI18n();
   return (
-    <Link to="/pros/$id" params={{ id: p.ownerId }} className={`listing-card group w-full gap-3 ${compact ? "p-4" : "p-5"}`}>
+    <Link to="/pros/$id" params={{ id: p.ownerId }} className={`listing-card group w-full gap-3 ${compact ? "p-4" : "p-5"}`} data-tilt>
       <div className="flex items-center gap-3">
         <Avatar src={p.avatar} name={p.name} size={compact ? "sm" : "md"} />
         <span className="min-w-0 flex-1">

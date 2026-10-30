@@ -211,3 +211,43 @@ Nav indicator (lime bar under the current/hovered/focused link). Explore result 
 (start of the provider's own description over the photo on hover/keyboard focus; never on touch; decorative duplicate).
 Portfolio bento on /pros (≥ 3 projects, xl: large tile + two stacked). Defaults chosen by me: shortcut, icon placement,
 count animation included, preview = description start (untranslated).
+
+## 14. Marketplace upgrade — photography + public pro page (2026-10-30, awaiting your browser check)
+- Category photography: 13 photos (one per category) in `src/assets/categories/*.webp` (800×600, 12–39 KB each) via
+  `src/lib/category-images.ts`, plus `src/assets/home/for-clients.webp` / `for-pros.webp`. Source: Unsplash (Unsplash
+  licence: free commercial use, no attribution required). Photo ids: tech 1498050108023-c5249f4df085, design
+  1561070791-2526d30994b5, tutoring 1503676260728-1c00da094a0b, home 1621905252507-b35492cc74b4, care
+  1522337360788-8b13dee7a37e, healthcare 1559839734-2b71ea197ec2, engineering 1581092160562-40aa08e78837, automotive
+  1487754180451-c456f719a1fc, business 1552664730-d307ca884978, events 1519741497674-611481863552, personal
+  1516627145497-ae6968895b74, student 1523240795612-9a054b0db644, other 1452860606245-08befc0ff44b; for-clients
+  1581578731548-c64695cc6952, for-pros 1600880292203-757bb62b4baf. Bundled locally (no CSP change).
+- Home: categories = photo bento (lead tile 2×2, "all categories" tile with stacked thumbnails, photo chips for the rest);
+  benefit blocks = photo-headed panels with a CTA each.
+- Listing without a provider photo (card + service page): the category photo, tinted toward ink, ALWAYS labelled
+  "Photo d'illustration" (`illus_photo`) — so it never reads as the pro's work (replaces the icon-only tile).
+- /pros/$id: cover built from the pro's own published photos (portfolio, then service photos; brand cover when none);
+  raised identity card overlapping it (photo, name, trade, declared facts, CTA); "at a glance" counts (services, fields,
+  projects, member since — only what the page shows); sticky section bar (About / Services / Projects / Method) with
+  scroll-spy when there are 2+ sections; sidebar "Work with {name}" action panel (CTA + declared details + contacts).
+
+## 15. Motion kit, dashboard and settings (2026-10-30, your request: "cards that move", scroll effects)
+Rule change (asked by you): scroll effects are now allowed, as pure-CSS scroll-driven animations (no JS, progressive
+enhancement, reduced motion = static, elements arrive from opacity ≥ 0.25 so nothing is ever hidden). AGENTS.md updated.
+- `src/components/motion-kit.tsx`: `MotionLayer` (mounted in __root; one delegated pointer listener) — `data-tilt` cards
+  lean in 3D toward a mouse with a lime/clay light following it, `data-magnetic` buttons nudge toward it; `ScrollProgress`
+  (lime→clay reading bar under the header); `CountUp` (counts up once when seen; real value in HTML + screen readers);
+  `useActiveSection` (scroll-spy).
+- Scroll classes (styles.css "Motion kit"): `sd-rise`, `sd-stagger` (children by column), `sd-parallax` (photos),
+  `sd-hero-out` (hero content sinks and fades a little as you leave it), `sd-cover` (pro cover drifts), `sd-sticky-shadow`.
+- Tilt on: service cards, pro cards, home category tiles and benefit panels, stat tiles, dashboard portfolio, profile
+  preview cards, the pro page action panel.
+- `src/components/dash-kit.tsx`: `DashHero` (ink hero, contours, two slow orbs that drift once, avatar, "Bonjour, {name}",
+  date, switch + quick actions), `SegSlide` (sliding lime pill), `StatTile` (icon, tone line, count-up).
+- Dashboard + /profile: DashHero, sticky underline tabs (pending-request count on "requests"), stat tiles (real counts:
+  services, pending, accepted, profile completion), row cards with a lime start edge on hover.
+- Settings: sticky side index with scroll-spy (Profil, Carnet, Thème, Réalisations, Contacts, Compte); editors full
+  width; **live preview** of the public card next to the profile form (updates while typing, incl. a newly picked photo).
+- Follow-up (same day): "Mes services" (dashboard + /profile pro space) are photo cards (`ServiceTile`: provider photo or
+  the labelled category illustration, status badge, actions); the whole card opens the service (a draft opens the
+  editor). Request rows open their conversation (/messages?r=…) from anywhere on the row; buttons stay separate
+  (stretched link under them). Live-preview avatar no longer hidden under the cover.

@@ -72,7 +72,7 @@ export const HomeHero = forwardRef<HomeHeroHandle>(function HomeHero(_props, ref
   return (
     <section className="bg-ink-hero relative overflow-hidden" aria-labelledby={`${id}-h`}>
       <BrandBackdrop variant="hero" intent={intent} />
-      <div className="relative mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:py-16 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-center lg:gap-14 lg:py-20">
+      <div className="sd-hero-out relative mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:py-16 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-center lg:gap-14 lg:py-20">
         <div className="text-center lg:text-start">
           <p className="enter hero-badge inline-flex items-center gap-2 rounded-full border border-ink-foreground/20 bg-ink/50 px-3 py-1 text-xs font-semibold text-ink-muted">
             <span className="badge-dot size-1.5 rounded-full bg-lime" aria-hidden />{t("hh_eyebrow")}
@@ -163,7 +163,7 @@ export const HomeHero = forwardRef<HomeHeroHandle>(function HomeHero(_props, ref
               ))}
             </ul>
 
-            <button type="submit" className="btn btn-lime mt-5 w-full">
+            <button type="submit" className="btn btn-lime mt-5 w-full" data-magnetic>
               {t(c.cta)}<ArrowRight className="size-4 rtl:-scale-x-100" aria-hidden />
             </button>
             <div className="mt-3 text-center">

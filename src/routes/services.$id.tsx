@@ -9,6 +9,7 @@ import { ErrorState } from "@/components/states";
 import { profileQuery } from "@/lib/profiles-db";
 import { requestGuide, guideLine } from "@/lib/request-guides";
 import { useI18n, type TKey } from "@/lib/i18n";
+import { categoryImage } from "@/lib/category-images";
 import { CATEGORIES, type Service } from "@/lib/data";
 import { ServiceCard, formatPrice, useAllServices } from "@/components/site";
 import { fetchPublicService, isUuid, serviceQuery } from "@/lib/services-db";
@@ -342,8 +343,9 @@ function Gallery({ s }: { s: Service }) {
   const [open, setOpen] = useState(false);
   if (!s.hasPhoto)
     return (
-      <div className="media-frame aspect-[16/10] rounded-3xl">
-        <span className="media-empty"><ImageOff className="size-8" aria-hidden /><span className="text-sm font-medium">{t("sd_no_photo")}</span></span>
+      <div className="media-frame illus-frame aspect-[16/10] rounded-3xl">
+        <img src={categoryImage(s.category)} alt="" width={800} height={600} className="illus-img" />
+        <span className="illus-label"><ImageOff className="size-3.5" aria-hidden />{t("illus_photo")} · {t("sd_no_photo")}</span>
       </div>
     );
   return (

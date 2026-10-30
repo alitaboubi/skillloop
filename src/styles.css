@@ -1244,3 +1244,355 @@ input::-ms-clear {
   from { opacity: 0.7; scale: 0.15; }
   to { opacity: 0; scale: 1; }
 }
+
+/* ---------- Category photography (src/lib/category-images.ts) ----------
+   Category art, never a pro's work: on a listing it is tinted toward ink and always carries the "illustration" label.
+   Photos zoom slightly with a fine pointer only (transform), never under reduced motion. */
+.illus-frame { position: absolute; inset: 0; overflow: hidden; background: var(--ink); }
+.media-frame.illus-frame { position: relative; inset: auto; }
+.illus-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to top, color-mix(in oklab, var(--ink) 72%, transparent), transparent 55%);
+}
+.illus-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.82;
+  filter: saturate(0.75);
+  transition: transform 300ms var(--ease-out);
+}
+.illus-label {
+  position: absolute;
+  z-index: 1;
+  inset-inline-start: 0.75rem;
+  bottom: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  max-width: calc(100% - 1.5rem);
+  border-radius: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink-foreground);
+  background: color-mix(in oklab, var(--ink) 78%, transparent);
+}
+.listing-card:hover .illus-label { opacity: 0; }
+
+/* Home category tiles: real photography under an ink fade, white type, a lime arrow that fills on hover. */
+.cat-photo {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  height: 100%;
+  min-height: 10.5rem;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: var(--ink);
+  color: var(--ink-foreground);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink-foreground) 8%, transparent);
+}
+.cat-photo-img {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 600ms var(--ease-out);
+}
+.cat-photo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to top, color-mix(in oklab, var(--ink) 94%, transparent) 0%, color-mix(in oklab, var(--ink) 55%, transparent) 45%, color-mix(in oklab, var(--ink) 5%, transparent) 100%);
+}
+.cat-photo-go {
+  position: absolute;
+  top: 0.75rem;
+  inset-inline-end: 0.75rem;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--ink) 55%, transparent);
+  color: var(--ink-foreground);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink-foreground) 25%, transparent);
+  transition: background-color var(--duration-base) var(--ease-out), color var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out);
+}
+.cat-photo-icon {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  background: var(--lime);
+  color: var(--lime-foreground);
+}
+.cat-photo:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+.cat-photo:hover .cat-photo-go, .cat-photo:focus-visible .cat-photo-go { background: var(--lime); color: var(--lime-foreground); box-shadow: none; }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .cat-photo:hover .cat-photo-img { transform: scale(1.06); }
+  .cat-photo:hover .cat-photo-go { transform: translateX(2px); }
+  [dir="rtl"] .cat-photo:hover .cat-photo-go { transform: translateX(-2px); }
+  .listing-card:hover .illus-img { transform: scale(1.03); }
+}
+/* Stacked round thumbnails (the "all categories" tile, other-category chips). */
+.photo-stack { display: flex; }
+.photo-stack > img { width: 2.75rem; height: 2.75rem; border-radius: 9999px; object-fit: cover; box-shadow: 0 0 0 3px var(--ink); }
+.photo-stack > img + img { margin-inline-start: -0.75rem; }
+.chip-thumb { width: 1.5rem; height: 1.5rem; margin-inline-start: -0.4rem; border-radius: 9999px; object-fit: cover; }
+
+/* Home benefit panels: photo header, then the list. */
+.ben-photo { position: relative; aspect-ratio: 16 / 7; overflow: hidden; background: var(--ink); }
+.ben-photo > img { width: 100%; height: 100%; object-fit: cover; }
+.ben-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, color-mix(in oklab, var(--ink) 85%, transparent), transparent 70%); }
+
+/* ---------- Public pro page (routes/pros.$id.tsx) ----------
+   Cover = the pro's own published photos (portfolio, then service photos) under an ink fade; without any, the brand
+   cover. The identity card overlaps it as the page's one raised panel; the section bar stays under the header. */
+.pro-cover { position: relative; overflow: hidden; background: var(--gradient-hero); color: var(--navy-foreground); }
+.ctheme .pro-cover { background: var(--ct-cover); }
+.pro-cover-mosaic { position: absolute; inset: 0; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 3px; opacity: 0.8; }
+.pro-cover-mosaic > img { width: 100%; height: 100%; min-width: 0; object-fit: cover; }
+.pro-cover-mosaic[data-n="1"] { grid-template-columns: 1fr; }
+.pro-cover-mosaic[data-n="2"] { grid-template-columns: 3fr 2fr; }
+.pro-cover-fade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, var(--background) 0%, color-mix(in oklab, var(--ink) 55%, transparent) 35%, color-mix(in oklab, var(--ink) 25%, transparent) 70%, color-mix(in oklab, var(--ink) 60%, transparent) 100%);
+}
+.ctheme .pro-cover-fade { background: linear-gradient(to top, var(--background) 0%, transparent 30%), color-mix(in oklab, var(--ink) 30%, transparent); }
+.pro-id {
+  position: relative;
+  border-radius: 1.5rem;
+  border: 1px solid color-mix(in oklab, var(--ink) 12%, var(--border));
+  background: var(--card);
+  box-shadow: var(--shadow-raised);
+}
+/* Honest numbers only (counts of what the page shows); hairline grid via a 1px gap on the border colour. */
+.pro-stats { display: grid; gap: 1px; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); border-top: 1px solid var(--border); background: var(--border); border-radius: 0 0 1.5rem 1.5rem; overflow: hidden; }
+.pro-stat { display: flex; flex-direction: column; padding: 1rem 1.25rem; background: var(--card); }
+.pro-stat-n { order: -1; }
+.pro-stat-n[data-small] { font-size: 1.25rem; padding-block: 0.25rem; }
+.pro-stat-n[data-small]::first-letter { text-transform: uppercase; }
+.pro-stat-n { display: block; font-size: 1.75rem; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.pro-stat-l { display: block; margin-top: 0.25rem; font-size: 0.875rem; color: var(--muted-foreground); }
+.ctheme .pro-stat-n { color: var(--ct-accent); }
+.pro-tabs { position: sticky; top: 4rem; z-index: 20; border-bottom: 1px solid var(--border); background: var(--background); }
+.pro-tab {
+  position: relative;
+  display: inline-flex;
+  min-height: 3rem;
+  flex-shrink: 0;
+  align-items: center;
+  padding-inline: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+.pro-tab::after { content: ""; position: absolute; inset-inline: 0; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--lime); transform: scaleX(0); transition: transform var(--duration-base) var(--ease-out); }
+.pro-tab:hover, .pro-tab[aria-current="true"] { color: var(--foreground); }
+.pro-tab[aria-current="true"]::after { transform: scaleX(1); }
+.pro-tab:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 0.375rem; }
+.section-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 0.75rem; }
+.section-count { display: inline-grid; min-width: 1.75rem; place-items: center; border-radius: 9999px; padding: 0 0.5rem; font-size: 0.875rem; font-weight: 700; background: var(--surface-sunken); color: var(--muted-foreground); }
+.pro-quote { position: relative; border-inline-start: 3px solid var(--clay); padding-inline-start: 1.25rem; }
+.ctheme .pro-quote { border-color: var(--ct-accent); }
+
+/* ---------- Motion kit (src/components/motion-kit.tsx) ----------
+   Pointer: [data-tilt] cards lean toward a fine pointer with a light that follows it; [data-magnetic] nudges toward it.
+   Transform/opacity only (the light is a disc moved by translate). MotionLayer installs nothing on touch / reduced motion,
+   so these rules then never change anything. */
+[data-tilt] {
+  position: relative;
+  transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 500ms var(--ease-out), border-color var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);
+}
+[data-tilt][data-moving] {
+  transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-4px);
+  transition: transform 140ms linear, border-color var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);
+  box-shadow: var(--shadow-raised), 0 18px 40px -18px color-mix(in oklab, var(--ink) 45%, transparent);
+}
+[data-tilt]::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  top: 0;
+  width: 22rem;
+  height: 22rem;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--lime) 26%, transparent), color-mix(in oklab, var(--clay) 8%, transparent) 60%, transparent);
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  transform: translate(calc(var(--sx, 0px) - 50%), calc(var(--sy, 0px) - 50%));
+  transition: opacity 300ms var(--ease-out);
+}
+.dark [data-tilt]::after { mix-blend-mode: screen; background: radial-gradient(closest-side, color-mix(in oklab, var(--lime) 14%, transparent), transparent); }
+[data-tilt][data-moving]::after { opacity: 1; }
+[data-tilt]:not(.listing-card, .cat-photo, .panel, .panel-action, .stat-tile, .pro-id) { overflow: hidden; }
+[data-magnetic] { translate: var(--tx, 0px) var(--ty, 0px); transition: translate 380ms var(--ease-out); }
+[data-magnetic][data-moving] { transition: translate 120ms linear; }
+
+/* Scroll: CSS scroll-driven animations only (no JS, nothing hidden before load). Elements arrive from a visible state
+   (opacity ≥ 0.25) using the individual translate/scale properties, so they never fight the pointer tilt's transform.
+   Browsers without scroll timelines, and reduced motion, show everything static. */
+.scroll-progress { position: fixed; inset-inline: 0; top: 4rem; z-index: 39; height: 3px; pointer-events: none; transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, var(--lime), var(--clay)); opacity: 0; }
+[dir="rtl"] .scroll-progress { transform-origin: right; }
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: scroll()) {
+    .scroll-progress { opacity: 1; animation: sd-progress linear both; animation-timeline: scroll(root); }
+    .sd-rise, .sd-stagger > * {
+      animation: sd-rise linear both;
+      animation-timeline: view();
+      animation-range: entry calc(var(--sd-i, 0) * 7%) entry calc(60% + var(--sd-i, 0) * 7%);
+    }
+    .sd-stagger > :nth-child(3n + 2) { --sd-i: 1; }
+    .sd-stagger > :nth-child(3n) { --sd-i: 2; }
+    .sd-parallax { scale: 1.14; animation: sd-parallax linear both; animation-timeline: view(); animation-range: cover; }
+    .cat-photo-img { scale: 1.1; animation: sd-parallax linear both; animation-timeline: view(); animation-range: cover; }
+    .sd-hero-out { animation: sd-hero-out linear both; animation-timeline: scroll(root); animation-range: 0 80vh; }
+    .sd-cover { animation: sd-cover linear both; animation-timeline: scroll(root); animation-range: 0 60vh; }
+    .sd-sticky-shadow { animation: sd-shadow linear both; animation-timeline: scroll(root); animation-range: 0 160px; }
+  }
+}
+@keyframes sd-progress { to { transform: scaleX(1); } }
+@keyframes sd-rise { from { opacity: 0.25; translate: 0 40px; scale: 0.96; } to { opacity: 1; translate: 0 0; scale: 1; } }
+@keyframes sd-parallax { from { translate: 0 -6%; } to { translate: 0 6%; } }
+@keyframes sd-hero-out { to { translate: 0 10vh; scale: 0.95; opacity: 0.35; } }
+@keyframes sd-cover { to { translate: 0 18%; scale: 1.08; } }
+@keyframes sd-shadow { to { box-shadow: 0 12px 28px -16px color-mix(in oklab, var(--ink) 50%, transparent); } }
+
+/* ---------- Dashboard & settings (dash-kit.tsx) ---------- */
+.dash-hero { position: relative; overflow: hidden; isolation: isolate; color: var(--ink-foreground); background: var(--gradient-ink); }
+.dash-hero-orb {
+  position: absolute;
+  z-index: -1;
+  width: 34rem;
+  height: 34rem;
+  border-radius: 9999px;
+  inset-inline-end: -8rem;
+  top: -14rem;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--clay) 40%, transparent), transparent);
+  opacity: 0.55;
+}
+.dash-hero-orb + .dash-hero-orb { inset-inline: -10rem auto; top: auto; bottom: -20rem; background: radial-gradient(closest-side, color-mix(in oklab, var(--lime) 22%, transparent), transparent); }
+@media (prefers-reduced-motion: no-preference) {
+  .dash-hero-orb { animation: orb-drift 14s var(--ease-out) 1 both; }
+  .dash-hero-orb + .dash-hero-orb { animation-duration: 18s; animation-direction: reverse; }
+}
+@keyframes orb-drift { from { transform: translate(0, 0) scale(1); } 50% { transform: translate(-3rem, 2rem) scale(1.08); } to { transform: translate(0, 0) scale(1); } }
+.dash-action {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in oklab, var(--ink-foreground) 16%, transparent);
+  background: color-mix(in oklab, var(--ink-foreground) 6%, transparent);
+  padding-inline: 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink-foreground);
+  transition: background-color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+  &:hover { background: color-mix(in oklab, var(--ink-foreground) 12%, transparent); border-color: color-mix(in oklab, var(--lime) 55%, transparent); }
+  &:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+}
+/* Segmented switch on ink with a sliding lime pill (position from --seg-i / --seg-n). */
+.seg-slide {
+  position: relative;
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  padding: 4px;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--ink-foreground) 9%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink-foreground) 14%, transparent);
+}
+.seg-slide::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  inset-inline-start: 4px;
+  width: calc((100% - 8px) / var(--seg-n, 2));
+  border-radius: 9999px;
+  background: var(--lime);
+  box-shadow: 0 6px 18px -6px color-mix(in oklab, var(--lime) 70%, transparent);
+  transform: translateX(calc(var(--seg-i, 0) * 100%));
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+[dir="rtl"] .seg-slide::before { transform: translateX(calc(var(--seg-i, 0) * -100%)); }
+.seg-slide > a { position: relative; z-index: 1; display: grid; min-height: 2.5rem; place-items: center; padding-inline: 1.1rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 700; color: var(--navy-muted); white-space: nowrap; transition: color var(--duration-base) var(--ease-out); }
+.seg-slide > a[aria-current="page"], .seg-slide > a[aria-selected="true"] { color: var(--lime-foreground); }
+.seg-slide > a:hover:not([aria-current="page"]):not([aria-selected="true"]) { color: var(--ink-foreground); }
+.seg-slide > a:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+/* Section tabs under the hero: sticky, underline slides between tabs via transform. */
+.dash-tabs { position: sticky; top: 4rem; z-index: 20; border-bottom: 1px solid var(--border); background: var(--background); }
+.dash-tab {
+  position: relative;
+  display: inline-flex;
+  min-height: 3.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+.dash-tab::after { content: ""; position: absolute; inset-inline: 0; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--lime); transform: scaleX(0); transition: transform var(--duration-slow) var(--ease-out); }
+.dash-tab:hover, .dash-tab[aria-current="page"] { color: var(--foreground); }
+.dash-tab[aria-current="page"]::after { transform: scaleX(1); }
+.dash-tab:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 0.375rem; }
+.dash-tab-n { display: inline-grid; min-width: 1.4rem; height: 1.4rem; place-items: center; border-radius: 9999px; padding-inline: 0.35rem; font-size: 0.875rem; font-weight: 700; background: var(--lime); color: var(--lime-foreground); }
+/* Stat tiles: icon well, big counted number, a tone line at the top. */
+.stat-tile { display: flex; flex-direction: column; align-items: flex-start; position: relative; overflow: hidden; border-radius: 1.25rem; border: 1px solid var(--border); background: var(--card); padding: 1.25rem; }
+.stat-tile::before { content: ""; position: absolute; inset-inline: 0; top: 0; height: 3px; background: var(--stat-tone, var(--sea)); }
+.stat-tile-n { display: block; margin-top: 0.75rem; font-size: 2.25rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
+.stat-tile-l { order: 2; display: block; margin-top: 0.4rem; font-size: 0.875rem; color: var(--muted-foreground); }
+.stat-tile-icon { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 0.75rem; color: var(--stat-tone, var(--sea)); background: color-mix(in oklab, var(--stat-tone, var(--sea)) 14%, transparent); }
+/* Row cards (requests, services) on the dashboard: start-edge accent appears on hover/focus. */
+.row-card { position: relative; border-radius: 1.25rem; border: 1px solid var(--border); background: var(--card); transition: border-color var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out); }
+.row-card::before { content: ""; position: absolute; inset-block: 1rem; inset-inline-start: -1px; width: 3px; border-radius: 3px; background: var(--lime); transform: scaleY(0); transition: transform var(--duration-base) var(--ease-out); }
+.row-card:hover, .row-card:focus-within { border-color: color-mix(in oklab, var(--ink) 25%, var(--border)); box-shadow: var(--shadow-raised); }
+.row-card:hover::before, .row-card:focus-within::before { transform: scaleY(1); }
+/* Settings: sticky side nav with an active marker; section headers with icon wells. */
+.set-nav-link { position: relative; display: flex; min-height: 2.75rem; align-items: center; gap: 0.75rem; border-radius: 0.75rem; padding-inline: 0.75rem; font-size: 0.875rem; font-weight: 600; color: var(--muted-foreground); transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out); }
+.set-nav-link:hover { background: var(--surface-sunken); color: var(--foreground); }
+.set-nav-link[aria-current="true"] { background: var(--card); color: var(--foreground); box-shadow: inset 0 0 0 1px var(--border); }
+.set-nav-link[aria-current="true"] .set-nav-icon { background: var(--lime); color: var(--lime-foreground); }
+.set-nav-link:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.set-nav-icon { display: grid; place-items: center; width: 2rem; height: 2rem; flex-shrink: 0; border-radius: 0.6rem; background: var(--surface-sunken); color: var(--clay-strong); transition: background-color var(--duration-base) var(--ease-out), color var(--duration-base) var(--ease-out); }
+/* Live preview of the public card while editing. */
+.live-card { position: relative; overflow: hidden; border-radius: 1.5rem; border: 1px solid var(--border); background: var(--card); box-shadow: var(--shadow-raised); }
+.live-card-cover { position: relative; height: 5.5rem; overflow: hidden; background: var(--gradient-ink); }
+.live-dot { position: relative; display: inline-flex; width: 0.5rem; height: 0.5rem; border-radius: 9999px; background: var(--success); }
+@media (prefers-reduced-motion: no-preference) {
+  .live-dot::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: inherit; animation: live-ping 1.6s var(--ease-out) 3; }
+}
+@keyframes live-ping { from { transform: scale(1); opacity: 0.7; } to { transform: scale(2.6); opacity: 0; } }
+/* My services as cards (dash-kit ServiceTile); a stretched link makes the whole card open the service. */
+.svc-tile { position: relative; display: flex; flex-direction: column; overflow: hidden; border-radius: 1.25rem; border: 1px solid var(--border); background: var(--card); transition: border-color var(--duration-base) var(--ease-out); }
+.svc-tile:hover, .svc-tile:focus-within { border-color: color-mix(in oklab, var(--ink) 30%, var(--border)); }
+.svc-tile-draft { border: 2px dashed color-mix(in oklab, var(--clay) 55%, transparent); }
+.svc-tile-media { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: var(--muted); }
+.stretched-link::before { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
+.stretched-link:focus-visible { outline: none; }
+.stretched-link:focus-visible::before { outline: 2px solid var(--ring); outline-offset: -2px; border-radius: 1.25rem; }
+.row-card:has(.stretched-link) { cursor: pointer; }
+.row-card .stretched-link:hover { text-decoration: underline; text-underline-offset: 4px; }

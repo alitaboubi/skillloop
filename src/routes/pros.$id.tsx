@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound, useNavigate, useRouter } from "@tansta
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronRight, Copy, ImageIcon, Languages, MapPin, Pencil, Play, Sparkles, Wifi } from "lucide-react";
+import { ArrowRight, Check, ChevronRight, Copy, ImageIcon, Languages, MapPin, Pencil, Play, Sparkles, Wifi } from "lucide-react";
 import { toast } from "sonner";
 import { CONTACT_META } from "@/components/contact-meta";
 import { CONTACT_KINDS, contactHref, contactLabel, isPublicContactValid, type ContactKind } from "@/lib/profile-contacts";
@@ -16,6 +16,7 @@ import { useI18n, type TKey } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { BrandBackdrop, CATEGORY_ICONS, PointerField } from "@/components/brand";
 import { ShareKit } from "@/components/share-kit";
+import { CountUp, useActiveSection } from "@/components/motion-kit";
 import { profilePath } from "@/lib/share";
 import { CATEGORIES, type CategoryId, type Service } from "@/lib/data";
 import { COMMITMENT_KEYS, hasCarnet, readCarnet, readTheme } from "@/lib/carnet";
@@ -67,9 +68,9 @@ function Skeleton() {
   const { t } = useI18n();
   return (
     <div role="status" aria-label={t("loading")}>
-      <div className="profile-cover h-40 md:h-48" />
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="-mt-12 flex items-end gap-4"><span className="skeleton-block size-24 rounded-full" /><div className="flex-1 space-y-2 pb-2"><div className="skeleton-block h-7 w-1/2" /><div className="skeleton-block h-4 w-1/3" /></div></div>
+      <div className="pro-cover h-48 md:h-60" />
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="pro-id -mt-20 flex flex-col gap-4 p-6 sm:flex-row sm:items-end md:-mt-28 md:p-8"><span className="skeleton-block size-28 rounded-full" /><div className="flex-1 space-y-2 pb-2"><div className="skeleton-block h-8 w-1/2" /><div className="skeleton-block h-4 w-1/3" /></div></div>
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{[0, 1, 2].map((i) => <ServiceCardSkeleton key={i} />)}</div>
       </div>
     </div>
@@ -92,6 +93,7 @@ function Page() {
   }, [id, via, navigate]);
   const all = useAllServices();
   const [viewer, setViewer] = useState<number | null>(null);
+  const active = useActiveSection(["about", "services", "portfolio", "carnet"]);
 
   const p = q.data;
   if (!p) return <NotFound />;
@@ -125,20 +127,42 @@ function Page() {
   // Carnet theme (SkillLoop Pro): applied only while the pro has Pro; the stored choice is kept otherwise.
   const theme = PRO_TOOLS_ENABLED && proQ.data ? readTheme(pd) : null;
 
+  // Cover: the pro's own published photos only (portfolio first, then service photos) — never category art.
+  const coverPhotos = [...new Set([...shown.filter((x) => !x.video).map((x) => x.image!), ...services.filter((s) => s.hasPhoto).map((s) => s.image)])].slice(0, 3);
+  const sections = [
+    p.bio ? { id: "about", label: t("pp_about") } : null,
+    { id: "services", label: t("pp_services") },
+    portfolio.length > 0 ? { id: "portfolio", label: t("sd_portfolio") } : null,
+    hasCarnet(carnet) ? { id: "carnet", label: t("carnet_method") } : null,
+  ].filter((x): x is { id: string; label: string } => !!x);
+  // Counts of what this page shows — nothing estimated.
+  const stats = [
+    { n: String(services.length), l: t("pp_stat_services") },
+    fields.length > 0 ? { n: String(fields.length), l: t("pp_stat_fields") } : null,
+    portfolio.length > 0 ? { n: String(portfolio.length), l: t("pp_stat_projects") } : null,
+    since ? { n: since, l: t("pp_stat_since"), small: true } : null,
+  ].filter((x): x is { n: string; l: string; small?: boolean } => !!x);
+  const requestCta = services.length === 1
+    ? <Link to="/services/$id" params={{ id: services[0]!.id }} hash="request" className="btn btn-lime w-full sm:w-auto">{t("request_quote")}<ArrowRight className="size-4 rtl:-scale-x-100" aria-hidden /></Link>
+    : services.length > 1
+      ? <a href="#services" className="btn btn-lime w-full sm:w-auto">{t("request_quote")}<ArrowRight className="size-4 rtl:-scale-x-100" aria-hidden /></a>
+      : null;
+
   return (
     <div className={`pb-16 ${theme ? `ctheme ctheme-${theme}` : ""}`}>
-      <div className="profile-cover relative overflow-hidden">
-        <BrandBackdrop variant="intro" />
-        <PointerField />
-        {fields.length > 0 && (
-          <div aria-hidden className="pointer-events-none absolute bottom-5 end-4 hidden gap-2 sm:flex sm:end-6">
-            {fields.slice(0, 4).map((c, i) => {
-              const Icon = CATEGORY_ICONS[c] ?? CATEGORY_ICONS.other;
-              return <span key={c} className={`grid size-12 place-items-center rounded-2xl ${i % 2 ? "bg-clay/30 text-ink-foreground" : "bg-ink-foreground/10 text-clay"}`}><Icon className="size-6" /></span>;
-            })}
+      <div className="pro-cover">
+        {coverPhotos.length > 0 ? (
+          <div aria-hidden className="pro-cover-mosaic sd-cover" data-n={coverPhotos.length}>
+            {coverPhotos.map((src) => <img key={src} src={src} alt="" />)}
           </div>
+        ) : (
+          <>
+            <BrandBackdrop variant="intro" />
+            <PointerField />
+          </>
         )}
-        <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-5 sm:px-6 md:pb-20">
+        <div aria-hidden className="pro-cover-fade" />
+        <div className="relative mx-auto max-w-6xl px-4 pb-44 pt-5 sm:px-6 md:pb-64">
           <nav aria-label="Breadcrumb">
             <ol className="flex flex-wrap items-center gap-1 text-sm text-navy-muted">
               <li><Link to="/" className="line-link rounded hover:text-navy-foreground">{t("home")}</Link></li>
@@ -151,21 +175,21 @@ function Page() {
         </div>
       </div>
 
-      {/* Positioned so the overlapping header paints above the (positioned) cover. */}
+      {/* Positioned so the overlapping identity card paints above the (positioned) cover. */}
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
-        <header className="-mt-16 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-          <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start">
-            <ProfilePhoto src={p.avatar} name={name} />
-            <div className="min-w-0 sm:pt-16">
+        <header className="pro-id -mt-24 md:-mt-32">
+          <div className="flex flex-col gap-5 p-5 sm:p-6 md:flex-row md:items-start md:gap-7 md:p-8">
+            <div className="-mt-16 shrink-0 sm:-mt-20"><ProfilePhoto src={p.avatar} name={name} /></div>
+            <div className="min-w-0 flex-1">
               <p className="eyebrow">{t("pp_title")}</p>
-              <h1 dir="auto" className="display-title mt-1 break-words text-3xl md:text-4xl">{name}</h1>
-              {p.title && <p dir="auto" className="mt-0.5 break-words text-muted-foreground">{p.title}</p>}
-              <div className="mt-3 flex flex-wrap gap-2">
+              <h1 dir="auto" className="display-title mt-1 break-words text-3xl md:text-5xl">{name}</h1>
+              {p.title && <p dir="auto" className="mt-1.5 break-words text-lg text-muted-foreground">{p.title}</p>}
+              <div className="mt-4 flex flex-wrap gap-2">
+                {typeof pd["accepting"] === "boolean" && <span className={`avail-chip ${pd["accepting"] ? "avail-open" : "avail-closed"}`}>{t(pd["accepting"] ? "avail_open" : "avail_closed")}</span>}
                 {place && <span className="tag tag-sea"><MapPin className="size-3.5" aria-hidden /><span dir="auto">{place}</span></span>}
                 {remote && <span className="tag tag-sea"><Wifi className="size-3.5" aria-hidden />{t("remote")}</span>}
                 {onsite && <span className="tag tag-sea">{t("on_site")}</span>}
                 {spoken && <span className="tag tag-sea"><Languages className="size-3.5" aria-hidden /><span dir="auto">{spoken}</span></span>}
-                {typeof pd["accepting"] === "boolean" && <span className={`avail-chip ${pd["accepting"] ? "avail-open" : "avail-closed"}`}>{t(pd["accepting"] ? "avail_open" : "avail_closed")}</span>}
                 {/* These facts come from the pro: labelled as declared (levels of proof). */}
                 {(place || spoken || typeof pd["accepting"] === "boolean") && <TrustBadge level="declared" />}
                 {/* A subscription fact, labelled as such — never a level of proof. */}
@@ -185,19 +209,27 @@ function Page() {
                 </ul>
               )}
             </div>
+            <div className="flex shrink-0 flex-col gap-1.5 md:items-end md:pt-6">
+              {isOwner ? (
+                <Link to="/profile" search={{ tab: "settings" }} className="btn btn-outline"><Pencil className="size-4" aria-hidden />{t("pp_edit")}</Link>
+              ) : requestCta && (
+                <>
+                  {requestCta}
+                  {services.length > 1 && <p className="text-sm text-muted-foreground md:max-w-[14rem] md:text-end">{t("pp_request_help")}</p>}
+                </>
+              )}
+            </div>
           </div>
-          <div className="flex shrink-0 flex-col gap-1.5 md:items-end">
-            {isOwner ? (
-              <Link to="/profile" search={{ tab: "settings" }} className="btn btn-outline"><Pencil className="size-4" aria-hidden />{t("pp_edit")}</Link>
-            ) : services.length === 1 ? (
-              <Link to="/services/$id" params={{ id: services[0]!.id }} hash="request" className="btn btn-lime">{t("request_quote")}</Link>
-            ) : services.length > 1 ? (
-              <>
-                <a href="#services" className="btn btn-lime">{t("request_quote")}</a>
-                <p className="text-xs text-muted-foreground">{t("pp_request_help")}</p>
-              </>
-            ) : null}
-          </div>
+          {stats.length > 1 && (
+            <dl aria-label={t("pp_glance")} className="pro-stats">
+              {stats.map((x) => (
+                <div key={x.l} className="pro-stat sd-rise">
+                  <dt className="pro-stat-l">{x.l}</dt>
+                  <dd className="pro-stat-n" data-small={x.small || undefined}>{x.small ? x.n : <CountUp value={Number(x.n)} />}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
         </header>
 
         {isOwner && (
@@ -206,57 +238,31 @@ function Page() {
             <ShareKit path={profilePath(p.id)} title={name} text="share_profile_text" label="share_profile" />
           </div>
         )}
+      </div>
 
-        <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_18rem]">
-          <div className="min-w-0 space-y-12">
+      {sections.length > 1 && (
+        <nav aria-label={t("pp_sections")} className="pro-tabs mt-8">
+          <ul className="mx-auto flex max-w-6xl gap-6 overflow-x-auto px-4 sm:px-6">
+            {sections.map((x) => <li key={x.id}><a href={`#${x.id}`} aria-current={active === x.id ? "true" : undefined} className="pro-tab">{x.label}</a></li>)}
+          </ul>
+        </nav>
+      )}
+
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-12">
+          <div className="min-w-0 space-y-14">
             {p.bio && (
-              <section aria-labelledby="pp-about">
-                <h2 id="pp-about" className="text-xl font-bold">{t("pp_about")}</h2>
-                <p dir="auto" className="mt-3 max-w-prose whitespace-pre-line break-words leading-relaxed text-muted-foreground">{p.bio}</p>
+              <section id="about" aria-labelledby="pp-about" className="scroll-mt-32">
+                <h2 id="pp-about" className="section-title">{t("pp_about")}</h2>
+                <p dir="auto" className="pro-quote mt-4 max-w-prose whitespace-pre-line break-words text-lg leading-relaxed">{p.bio}</p>
               </section>
             )}
 
-            {hasCarnet(carnet) ? (
-              <section id="carnet" aria-labelledby="pp-carnet" className="space-y-8">
-                {carnet.method.length > 0 && (
-                  <div>
-                    <div className="flex flex-wrap items-center gap-3"><h2 id="pp-carnet" className="text-xl font-bold">{t("carnet_method")}</h2><TrustBadge level="declared" /></div>
-                    <ol className="mt-4 grid gap-3 sm:grid-cols-3">
-                      {carnet.method.map((step, i) => (
-                        <li key={i} className="ct-step panel flex gap-3 p-4">
-                          <span aria-hidden className="ct-num grid size-8 shrink-0 place-items-center rounded-full bg-clay/15 text-sm font-bold text-clay-strong">{i + 1}</span>
-                          <p dir="auto" className="min-w-0 break-words text-sm leading-relaxed">{step}</p>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                )}
-                {carnet.commitments.length > 0 && (
-                  <div>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <h2 {...(carnet.method.length ? {} : { id: "pp-carnet" })} className="text-xl font-bold">{t("carnet_commitments")}</h2>
-                      <TrustBadge level="declared" />
-                    </div>
-                    <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-                      {carnet.commitments.map((c) => (
-                        <li key={c} className="flex items-center gap-3 text-sm">
-                          <span aria-hidden className="ct-check grid size-7 shrink-0 place-items-center rounded-full bg-sea-soft text-sea"><Check className="size-4" /></span>
-                          {c === "warranty" ? t("cm_warranty_days", { n: carnet.warrantyDays ?? "" }) : t(COMMITMENT_KEYS[c])}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </section>
-            ) : isOwner ? (
-              <div role="note" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed p-4 text-sm">
-                <p className="max-w-md text-muted-foreground">{t("pp_carnet_owner")}</p>
-                <Link to="/profile" search={{ tab: "settings" }} hash="carnet" className="btn btn-outline min-h-10">{t("pp_carnet_cta")}</Link>
+            <section id="services" aria-labelledby="pp-services" className="sd-rise scroll-mt-32">
+              <div className="section-head">
+                <h2 id="pp-services" className="section-title">{t("pp_services")}</h2>
+                {services.length > 0 && <span className="section-count">{services.length}</span>}
               </div>
-            ) : null}
-
-            <section id="services" aria-labelledby="pp-services" className="scroll-mt-24">
-              <h2 id="pp-services" className="text-xl font-bold">{t("pp_services")}{services.length > 0 && <span className="ms-2 text-base font-semibold text-muted-foreground">({services.length})</span>}</h2>
               <div className="mt-5">
                 {all.isLoading && !ssrServices ? (
                   <div className="grid gap-5 sm:grid-cols-2">{[0, 1].map((i) => <ServiceCardSkeleton key={i} />)}</div>
@@ -265,18 +271,21 @@ function Page() {
                 ) : services.length === 0 ? (
                   <EmptyState title={t("pp_no_services")} action={isOwner ? <Link to="/offer" className="btn btn-outline">{t("nav_offer")}</Link> : undefined} />
                 ) : (
-                  <div className="grid gap-5 sm:grid-cols-2">{services.map((s) => <ServiceCard key={s.id} s={s} />)}</div>
+                  <div className="sd-stagger grid gap-5 sm:grid-cols-2">{services.map((s) => <ServiceCard key={s.id} s={s} />)}</div>
                 )}
               </div>
             </section>
 
             {portfolio.length > 0 ? (
-              <section aria-labelledby="pp-portfolio">
-                <h2 id="pp-portfolio" className="text-xl font-bold">{t("sd_portfolio")}<span className="ms-2 text-base font-semibold text-muted-foreground">({portfolio.length})</span></h2>
+              <section id="portfolio" aria-labelledby="pp-portfolio" className="scroll-mt-32">
+                <div className="section-head">
+                  <h2 id="pp-portfolio" className="section-title">{t("sd_portfolio")}</h2>
+                  <span className="section-count">{portfolio.length}</span>
+                </div>
                 <p className="mt-1 text-sm text-muted-foreground">{t("pp_portfolio_note")}</p>
                 {/* Bento from 3 projects (idea from VengeanceUI "Image Collage"/"Expandable Bento"; CSS grid only): the newest
                     leads — full width on tablets, and on wide screens a large tile beside the next two stacked. */}
-                <ul className={`mt-5 grid gap-5 sm:grid-cols-2 ${portfolio.length >= 3 ? "xl:grid-cols-3" : ""}`}>
+                <ul className={`sd-stagger mt-5 grid gap-5 sm:grid-cols-2 ${portfolio.length >= 3 ? "xl:grid-cols-3" : ""}`}>
                   {portfolio.map((x, i) => {
                     const featured = i === 0 && portfolio.length >= 3;
                     return (
@@ -309,24 +318,74 @@ function Page() {
               </section>
             ) : isOwner ? (
               <section aria-labelledby="pp-portfolio">
-                <h2 id="pp-portfolio" className="text-xl font-bold">{t("sd_portfolio")}</h2>
+                <h2 id="pp-portfolio" className="section-title">{t("sd_portfolio")}</h2>
                 <div className="mt-5"><EmptyState icon={ImageIcon} title={t("db_no_portfolio")} sub={t("db_no_portfolio_sub")} action={<Link to="/profile" search={{ tab: "settings" }} hash="portfolio" className="btn btn-outline">{t("portfolio_add")}</Link>} /></div>
               </section>
             ) : null}
+
+            {hasCarnet(carnet) ? (
+              <section id="carnet" aria-labelledby="pp-carnet" className="scroll-mt-32 space-y-8">
+                {carnet.method.length > 0 && (
+                  <div>
+                    <div className="flex flex-wrap items-center gap-3"><h2 id="pp-carnet" className="section-title">{t("carnet_method")}</h2><TrustBadge level="declared" /></div>
+                    <ol className="mt-4 grid gap-3 sm:grid-cols-3">
+                      {carnet.method.map((step, i) => (
+                        <li key={i} className="ct-step panel flex gap-3 p-4">
+                          <span aria-hidden className="ct-num grid size-8 shrink-0 place-items-center rounded-full bg-clay/15 text-sm font-bold text-clay-strong">{i + 1}</span>
+                          <p dir="auto" className="min-w-0 break-words text-sm leading-relaxed">{step}</p>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+                {carnet.commitments.length > 0 && (
+                  <div>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <h2 {...(carnet.method.length ? {} : { id: "pp-carnet" })} className="section-title">{t("carnet_commitments")}</h2>
+                      <TrustBadge level="declared" />
+                    </div>
+                    <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                      {carnet.commitments.map((c) => (
+                        <li key={c} className="flex items-center gap-3 text-sm">
+                          <span aria-hidden className="ct-check grid size-7 shrink-0 place-items-center rounded-full bg-sea-soft text-sea"><Check className="size-4" /></span>
+                          {c === "warranty" ? t("cm_warranty_days", { n: carnet.warrantyDays ?? "" }) : t(COMMITMENT_KEYS[c])}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </section>
+            ) : isOwner ? (
+              <div role="note" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed p-4 text-sm">
+                <p className="max-w-md text-muted-foreground">{t("pp_carnet_owner")}</p>
+                <Link to="/profile" search={{ tab: "settings" }} hash="carnet" className="btn btn-outline min-h-10">{t("pp_carnet_cta")}</Link>
+              </div>
+            ) : null}
           </div>
 
-          {(hasDetails || contacts.length > 0 || since) && (
-            <aside className="h-fit space-y-6 lg:sticky lg:top-24">
-              <section aria-labelledby="pp-details" className="panel p-5">
-                <div className="flex flex-wrap items-center justify-between gap-2"><h2 id="pp-details" className="font-bold">{t("pp_details")}</h2><TrustBadge level="declared" /></div>
-                <dl className="mt-2 text-sm">
-                  {availability && <div className="info-row"><div className="min-w-0"><dt className="text-xs text-muted-foreground">{t("availability")}</dt><dd dir="auto" className="break-words font-semibold">{availability}</dd></div></div>}
-                  {spoken && <div className="info-row"><div className="min-w-0"><dt className="text-xs text-muted-foreground">{t("languages")}</dt><dd dir="auto" className="font-semibold">{spoken}</dd></div></div>}
-                  {since && <div className="info-row"><dd className="text-muted-foreground">{t("sd_member_since", { d: since })}</dd></div>}
-                </dl>
+          {(!isOwner && requestCta) || hasDetails || contacts.length > 0 ? (
+            <aside className="h-fit space-y-6 lg:sticky lg:top-32">
+              <section aria-labelledby="pp-details" className="panel-action relative p-5 sm:p-6" data-tilt>
+                <h2 id="pp-details" dir="auto" className="text-lg font-bold">{t("pp_work_with", { n: name })}</h2>
+                {!isOwner && requestCta && (
+                  <>
+                    <p dir="auto" className="mt-1 text-sm text-muted-foreground">{t("pp_work_with_sub", { n: name })}</p>
+                    <div className="mt-4 [&>*]:w-full">{requestCta}</div>
+                  </>
+                )}
+                {hasDetails && (
+                  <>
+                    <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t pt-4"><h3 className="text-sm font-bold">{t("pp_details")}</h3><TrustBadge level="declared" /></div>
+                    <dl className="mt-1 text-sm">
+                      {availability && <div className="info-row"><div className="min-w-0"><dt className="text-sm text-muted-foreground">{t("availability")}</dt><dd dir="auto" className="break-words font-semibold">{availability}</dd></div></div>}
+                      {spoken && <div className="info-row"><div className="min-w-0"><dt className="text-sm text-muted-foreground">{t("languages")}</dt><dd dir="auto" className="font-semibold">{spoken}</dd></div></div>}
+                      {since && <div className="info-row"><dd className="text-muted-foreground">{t("sd_member_since", { d: since })}</dd></div>}
+                    </dl>
+                  </>
+                )}
                 {contacts.length > 0 && (
                   <>
-                    <h3 className="mt-4 border-t pt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("pp_contact")}</h3>
+                    <h3 className="mt-4 border-t pt-4 text-sm font-bold">{t("pp_contact")}</h3>
                     <ul className="mt-2 space-y-1">
                       {contacts.map((c) => {
                         const meta = CONTACT_META[c.kind as ContactKind];
@@ -334,8 +393,8 @@ function Page() {
                         return (
                           <li key={c.id} className="flex items-center gap-1">
                             <a href={contactHref(c.kind, c.value)} onClick={() => recordPageEvent("contact_click", p.id)} {...(c.kind === "phone" ? {} : { target: "_blank", rel: "noopener noreferrer nofollow" })} className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-xl px-2 text-sm transition-colors hover:bg-muted">
-                              <meta.icon className="size-4 shrink-0 text-sea" aria-hidden />
-                              <span className="min-w-0"><span className="block text-xs text-muted-foreground">{t(meta.label)}</span><span dir="ltr" className="block truncate font-medium">{contactLabel(c.kind, c.value)}</span></span>
+                              <span className="icon-well-sea size-9"><meta.icon className="size-4" aria-hidden /></span>
+                              <span className="min-w-0"><span className="block text-sm text-muted-foreground">{t(meta.label)}</span><span dir="ltr" className="block truncate font-medium">{contactLabel(c.kind, c.value)}</span></span>
                             </a>
                             {phone && (
                               <button type="button" onClick={() => copy(c.value.trim())} aria-label={`${t("copy_number")} · ${t(meta.label)}`} title={t("copy_number")} className="grid size-11 shrink-0 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
@@ -350,9 +409,10 @@ function Page() {
                 )}
               </section>
             </aside>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
   );
 }
+

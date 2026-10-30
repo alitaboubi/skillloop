@@ -50,7 +50,7 @@ export function CarnetEditor({ userId, details }: { userId: string; details: unk
   };
 
   return (
-    <form id="carnet" noValidate aria-busy={busy} aria-labelledby="cn-title" className="max-w-2xl scroll-mt-24 space-y-6 panel p-6" onSubmit={async (e) => {
+    <form id="carnet" noValidate aria-busy={busy} aria-labelledby="cn-title" className="scroll-mt-36 space-y-6 panel p-6 sm:p-8" onSubmit={async (e) => {
       e.preventDefault();
       const v = validateCarnet(d);
       setErrors(v);
@@ -131,7 +131,7 @@ export function PortfolioEditor({ userId, items }: { userId: string; items: Port
   const done = () => setEditing(null);
 
   return (
-    <section id="portfolio" aria-labelledby="pe-title" className="max-w-2xl scroll-mt-24 panel p-6">
+    <section id="portfolio" aria-labelledby="pe-title" className="scroll-mt-36 panel p-6 sm:p-8">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="max-w-md">
           <h2 id="pe-title" className="text-lg font-bold">{t("sd_portfolio")}</h2>
@@ -349,7 +349,7 @@ export function ContactsEditor({ userId, saved }: { userId: string; saved: Conta
   };
 
   return (
-    <form id="contacts" noValidate aria-busy={busy} aria-labelledby="ce-title" className="max-w-2xl scroll-mt-24 space-y-5 panel p-6" onSubmit={async (e) => {
+    <form id="contacts" noValidate aria-busy={busy} aria-labelledby="ce-title" className="scroll-mt-36 space-y-5 panel p-6 sm:p-8" onSubmit={async (e) => {
       e.preventDefault();
       const next = { ...drafts };
       const errs: typeof errors = {};

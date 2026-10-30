@@ -4,11 +4,15 @@ import { rememberCurrentPage } from "@/lib/return-to";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { Archive, ArchiveRestore, Briefcase, ExternalLink, Inbox, LayoutDashboard, Pencil, Search } from "lucide-react";
+import { Archive, ArchiveRestore, AtSign, Briefcase, ExternalLink, Handshake, Hourglass, Images as ImagesIcon, Inbox, LayoutDashboard, MapPin, NotebookPen, Palette, Pencil, PlusCircle, Search, ShieldCheck, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { LANGS, savedLangChange, useI18n, type TKey } from "@/lib/i18n";
 import { CATEGORIES, CITIES } from "@/lib/data";
 import { PageHero } from "@/components/site";
+import { DashHero, SegSlide, ServiceTile, StatTile } from "@/components/dash-kit";
+import { useActiveSection } from "@/components/motion-kit";
+import { BrandBackdrop } from "@/components/brand";
+import { Avatar } from "@/components/media-viewer";
 import { seo } from "@/lib/seo";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +43,7 @@ function Page() {
   const space = search.space ?? (search.tab === "services" || search.tab === "received" ? "pro" : "client");
   const tabs = SPACES[space] as readonly (typeof TABS)[number][];
   const tab = search.tab && tabs.includes(search.tab) ? search.tab : tabs[0];
+  const me = useQuery({ ...profileQuery(user?.id ?? ""), enabled: !!user });
   if (!ready) return <p className="py-24 text-center text-muted-foreground">{t("loading")}</p>;
   if (!user)
     return (
@@ -52,22 +57,28 @@ function Page() {
       </>
     );
   const labels = { requests: t("my_requests"), received: t("received_requests"), services: t("my_services"), settings: t("settings") };
+  const name = me.data?.display_name || user.email?.split("@")[0] || "";
   return (
     <>
-      <PageHero title={t("dashboard")} sub={user.email ?? ""} />
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-        <div role="tablist" aria-label={t("dashboard")} className="inline-flex rounded-full bg-ink p-1">
+      <DashHero name={name} avatar={me.data?.avatar ?? undefined} eyebrow={t(space === "client" ? "space_client" : "space_pro")} sub={tab === "settings" ? t("dh_sub_settings") : (user.email ?? "")}>
+        <SegSlide index={space === "client" ? 0 : 1} count={2} label={t("dashboard")}>
           {(["client", "pro"] as const).map((sp) => (
-            <Link key={sp} role="tab" aria-selected={space === sp} to="/profile" search={{ space: sp }} className={`rounded-full px-4 py-2 text-sm font-semibold ${space === sp ? "bg-lime text-lime-foreground" : "text-navy-foreground"}`}>{t(sp === "client" ? "space_client" : "space_pro")}</Link>
+            <Link key={sp} to="/profile" search={{ space: sp }} aria-current={space === sp ? "page" : undefined}>{t(sp === "client" ? "space_client" : "space_pro")}</Link>
           ))}
-        </div>
-        {space === "pro" && <ProStats userId={user.id} />}
-        <nav className="mt-6 flex gap-2 overflow-x-auto pb-2" aria-label={t(space === "client" ? "space_client" : "space_pro")}>
+        </SegSlide>
+        <Link to="/pros/$id" params={{ id: user.id }} className="dash-action"><ExternalLink className="size-4" aria-hidden />{t("view_public_profile")}</Link>
+        <Link to="/dashboard" className="dash-action"><LayoutDashboard className="size-4" aria-hidden />{t("dashboard")}</Link>
+      </DashHero>
+      <nav className="dash-tabs sd-sticky-shadow" aria-label={t(space === "client" ? "space_client" : "space_pro")}>
+        <ul className="mx-auto flex max-w-6xl gap-6 overflow-x-auto px-4 sm:px-6">
           {tabs.map((k) => (
-            <Link key={k} to="/profile" search={{ space, tab: k }} className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold ${tab === k ? "bg-lime text-lime-foreground" : "bg-muted"}`}>{labels[k]}</Link>
+            <li key={k}><Link to="/profile" search={{ space, tab: k }} aria-current={tab === k ? "page" : undefined} className="dash-tab">{labels[k]}</Link></li>
           ))}
-        </nav>
-        <div className="mt-6">
+        </ul>
+      </nav>
+      <div className="mx-auto max-w-6xl px-4 pb-12 sm:px-6">
+        {space === "pro" && tab !== "settings" && <ProStats userId={user.id} />}
+        <div className="mt-8">
           {(tab === "requests" || tab === "received") && <Requests userId={user.id} received={tab === "received"} />}
           {tab === "services" && <MyServices userId={user.id} />}
           {tab === "settings" && <Settings userId={user.id} />}
@@ -87,15 +98,15 @@ function Requests({ userId, received }: { userId: string; received: boolean }) {
     return <EmptyState icon={Inbox} title={t("db_no_requests")} sub={t(received ? "db_no_requests_pro" : "db_no_requests_client")}
       action={received ? <Link to="/profile" search={{ tab: "settings" }} className="btn btn-outline">{t("db_edit_profile")}</Link> : <><Link to="/explore" className="btn btn-ink"><Search className="size-4" aria-hidden />{t("explore_services")}</Link><div className="w-full"><StartShortcuts /></div></>} />;
   return (
-    <ul className="space-y-3">
+    <ul className="sd-stagger space-y-3">
       {list.map((r) => (
-        <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 panel p-4">
+        <li key={r.id} className="row-card flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5">
           <div className="min-w-0">
-            <p dir="auto" className="font-semibold">{r.services?.title}</p>
+            <Link to="/messages" search={{ r: r.id }} dir="auto" className="stretched-link block font-semibold">{r.services?.title}</Link>
             <p className="text-sm text-muted-foreground">{received ? t("from_client") : t("to_provider")} <span dir="auto">{(received ? r.client?.display_name : r.provider?.display_name) || t("account_deleted_name")}</span></p>
             <p dir="auto" className="mt-1 line-clamp-2 text-sm">{r.message}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="relative z-[2] flex items-center gap-3">
             <StatusBadge status={r.status} />
             {received && <RequestActions req={r} userId={userId} />}
             <Link to="/messages" search={{ r: r.id }} className="btn btn-outline">{t("open_chat")}</Link>
@@ -134,27 +145,19 @@ function MyServices({ userId }: { userId: string }) {
   if (q.isError) return <ErrorState onRetry={() => q.refetch()} />;
   return (
     <div>
-      <Link to="/offer" className="btn btn-lime">{t("offer_service")}</Link>
+      <Link to="/offer" className="btn btn-lime" data-magnetic><PlusCircle className="size-4" aria-hidden />{t("offer_service")}</Link>
       {!q.data?.length ? <div className="mt-4"><EmptyState icon={Briefcase} title={t("db_no_services")} sub={t("db_no_services_sub")} action={<ListingSketch />} /></div> : (
-        <ul className="mt-4 space-y-3">
+        <ul className="sd-stagger mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {q.data.map((s) => (
-            <li key={s.id} className="flex items-center justify-between gap-3 panel p-4">
-              <div className="flex min-w-0 items-center gap-3">
-              <div className="size-14 shrink-0 overflow-hidden rounded-xl bg-muted">{s.img && <img src={s.img} alt="" className="size-full object-cover" />}</div>
-              <Link to="/services/$id" params={{ id: s.id }} className="min-w-0">
-                <p dir="auto" className="truncate font-semibold hover:underline">{s.title}</p>
-                <p className="text-sm text-muted-foreground">{t(CATEGORIES.find((c) => c.id === s.category)?.key ?? "cat_all")} · {s.city}</p>
-              </Link>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${!s.archived && s.status === "published" ? "bg-lime text-lime-foreground" : "bg-muted"}`}>{t(s.archived ? "st_archived" : s.status === "published" ? "st_published" : "st_draft")}</span>
-              <Link to="/offer" search={{ edit: s.id }} aria-label={`${t("edit_service")} · ${s.title}`} title={t("edit_service")} className="grid size-10 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"><Pencil className="size-4" aria-hidden /></Link>
-              {!s.archived && <button type="button" onClick={() => toggle(s.id, s.status)} className="btn btn-outline hidden sm:inline-flex">{t(s.status === "published" ? "to_draft" : "to_publish")}</button>}
-              <button type="button" aria-label={t(s.archived ? "restore" : "archive")} title={t(s.archived ? "restore" : "archive")} className="grid size-10 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground" onClick={() => archive(s.id, !s.archived)}>
-                {s.archived ? <ArchiveRestore className="size-4" aria-hidden /> : <Archive className="size-4" aria-hidden />}
-              </button>
-              </div>
-            </li>
+            <ServiceTile key={s.id} s={s} actions={
+              <>
+                <Link to="/offer" search={{ edit: s.id }} aria-label={`${t("edit_service")} · ${s.title}`} title={t("edit_service")} className="btn btn-outline min-h-10 px-3"><Pencil className="size-4" aria-hidden /></Link>
+                {!s.archived && <button type="button" onClick={() => toggle(s.id, s.status)} className={`btn min-h-10 flex-1 ${s.status === "published" ? "btn-outline" : "btn-lime"}`}>{t(s.status === "published" ? "to_draft" : "to_publish")}</button>}
+                <button type="button" aria-label={t(s.archived ? "restore" : "archive")} title={t(s.archived ? "restore" : "archive")} className="btn btn-outline min-h-10 px-3" onClick={() => archive(s.id, !s.archived)}>
+                  {s.archived ? <ArchiveRestore className="size-4" aria-hidden /> : <Archive className="size-4" aria-hidden />}
+                </button>
+              </>
+            } />
           ))}
         </ul>
       )}
@@ -168,14 +171,45 @@ function Settings({ userId }: { userId: string }) {
   if (q.isError || !q.data) return <ErrorState onRetry={() => q.refetch()} />;
   // The form only mounts with loaded data, so it can never save blanks over the real profile or overwrite typing.
   return (
-    <div className="space-y-6">
-      <SettingsForm userId={userId} p={q.data} />
-      <CarnetEditor userId={userId} details={q.data.professional_details} />
-      {PRO_TOOLS_ENABLED && <ThemePicker userId={userId} details={q.data.professional_details} />}
-      <PortfolioEditor userId={userId} items={q.data.portfolio} />
-      <ContactsEditor userId={userId} saved={q.data.contacts} />
-      <DeleteAccount userId={userId} />
+    <div className="grid gap-8 lg:grid-cols-[14rem_minmax(0,1fr)]">
+      <SettingsNav />
+      <div className="min-w-0 space-y-8">
+        <SettingsForm userId={userId} p={q.data} />
+        <CarnetEditor userId={userId} details={q.data.professional_details} />
+        {PRO_TOOLS_ENABLED && <ThemePicker userId={userId} details={q.data.professional_details} />}
+        <PortfolioEditor userId={userId} items={q.data.portfolio} />
+        <ContactsEditor userId={userId} saved={q.data.contacts} />
+        <div id="account" className="scroll-mt-36"><DeleteAccount userId={userId} /></div>
+      </div>
     </div>
+  );
+}
+
+const SETTINGS_SECTIONS: { id: string; label: TKey; icon: typeof UserRound }[] = [
+  { id: "profile-info", label: "set_profile", icon: UserRound },
+  { id: "carnet", label: "carnet_title", icon: NotebookPen },
+  ...(PRO_TOOLS_ENABLED ? [{ id: "theme", label: "ct_title" as TKey, icon: Palette }] : []),
+  { id: "portfolio", label: "sd_portfolio", icon: ImagesIcon },
+  { id: "contacts", label: "contacts_title", icon: AtSign },
+  { id: "account", label: "set_account", icon: ShieldCheck },
+];
+
+/** Sticky section index of the settings page (scroll-spy marks the section in view). */
+function SettingsNav() {
+  const { t } = useI18n();
+  const active = useActiveSection(SETTINGS_SECTIONS.map((x) => x.id), "-160px 0px -55% 0px");
+  return (
+    <nav aria-label={t("set_nav")} className="hidden h-fit lg:sticky lg:top-36 lg:block">
+      <ul className="space-y-1">
+        {SETTINGS_SECTIONS.map((x) => (
+          <li key={x.id}>
+            <a href={`#${x.id}`} aria-current={active === x.id ? "true" : undefined} className="set-nav-link">
+              <span className="set-nav-icon"><x.icon className="size-4" aria-hidden /></span>{t(x.label)}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 }
 
@@ -190,6 +224,13 @@ function SettingsForm({ userId, p }: { userId: string; p: LoadedProfile }) {
     accepting: typeof pd["accepting"] === "boolean" ? (pd["accepting"] as boolean) : null,
   });
   const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  useEffect(() => {
+    if (!file) { setPreview(null); return; }
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
   const [removed, setRemoved] = useState(false);
   const [prevPath, setPrevPath] = useState<string | null>(p.avatar_url ?? null);
   const [savedLang, setSavedLang] = useState(p.preferred_lang ?? "fr");
@@ -211,7 +252,8 @@ function SettingsForm({ userId, p }: { userId: string; p: LoadedProfile }) {
   const avail: { v: boolean | null; key: TKey }[] = [{ v: true, key: "accepting" }, { v: false, key: "not_accepting" }, { v: null, key: "avail_unset" }];
 
   return (
-    <form noValidate aria-busy={busy} className="max-w-2xl space-y-6 panel p-6" onSubmit={async (e) => {
+    <div id="profile-info" className="grid scroll-mt-36 gap-6 xl:grid-cols-[minmax(0,1fr)_17rem]">
+    <form noValidate aria-busy={busy} className="space-y-6 panel p-6 sm:p-8" onSubmit={async (e) => {
       e.preventDefault();
       const v = validateProfile(f);
       setErrors(v);
@@ -236,7 +278,7 @@ function SettingsForm({ userId, p }: { userId: string; p: LoadedProfile }) {
         <Link to="/pros/$id" params={{ id: userId }} className="btn btn-outline min-h-10"><ExternalLink className="size-4" aria-hidden />{t("view_public_profile")}</Link>
       </div>
 
-      <div id="photo" className="scroll-mt-24">
+      <div id="photo" className="scroll-mt-36">
         <p className="text-sm font-semibold">{t("f_photo")}</p>
         <p className="mb-2 text-xs text-muted-foreground">{t("f_photo_help")}</p>
         <PhotoPicker round alt="f_photo" image={removed ? null : p.avatar ?? null} onPick={(fl) => { setFile(fl); setRemoved(!fl); }} />
@@ -252,7 +294,7 @@ function SettingsForm({ userId, p }: { userId: string; p: LoadedProfile }) {
         <input id="pf-title" dir="auto" maxLength={80} className="field mt-1.5" value={f.title} onChange={up("title")} aria-invalid={!!errors.title} aria-describedby={described("title")} />
         {err("title")}
       </div>
-      <div id="bio" className="scroll-mt-24">
+      <div id="bio" className="scroll-mt-36">
         <label htmlFor="pf-bio" className="block text-sm font-semibold">{t("f_bio")}</label>
         <textarea id="pf-bio" dir="auto" rows={5} maxLength={1000} className="field mt-1.5 py-2.5" value={f.bio} onChange={up("bio")} aria-invalid={!!errors.bio} aria-describedby={described("bio", "pf-bio-help")} />
         <div className="mt-1 flex justify-between gap-3 text-xs text-muted-foreground">
@@ -270,7 +312,7 @@ function SettingsForm({ userId, p }: { userId: string; p: LoadedProfile }) {
         </label>
       </div>
 
-      <fieldset id="availability" className="scroll-mt-24" aria-describedby="pf-avail-help">
+      <fieldset id="availability" className="scroll-mt-36" aria-describedby="pf-avail-help">
         <legend className="text-sm font-semibold">{t("f_availability")}</legend>
         <p id="pf-avail-help" className="text-xs text-muted-foreground">{t("f_availability_help")}</p>
         <div className="mt-2 grid gap-2 sm:grid-cols-3">
@@ -283,8 +325,34 @@ function SettingsForm({ userId, p }: { userId: string; p: LoadedProfile }) {
         </div>
       </fieldset>
 
-      <button disabled={busy} aria-busy={busy} className="btn btn-lime">{busy ? t("loading") : t("save")}</button>
+      <button disabled={busy} aria-busy={busy} className="btn btn-lime" data-magnetic>{busy ? t("loading") : t("save")}</button>
     </form>
+    <LivePreview name={f.display_name} title={f.title} bio={f.bio} city={f.city} accepting={f.accepting} photo={removed ? null : file ? preview : p.avatar ?? null} />
+    </div>
+  );
+}
+
+/** What customers will see, redrawn on every keystroke (nothing is saved until the form is). */
+function LivePreview({ name, title, bio, city, accepting, photo }: { name: string; title: string; bio: string; city: string; accepting: boolean | null; photo: string | null }) {
+  const { t } = useI18n();
+  return (
+    <aside aria-label={t("dh_live")} className="h-fit xl:sticky xl:top-36">
+      <p className="mb-3 flex items-center gap-2 text-sm font-semibold"><span className="live-dot" aria-hidden />{t("dh_live")}</p>
+      <div className="live-card" data-tilt>
+        <div className="live-card-cover" aria-hidden><BrandBackdrop variant="intro" /></div>
+        <div className="relative -mt-12 p-5">
+          <Avatar src={photo ?? undefined} name={name || "?"} size="lg" />
+          <p dir="auto" className="display-title mt-3 break-words text-xl">{name || "—"}</p>
+          {title && <p dir="auto" className="break-words text-sm text-muted-foreground">{title}</p>}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {accepting !== null && <span className={`avail-chip ${accepting ? "avail-open" : "avail-closed"}`}>{t(accepting ? "avail_open" : "avail_closed")}</span>}
+            {city && <span className="tag tag-sea"><MapPin className="size-3.5" aria-hidden /><span dir="auto">{city}</span></span>}
+          </div>
+          {bio && <p dir="auto" className="mt-3 line-clamp-4 whitespace-pre-line break-words text-sm leading-relaxed text-muted-foreground">{bio}</p>}
+        </div>
+      </div>
+      <p className="mt-3 text-sm text-muted-foreground">{t("dh_live_note")}</p>
+    </aside>
   );
 }
 
@@ -300,19 +368,11 @@ function ProStats({ userId }: { userId: string }) {
     },
   });
   const received = (req.data ?? []).filter((r) => r.provider_id === userId);
-  const stats = [
-    [t("stat_services"), svc.isError ? "—" : svc.data ?? 0],
-    [t("stat_pending"), received.filter((r) => r.status === "pending").length],
-    [t("stat_accepted"), received.filter((r) => r.status === "accepted").length],
-  ] as const;
   return (
-    <dl className="mt-6 grid gap-3 sm:grid-cols-3">
-      {stats.map(([k, v]) => (
-        <div key={k} className="panel p-4">
-          <dt className="text-sm text-muted-foreground">{k}</dt>
-          <dd className="mt-1 text-2xl font-bold">{v}</dd>
-        </div>
-      ))}
+    <dl className="mt-8 grid gap-4 sm:grid-cols-3">
+      <StatTile icon={Briefcase} value={svc.isError ? "—" : svc.data ?? 0} label={t("stat_services")} tone="var(--sea)" />
+      <StatTile icon={Hourglass} value={received.filter((r) => r.status === "pending").length} label={t("stat_pending")} tone="var(--warning)" />
+      <StatTile icon={Handshake} value={received.filter((r) => r.status === "accepted").length} label={t("stat_accepted")} tone="var(--success)" />
     </dl>
   );
 }

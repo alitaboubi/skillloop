@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { rememberCurrentPage } from "@/lib/return-to";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
-import { ArrowRight, Clock, Sparkles, PauseCircle, Pencil, CheckCircle2, Circle, Briefcase, ExternalLink, Inbox, Image as ImageIcon, LayoutDashboard, PlusCircle, Search, MapPin } from "lucide-react";
+import { ArrowRight, Clock, MessageSquare, Settings, Hourglass, Handshake, Gauge, Sparkles, PauseCircle, Pencil, CheckCircle2, Circle, Briefcase, ExternalLink, Inbox, Image as ImageIcon, LayoutDashboard, PlusCircle, Search, MapPin } from "lucide-react";
 import { useI18n, type TKey } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +13,7 @@ import { CATEGORIES } from "@/lib/data";
 import { profileQuery } from "@/lib/profiles-db";
 import { clientRequestSummary, profileChecklist, resolveDashboardMode } from "@/lib/request-timeline";
 import { seo } from "@/lib/seo";
-import { LoopProgress, PointerField } from "@/components/brand";
+import { BrandBackdrop, LoopProgress, PointerField } from "@/components/brand";
 import { clientNextStep } from "@/lib/conversations";
 import { draftsFirst, draftsToFinish, formatWait, isCaughtUp, pendingOldestFirst } from "@/lib/provider-today";
 import { ShareKit } from "@/components/share-kit";
@@ -22,6 +22,8 @@ import { ProfilePhoto } from "@/components/media-viewer";
 import { PRO_PLAN_ENABLED } from "@/lib/plan";
 import { PlanCard } from "@/components/plan-card";
 import { ProHub } from "@/components/pro-tools";
+import { signImages } from "@/lib/services-db";
+import { DashHero, SegSlide, ServiceTile, StatTile } from "@/components/dash-kit";
 
 const SECTIONS = ["overview", "pro", "services", "requests", "portfolio", "preview"] as const;
 type Section = (typeof SECTIONS)[number];
@@ -39,11 +41,12 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 const myServicesQuery = (userId: string) => ({
-  queryKey: ["services", "mine", userId],
+  queryKey: ["services", "mine", userId, "active"],
   queryFn: async () => {
-    const { data, error } = await supabase.from("services").select("id, title, category, city, created_at, status, archived").eq("owner_id", userId).eq("archived", false).order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("services").select("id, title, category, city, created_at, status, archived, image_url").eq("owner_id", userId).eq("archived", false).order("created_at", { ascending: false });
     if (error) throw error;
-    return data;
+    const urls = await signImages(data.map((d) => d.image_url).filter((x): x is string => !!x));
+    return data.map((d) => ({ ...d, img: d.image_url ? urls[d.image_url] : undefined }));
   },
 });
 
@@ -62,6 +65,8 @@ function Page() {
   const sections = MODE_SECTIONS[mode];
   const section: Section = s.section && sections.includes(s.section) ? s.section : "overview";
 
+  const me = useQuery({ ...profileQuery(user?.id ?? ""), enabled: !!user });
+  const reqs = useQuery({ ...myRequestsQuery(user?.id ?? ""), enabled: !!user });
   if (!ready || (user && !s.mode && mine.isLoading)) return <div className="mx-auto max-w-5xl px-4 py-10"><ListSkeleton /></div>;
   if (!user)
     return (
@@ -73,30 +78,42 @@ function Page() {
       </>
     );
 
+  const name = me.data?.display_name || user.email?.split("@")[0] || "";
+  const pendingIn = (reqs.data ?? []).filter((r) => r.provider_id === user.id && r.status === "pending").length;
   return (
     <>
-      <PageHero title={t("dashboard")} />
-      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div role="group" aria-label={t("db_mode")} className="inline-flex rounded-full bg-ink p-1">
-            {(["client", "provider"] as const).map((m) => (
-              <Link key={m} to="/dashboard" search={{ mode: m }} aria-pressed={mode === m}
-                className={`min-h-10 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${mode === m ? "bg-lime text-lime-foreground" : "text-navy-foreground hover:bg-navy-2"}`}>
-                {t(m === "client" ? "db_mode_client" : "db_mode_provider")}
-              </Link>
-            ))}
-          </div>
-          <Link to="/profile" search={{ tab: "settings" }} className="btn btn-outline">{t("db_edit_profile")}</Link>
-        </div>
-        <nav aria-label={t("db_sections")} className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
-          {sections.map((k) => (
-            <Link key={k} to="/dashboard" search={{ mode, section: k }} aria-current={section === k ? "page" : undefined} aria-pressed={section === k} className="chip shrink-0">
-              {k === "pro" && <Sparkles className="size-4 text-clay-strong" aria-hidden />}
-              {t(k === "requests" && mode === "client" ? "my_requests" : SECTION_LABEL[k])}
-            </Link>
+      <DashHero name={name} avatar={me.data?.avatar ?? undefined} eyebrow={t("dashboard")} sub={t(mode === "client" ? "dh_sub_client" : "dh_sub_pro")}>
+        <SegSlide index={mode === "client" ? 0 : 1} count={2} label={t("db_mode")}>
+          {(["client", "provider"] as const).map((m) => (
+            <Link key={m} to="/dashboard" search={{ mode: m }} aria-current={mode === m ? "page" : undefined}>{t(m === "client" ? "db_mode_client" : "db_mode_provider")}</Link>
           ))}
-        </nav>
-        <div className="mt-6">
+        </SegSlide>
+        {mode === "provider" ? (
+          <>
+            <Link to="/offer" className="btn btn-lime" data-magnetic><PlusCircle className="size-4" aria-hidden />{t("offer_service")}</Link>
+            <Link to="/pros/$id" params={{ id: user.id }} className="dash-action"><ExternalLink className="size-4" aria-hidden />{t("view_public_profile")}</Link>
+          </>
+        ) : (
+          <Link to="/explore" className="btn btn-lime" data-magnetic><Search className="size-4" aria-hidden />{t("explore_services")}</Link>
+        )}
+        <Link to="/messages" className="dash-action"><MessageSquare className="size-4" aria-hidden />{t("messages")}</Link>
+        <Link to="/profile" search={{ tab: "settings" }} className="dash-action"><Settings className="size-4" aria-hidden />{t("db_edit_profile")}</Link>
+      </DashHero>
+      <nav aria-label={t("db_sections")} className="dash-tabs sd-sticky-shadow">
+        <ul className="mx-auto flex max-w-6xl gap-6 overflow-x-auto px-4 sm:px-6">
+          {sections.map((k) => (
+            <li key={k}>
+              <Link to="/dashboard" search={{ mode, section: k }} aria-current={section === k ? "page" : undefined} className="dash-tab">
+                {k === "pro" && <Sparkles className="size-4 text-clay-strong" aria-hidden />}
+                {t(k === "requests" && mode === "client" ? "my_requests" : SECTION_LABEL[k])}
+                {k === "requests" && mode === "provider" && pendingIn > 0 && <span className="dash-tab-n">{pendingIn}</span>}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <div className="mx-auto max-w-6xl px-4 pb-12 sm:px-6">
+        <div className="mt-8">
           {mode === "client" ? (
             section === "overview" ? <ClientOverview userId={user.id} /> : <Requests userId={user.id} received={false} />
           ) : section === "overview" ? (
@@ -125,18 +142,13 @@ function ClientOverview({ userId }: { userId: string }) {
   if (q.isError) return <ErrorState onRetry={() => q.refetch()} />;
   const mine = (q.data ?? []).filter((r) => r.client_id === userId);
   const sum = clientRequestSummary(mine);
-  const stats: [TKey, number, string][] = [["sum_pending", sum.pending, "text-sea"], ["sum_accepted", sum.accepted, "text-success"], ["sum_closed", sum.closed, "text-muted-foreground"]];
+  const stats: [TKey, number, string, typeof Clock][] = [["sum_pending", sum.pending, "var(--warning)", Hourglass], ["sum_accepted", sum.accepted, "var(--success)", Handshake], ["sum_closed", sum.closed, "var(--muted-foreground)", PauseCircle]];
   return (
     <div className="space-y-8">
       <p className="text-muted-foreground">{t("db_client_intro")}</p>
       {mine.length > 0 && (
-        <dl className="grid gap-3 sm:grid-cols-3">
-          {stats.map(([k, v, tone]) => (
-            <div key={k} className="panel p-4">
-              <dt className="text-sm text-muted-foreground">{t(k)}</dt>
-              <dd className={`mt-1 text-2xl font-bold ${v ? tone : ""}`}>{v}</dd>
-            </div>
-          ))}
+        <dl className="grid gap-4 sm:grid-cols-3">
+          {stats.map(([k, v, tone, Icon]) => <StatTile key={k} icon={Icon} value={v} label={t(k)} tone={tone} />)}
         </dl>
       )}
       <section aria-labelledby="recent-req">
@@ -150,7 +162,7 @@ function ClientOverview({ userId }: { userId: string }) {
           <EmptyState icon={Inbox} title={t("db_no_requests")} sub={t("db_no_requests_client")} action={<><Link to="/explore" className="btn btn-ink"><Search className="size-4" aria-hidden />{t("explore_services")}</Link><div className="w-full"><StartShortcuts /></div></>} />
         )}
       </section>
-      <section aria-labelledby="become-pro" className="relative flex flex-col gap-4 overflow-hidden rounded-3xl bg-ink-hero p-6 text-ink-foreground sm:flex-row sm:items-center sm:justify-between">
+      <section aria-labelledby="become-pro" className="sd-rise relative flex flex-col gap-4 overflow-hidden rounded-3xl bg-ink-hero p-6 text-ink-foreground sm:flex-row sm:items-center sm:justify-between">
         <PointerField />
         <div className="relative">
           <h2 id="become-pro" className="text-lg font-bold">{t("db_become_pro_t")}</h2>
@@ -188,6 +200,13 @@ function Overview({ userId }: { userId: string }) {
           <Link to="/profile" search={{ tab: "settings" }} hash="availability" className="btn btn-outline min-h-10 shrink-0">{t("change_availability")}</Link>
         </div>
       )}
+
+      <dl className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatTile icon={Briefcase} value={p?.serviceIds.length ?? 0} label={t("stat_services")} tone="var(--sea)" />
+        <StatTile icon={Hourglass} value={pending.length} label={t("stat_pending")} tone="var(--warning)" />
+        <StatTile icon={Handshake} value={(reqs.data ?? []).filter((r) => r.provider_id === userId && r.status === "accepted").length} label={t("stat_accepted")} tone="var(--success)" />
+        <StatTile icon={Gauge} value={`${Math.round((done / Math.max(1, items.length)) * 100)}%`} label={t("dh_profile_done")} tone="var(--clay)" />
+      </dl>
 
       {PRO_PLAN_ENABLED && <PlanCard userId={userId} publishedServices={p?.serviceIds.length ?? 0} />}
 
@@ -286,19 +305,14 @@ function Services({ userId }: { userId: string }) {
     return <EmptyState icon={Briefcase} title={t("db_no_services")} sub={t("db_no_services_sub")}
       action={<div className="flex w-full flex-col items-center gap-4"><ListingSketch /><Link to="/offer" className="btn btn-lime"><PlusCircle className="size-4" aria-hidden />{t("offer_service")}</Link></div>} />;
   return (
-    <ul className="space-y-3">
+    <ul className="sd-stagger grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {draftsFirst(q.data).map((x) => (
-        <li key={x.id} className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-card p-4 ${x.status === "draft" ? "border-2 border-dashed border-clay/50" : "border"}`}>
-          <div className="min-w-0">
-            <Link to="/services/$id" params={{ id: x.id }} dir="auto" className="block truncate font-semibold hover:underline">{x.title}</Link>
-            <p className="flex items-center gap-1 text-xs text-muted-foreground">{t(CATEGORIES.find((c) => c.id === x.category)?.key ?? "cat_all")} · <MapPin className="size-3.5" aria-hidden /><span dir="auto">{x.city}</span></p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className={`badge ${x.status === "published" ? "badge-success" : "badge-muted"}`}>{t(x.status === "published" ? "status_published" : "status_draft")}</span>
+        <ServiceTile key={x.id} s={x} actions={
+          <>
             <Link to="/offer" search={{ edit: x.id }} className={`btn min-h-10 ${x.status === "draft" ? "btn-lime" : "btn-outline"}`}><Pencil className="size-4" aria-hidden />{t(x.status === "draft" ? "draft_finish" : "portfolio_edit")}</Link>
             <Link to="/profile" search={{ space: "pro", tab: "services" }} className="btn btn-outline min-h-10">{t("db_manage")}</Link>
-          </div>
-        </li>
+          </>
+        } />
       ))}
     </ul>
   );
@@ -309,13 +323,13 @@ function RequestItem({ r, received, waited }: { r: RequestRow; received: boolean
   const next = received ? null : clientNextStep(r.status);
   const other = (received ? r.client?.display_name : r.provider?.display_name) || t("account_deleted_name");
   return (
-    <li className="panel p-4">
+    <li className="row-card p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <p dir="auto" className="truncate font-semibold">{r.services?.title}</p>
+          <Link to="/messages" search={{ r: r.id }} dir="auto" className="stretched-link block truncate font-semibold">{r.services?.title}</Link>
           {other && <p className="text-xs text-muted-foreground">{t(received ? "from_client" : "to_provider")} <span dir="auto">{other}</span></p>}
         </div>
-        <span className="flex flex-wrap items-center gap-2">
+        <span className="relative z-[2] flex flex-wrap items-center gap-2">
           {waited && <span className="badge badge-warning"><Clock className="size-3.5" aria-hidden />{t("waiting_since", { d: waited })}</span>}
           <StatusBadge status={r.status} />
         </span>
@@ -323,11 +337,11 @@ function RequestItem({ r, received, waited }: { r: RequestRow; received: boolean
       <p dir="auto" className="mt-2 line-clamp-2 text-sm text-muted-foreground">{r.message}</p>
       <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
         <RequestTimeline status={r.status} createdAt={r.created_at} />
-        <Link to="/messages" search={{ r: r.id }} className={`btn min-h-10 ${(received && r.status === "pending") || (!received && next?.action === "chat") ? "btn-lime" : "btn-outline"}`}>{t(received && r.status === "pending" ? "db_reply" : "open_chat")}</Link>
+        <Link to="/messages" search={{ r: r.id }} className={`btn relative z-[2] min-h-10 ${(received && r.status === "pending") || (!received && next?.action === "chat") ? "btn-lime" : "btn-outline"}`}>{t(received && r.status === "pending" ? "db_reply" : "open_chat")}</Link>
       </div>
       {next?.action && (
         // Client side (pending is already explained by the timeline above): one clear next step for this request's status.
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface-sunken px-3 py-2 text-sm">
+        <div className="relative z-[2] mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface-sunken px-3 py-2 text-sm">
           <span>{t(next.key)}</span>
           {next.action === "similar" && (
             <Link to="/explore" search={r.services?.category ? { category: r.services.category } : {}} className="font-semibold text-sea underline-offset-4 hover:underline">
@@ -349,7 +363,7 @@ function Requests({ userId, received }: { userId: string; received: boolean }) {
   if (!list.length)
     return <EmptyState icon={Inbox} title={t("db_no_requests")} sub={t(received ? "db_no_requests_pro" : "db_no_requests_client")}
       action={received ? <Link to="/profile" search={{ tab: "settings" }} className="btn btn-outline">{t("db_edit_profile")}</Link> : <><Link to="/explore" className="btn btn-ink"><Search className="size-4" aria-hidden />{t("explore_services")}</Link><div className="w-full"><StartShortcuts /></div></>} />;
-  return <ul className="space-y-3">{list.map((r) => <RequestItem key={r.id} r={r} received={received} />)}</ul>;
+  return <ul className="sd-stagger space-y-3">{list.map((r) => <RequestItem key={r.id} r={r} received={received} />)}</ul>;
 }
 
 function Portfolio({ userId }: { userId: string }) {
@@ -363,10 +377,10 @@ function Portfolio({ userId }: { userId: string }) {
   return (
     <div className="space-y-4">
     <div className="flex justify-end"><Link to="/profile" search={{ tab: "settings" }} hash="portfolio" className="btn btn-outline min-h-10">{t("db_manage")}</Link></div>
-    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="sd-stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((x) => (
-        <li key={x.id} className="panel overflow-hidden">
-          {x.image ? <img src={x.image} alt="" loading="lazy" className="aspect-[4/3] w-full object-cover" /> : <div className="aspect-[4/3] bg-muted" />}
+        <li key={x.id} className="listing-card" data-tilt>
+          {x.image ? <div className="overflow-hidden"><img src={x.image} alt="" loading="lazy" className="sd-parallax aspect-[4/3] w-full object-cover" /></div> : <div className="aspect-[4/3] bg-muted" />}
           <div className="p-3"><p dir="auto" className="font-semibold">{x.title}</p>{x.description && <p dir="auto" className="line-clamp-2 text-sm text-muted-foreground">{x.description}</p>}</div>
         </li>
       ))}
@@ -390,8 +404,8 @@ function Preview({ userId }: { userId: string }) {
         <Link to="/pros/$id" params={{ id: userId }} className="btn btn-outline min-h-10"><ExternalLink className="size-4" aria-hidden />{t("view_public_profile")}</Link>
       </div>
       <ShareKit path={profilePath(userId)} title={p.display_name || "SkillLoop"} text="share_profile_text" label="share_profile" />
-      <article className="panel overflow-hidden">
-        <div className="bg-hero h-24" aria-hidden />
+      <article className="pro-id overflow-hidden" data-tilt>
+        <div className="dash-hero h-28" aria-hidden><BrandBackdrop variant="intro" /></div>
         <div className="-mt-14 p-6">
           <ProfilePhoto src={p.avatar ?? undefined} name={p.display_name} />
           <h2 dir="auto" className="display-title mt-4 text-2xl">{p.display_name}</h2>

@@ -1,11 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useRef, useState, type CSSProperties } from "react";
 import { Search, Laptop, GraduationCap, ArrowRight, Send, Handshake, Rocket, Wrench, Car, Camera, LayoutGrid, Check, Wifi, User, MapPin } from "lucide-react";
 import { BrandBackdrop, CATEGORY_ICONS, PointerField } from "@/components/brand";
 import { FaqBlock } from "@/components/page-sections";
 import { HomeHero, type HomeHeroHandle } from "@/components/home-hero";
 import { useI18n, type TKey } from "@/lib/i18n";
 import { CATEGORIES, CITIES, type CategoryId } from "@/lib/data";
+import { CATEGORY_IMAGES } from "@/lib/category-images";
+import forClients from "@/assets/home/for-clients.webp";
+import forPros from "@/assets/home/for-pros.webp";
 import { ServiceCard, ServiceCardSkeleton, useAllServices } from "@/components/site";
 import { homeSeo } from "@/lib/seo";
 import { ErrorState, FirstVisitEmpty } from "@/components/states";
@@ -78,42 +81,52 @@ function Index() {
       <HomeHero ref={hero} />
 
       <section className="mx-auto max-w-7xl px-4 pt-16 sm:px-6 md:pt-20" aria-labelledby="cats">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)] lg:gap-12">
-          <div className="lg:sticky lg:top-24 lg:self-start">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="max-w-2xl">
             <p className="eyebrow">{t("hp_cats_kicker")}</p>
-            <h2 id="cats" className="section-title mt-2">{t("hp_cats_title")}</h2>
-            <p className="mt-2 max-w-md text-sm text-muted-foreground">{t("hp_cats_sub")}</p>
-            <Link to="/explore" className="btn btn-outline mt-5"><LayoutGrid className="size-4" aria-hidden />{t("hp_cats_all")}</Link>
+            <h2 id="cats" className="display-title mt-2 text-3xl md:text-4xl">{t("hp_cats_title")}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{t("hp_cats_sub")}</p>
           </div>
-          <div className="min-w-0">
-            <ul className="grid gap-3 sm:grid-cols-2">
-              {FEATURED.map((c) => {
-                const cat = CATEGORIES.find((x) => x.id === c.id)!;
-                const Icon = CATEGORY_ICONS[c.id];
-                return (
-                  <li key={c.id}>
-                    <Link to="/explore" search={{ category: c.id }} className="cat-tile">
-                      <span className="cat-icon icon-well-clay size-11"><Icon className="size-5" aria-hidden /></span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-bold">{t(cat.key)}</span>
-                        <span className="mt-0.5 block text-sm leading-snug text-muted-foreground">{t(c.ex)}</span>
-                      </span>
-                      <ArrowRight className="cat-arrow mt-1 size-4 shrink-0 text-sea rtl:-scale-x-100" aria-hidden />
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-            {others.length > 0 && (
-              <ul className="mt-4 flex flex-wrap gap-2" aria-label={t("hp_cats_more")}>
-                {others.map((c) => {
-                  const Icon = CATEGORY_ICONS[c.id];
-                  return <li key={c.id}><Link to="/explore" search={{ category: c.id }} className="chip"><Icon className="size-4 text-clay-strong" aria-hidden />{t(c.key)}</Link></li>;
-                })}
-              </ul>
-            )}
-          </div>
+          <Link to="/explore" className="btn btn-outline"><LayoutGrid className="size-4" aria-hidden />{t("hp_cats_all")}</Link>
         </div>
+        {/* Photo bento: the first category leads (2×2 from md), the last cell opens the full list. */}
+        <ul className="mt-8 grid auto-rows-[11rem] grid-cols-2 gap-3 md:auto-rows-[12.5rem] md:grid-cols-4 md:gap-4">
+          {FEATURED.map((c, i) => {
+            const cat = CATEGORIES.find((x) => x.id === c.id)!;
+            const Icon = CATEGORY_ICONS[c.id];
+            const lead = i === 0;
+            return (
+              <li key={c.id} className={`sd-rise ${lead ? "col-span-2 row-span-2" : ""}`} style={{ "--sd-i": i % 4 } as CSSProperties}>
+                <Link to="/explore" search={{ category: c.id }} className="cat-photo" data-tilt>
+                  <img src={CATEGORY_IMAGES[c.id]} alt="" loading={i < 3 ? "eager" : "lazy"} width={800} height={600} className="cat-photo-img" />
+                  <span className="cat-photo-go" aria-hidden><ArrowRight className="size-4 rtl:-scale-x-100" /></span>
+                  <span className="cat-photo-icon" aria-hidden><Icon className="size-5" /></span>
+                  <span className={`mt-3 block font-bold leading-tight ${lead ? "text-2xl md:text-3xl" : "text-base md:text-lg"}`}>{t(cat.key)}</span>
+                  <span className={`mt-1 text-sm leading-snug text-ink-muted ${lead ? "block max-w-sm" : "hidden sm:line-clamp-2"}`}>{t(c.ex)}</span>
+                </Link>
+              </li>
+            );
+          })}
+          <li className="sd-rise" style={{ "--sd-i": 3 } as CSSProperties}>
+            <Link to="/explore" className="cat-photo bg-ink-hero justify-between" data-tilt>
+              <span className="photo-stack" aria-hidden>
+                {others.slice(0, 3).map((c) => <img key={c.id} src={CATEGORY_IMAGES[c.id]} alt="" loading="lazy" width={800} height={600} />)}
+              </span>
+              <span>
+                <span className="block text-lg font-bold leading-tight">{t("hp_cats_all")}</span>
+                {others.length > 0 && <span className="mt-1 block text-sm text-ink-muted">{t("hp_cats_more_n", { n: others.length })}</span>}
+              </span>
+              <span className="cat-photo-go" aria-hidden><ArrowRight className="size-4 rtl:-scale-x-100" /></span>
+            </Link>
+          </li>
+        </ul>
+        {others.length > 0 && (
+          <ul className="mt-5 flex flex-wrap gap-2" aria-label={t("hp_cats_more")}>
+            {others.map((c) => (
+              <li key={c.id}><Link to="/explore" search={{ category: c.id }} className="chip"><img src={CATEGORY_IMAGES[c.id]} alt="" loading="lazy" width={800} height={600} className="chip-thumb" />{t(c.key)}</Link></li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pt-16 sm:px-6" aria-labelledby="needs">
@@ -147,7 +160,7 @@ function Index() {
         ) : isError ? (
           <div className="mt-6"><ErrorState onRetry={() => refetch()} /></div>
         ) : services.length ? (
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="sd-stagger mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {services.slice(0, 6).map((s) => <ServiceCard key={s.id} s={s} />)}
           </div>
         ) : (
@@ -163,7 +176,7 @@ function Index() {
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t("hp_check_sub")}</p>
         <ol className="mt-8 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-5">
           {([1, 2, 3, 4, 5] as const).map((i) => (
-            <li key={i} className="border-s-2 border-lime ps-4">
+            <li key={i} className="sd-rise border-s-2 border-lime ps-4" style={{ "--sd-i": i - 1 } as CSSProperties}>
               <h3 className="font-bold">{t(`hp_check_${i}_t` as TKey)}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{t(`hp_check_${i}_d` as TKey)}</p>
             </li>
@@ -172,19 +185,27 @@ function Index() {
         </div>
       </section>
 
-      <section className="bg-card" aria-label={`${t("hp_ben_cust")} / ${t("hp_ben_pro")}`}>
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-2">
-          {([["hp_ben_cust", Search, "find"], ["hp_ben_pro", Rocket, "offer"]] as const).map(([k, Icon, mode]) => (
-            <div key={k}>
-              <h2 className="flex items-center gap-3 text-xl font-bold">
-                <span className={`grid size-10 place-items-center rounded-full ${mode === "find" ? "bg-sea-soft text-sea" : "bg-lime text-lime-foreground"}`}><Icon className="size-5" aria-hidden /></span>
-                {t(k)}
-              </h2>
-              <ul className="mt-5 space-y-3">
+      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6" aria-label={`${t("hp_ben_cust")} / ${t("hp_ben_pro")}`}>
+        <div className="grid gap-5 md:grid-cols-2">
+          {([["hp_ben_cust", Search, "find", forClients], ["hp_ben_pro", Rocket, "offer", forPros]] as const).map(([k, Icon, mode, img]) => (
+            <div key={k} className="panel sd-rise relative overflow-hidden" data-tilt>
+              <div className="ben-photo">
+                <img src={img} alt="" loading="lazy" width={800} height={600} className="sd-parallax" />
+                <h2 className="absolute inset-x-0 bottom-0 z-10 flex items-center gap-3 p-5 text-xl font-bold text-ink-foreground md:text-2xl">
+                  <span className={`grid size-10 shrink-0 place-items-center rounded-full ${mode === "find" ? "bg-ink-foreground text-ink" : "bg-lime text-lime-foreground"}`}><Icon className="size-5" aria-hidden /></span>
+                  {t(k)}
+                </h2>
+              </div>
+              <ul className="space-y-3 p-5 md:p-6">
                 {([1, 2, 3] as const).map((i) => (
                   <li key={i} className="flex gap-3"><Check className="mt-0.5 size-5 shrink-0 text-sea" aria-hidden /><span>{t(`${k}_${i}` as TKey)}</span></li>
                 ))}
               </ul>
+              <div className="px-5 pb-5 md:px-6 md:pb-6">
+                <Link to={mode === "find" ? "/explore" : "/offer"} className={`btn ${mode === "find" ? "btn-ink" : "btn-outline"}`}>
+                  {t(mode === "find" ? "explore_services" : "offer_service")}<ArrowRight className="size-4 rtl:-scale-x-100" aria-hidden />
+                </Link>
+              </div>
             </div>
           ))}
         </div>
@@ -213,14 +234,14 @@ function Index() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
-        <div className="bg-ink-hero relative flex flex-col items-start gap-5 overflow-hidden rounded-3xl p-8 md:flex-row md:items-center md:justify-between md:p-10">
+        <div className="sd-rise bg-ink-hero relative flex flex-col items-start gap-5 overflow-hidden rounded-3xl p-8 md:flex-row md:items-center md:justify-between md:p-10">
           <BrandBackdrop variant="intro" />
           <PointerField />
           <div className="relative">
             <h2 className="display-title text-2xl md:text-3xl">{t("cta_title")} <span className="text-lime">{t("cta_hl")}</span></h2>
             <p className="mt-2 max-w-2xl text-ink-muted">{t("cta_sub")}</p>
           </div>
-          <Link to="/offer" className="btn btn-lime relative shrink-0">{t("offer_service")}<ArrowRight className="size-4 rtl:-scale-x-100" aria-hidden /></Link>
+          <Link to="/offer" className="btn btn-lime relative shrink-0" data-magnetic>{t("offer_service")}<ArrowRight className="size-4 rtl:-scale-x-100" aria-hidden /></Link>
         </div>
       </section>
     </>
@@ -241,7 +262,7 @@ export function HowItWorks() {
         <h2 className="section-title">{t("how_title")}</h2>
         <ol className="steps-line mt-8 grid gap-8 md:grid-cols-3 md:gap-6">
           {steps.map((s, i) => (
-            <li key={i} className="relative">
+            <li key={i} className="sd-rise relative" style={{ "--sd-i": i } as CSSProperties}>
               <span className="flex items-center gap-3">
                 <span className="relative grid size-11 place-items-center rounded-full bg-lime text-lime-foreground ring-8 ring-card"><s.icon className="size-5" aria-hidden /></span>
                 <span className="rounded-full bg-card px-2 text-sm font-bold text-muted-foreground">0{i + 1}</span>

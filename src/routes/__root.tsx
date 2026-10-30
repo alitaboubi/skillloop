@@ -13,6 +13,7 @@ import { Toaster } from "@/components/ui/sonner";
 import appCss from "../styles.css?url";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { SiteHeader, SiteFooter, BottomNav } from "@/components/site";
+import { MotionLayer, ScrollProgress } from "@/components/motion-kit";
 
 const GOOGLE_SITE_VERIFICATION = (import.meta.env["VITE_GOOGLE_SITE_VERIFICATION"] as string | undefined)?.trim() ?? "";
 import { ErrorScreen } from "@/components/error-screen";
@@ -91,6 +92,8 @@ function RootComponent() {
         <ReturnAfterOAuth />
         <div className="app-shell flex min-h-dvh flex-col overflow-x-clip">
           <SiteHeader />
+          <ScrollProgress />
+          <MotionLayer />
           <main className="flex-1">
             <Outlet />
           </main>
