@@ -1,7 +1,7 @@
 // Ready-made images a pro can pick instead of uploading: service covers (4:3, 3 per category) and profile avatars (1:1).
 // Plain SVG, no text (they are shown in every language), "Mapped loop" colours. The app rasterises the picked one to a
 // JPEG and uploads it like any other photo (src/lib/presets.ts).
-// Run: node scripts/make-presets.mjs  → src/assets/covers/*.svg, src/assets/avatars/*.svg
+// Run: node scripts/make-presets.mjs  → src/assets/covers, src/assets/avatars, src/assets/banners (profile banners, wide)
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -364,32 +364,70 @@ const SCENES = {
 const THEME_ORDER = ["ink", "sand", "sea"];
 
 /* ---------- avatars (1:1) ---------- */
-const SKIN = ["#f3d2b5", "#e0ac84", "#c98d63", "#9c6640", "#6e4529"];
-const BG = [C.lime, C.seaL, C.clayL, "#d9d3c5", C.sea, "#cfe7a9"];
-const SHIRT = [C.ink, C.sea, C.clay, C.limeD, "#3b5878", C.gold];
-const HAIR = ["#1c1410", "#3b2416", "#6b4a2b", "#a3683a", "#2b2b2b"];
-function avatar({ skin, bg, shirt, hair, style, glasses = false, beard = false, earrings = false }) {
-  const s = SKIN[skin], h = HAIR[hair];
-  let back = "", front = "", head = "";
+const SKIN = ["#f3d2b5", "#e0ac84", "#c98d63", "#9c6640", "#6e4529", "#fbe1cc"];
+const BG = [C.lime, C.seaL, C.clayL, "#d9d3c5", C.sea, "#cfe7a9", "#f2c14e", "#b9c7f0"];
+const SHIRT = [C.ink, C.sea, C.clay, C.limeD, "#3b5878", C.gold, "#6c5b7b", "#f4f0e8"];
+const HAIR = ["#1c1410", "#3b2416", "#6b4a2b", "#a3683a", "#2b2b2b", "#9b9692", "#d8d2c8", "#7a2e1c"];
+const SCARF = [C.sea, C.clay, "#6c5b7b", C.ink2, C.limeD, "#c94f6d", C.gold, "#2a73ad"];
+function avatar({ skin, bg, shirt, hair, style, glasses = false, beard = false, earrings = false, mustache = false, hat = "", collar = "" }) {
+  const s = SKIN[skin], h = HAIR[hair], scarf = SCARF[hair % SCARF.length];
+  let back = "", front = "";
   if (style === "long") back = path("M156 220c0-80 44-130 100-130s100 50 100 130v140H156Z", h);
   if (style === "bun") back = circle(256, 96, 36, h);
-  if (style === "hijab") back = path("M140 250c0-100 50-160 116-160s116 60 116 160c0 40-10 80-30 110H170c-20-30-30-70-30-110Z", [C.sea, C.clay, "#6c5b7b", C.ink2, C.limeD][hair % 5]);
+  if (style === "ponytail") back = path("M330 150c50 10 70 70 50 150-6 24-26 30-34 10 14-50 6-100-26-130Z", h);
+  if (style === "afro") back = circle(256, 180, 120, h);
+  if (style === "hijab") back = path("M140 250c0-100 50-160 116-160s116 60 116 160c0 40-10 80-30 110H170c-20-30-30-70-30-110Z", scarf);
   if (style === "short") front = path("M176 196c0-56 36-92 80-92s80 36 80 92c-18-26-50-40-80-40s-62 14-80 40Z", h);
   if (style === "curly") front = [...Array(9)].map((_, i) => { const a = Math.PI + (i * Math.PI) / 8; return circle(n(256 + 84 * Math.cos(a)), n(196 + 74 * Math.sin(a)), 30, h); }).join("") + circle(256, 130, 46, h);
-  if (style === "long" || style === "bun") front = path("M172 206c0-64 38-104 84-104s84 40 84 104c-10-40-50-60-84-50-30-6-70 10-84 50Z", h);
+  if (style === "long" || style === "bun" || style === "ponytail") front = path("M172 206c0-64 38-104 84-104s84 40 84 104c-10-40-50-60-84-50-30-6-70 10-84 50Z", h);
   if (style === "fade") front = path("M180 186c4-46 36-74 76-74s72 28 76 74c-20-16-46-24-76-24s-56 8-76 24Z", h);
-  if (style === "hijab") front = path("M168 230c0-76 40-122 88-122s88 46 88 122c-6-50-40-84-88-84s-82 34-88 84Z", [C.sea, C.clay, "#6c5b7b", C.ink2, C.limeD][hair % 5]);
-  head = (style === "hijab" ? "" : circle(170, 226, 16, s) + circle(342, 226, 16, s)) +
-    path("M172 210c0-60 38-98 84-98s84 38 84 98c0 62-38 102-84 102s-84-40-84-102Z", s);
+  if (style === "sidepart") front = path("M174 210c-6-66 36-106 86-106 46 0 84 36 80 100-16-34-44-52-92-50-10 18-40 34-74 56Z", h);
+  if (style === "afro") front = path("M176 200c0-60 36-90 80-90s80 30 80 90c-20-30-50-44-80-44s-60 14-80 44Z", h);
+  if (style === "bald") front = path("M196 140c20-20 44-28 60-28s40 8 60 28c-20-8-40-10-60-10s-40 2-60 10Z", "#ffffff", `fill-opacity=".25"`);
+  if (style === "hijab") front = path("M168 230c0-76 40-122 88-122s88 46 88 122c-6-50-40-84-88-84s-82 34-88 84Z", scarf) +
+    path("M164 300c16 44 50 66 92 66s76-22 92-66c-4 34-40 80-92 80s-88-46-92-80Z", scarf);
+  const ears = style === "hijab" ? "" : circle(170, 226, 16, s) + circle(342, 226, 16, s);
+  const head = ears + path("M172 210c0-60 38-98 84-98s84 38 84 98c0 62-38 102-84 102s-84-40-84-102Z", s);
+  const brow = style === "hijab" || style === "bald" ? C.ink : h;
   const face = circle(222, 222, 8, C.ink) + circle(290, 222, 8, C.ink) +
-    stroke("M210 196q12-8 24 0M278 196q12-8 24 0", style === "hijab" ? C.ink : h, 6) +
+    stroke("M210 196q12-8 24 0M278 196q12-8 24 0", brow, 6) +
     stroke("M226 266q30 24 60 0", C.ink, 6) + circle(206, 252, 12, "#e97c48", `fill-opacity=".18"`) + circle(306, 252, 12, "#e97c48", `fill-opacity=".18"`);
+  const hats = {
+    chechia: path("M190 150c0-40 30-56 66-56s66 16 66 56c-40-10-92-10-132 0Z", "#b8322a") + rect(188, 140, 136, 18, 9, "#9a2620") + stroke("M256 94c10-10 30-6 34 10", "#1c1410", 4),
+    cap: path("M174 176c0-50 36-80 82-80s82 30 82 80Z", SHIRT[(shirt + 1) % SHIRT.length]) + path("M300 172c40 0 70 6 84 18-30 4-60 4-90 0Z", SHIRT[(shirt + 1) % SHIRT.length]) + circle(256, 98, 7, C.white, `fill-opacity=".6"`),
+    beanie: path("M170 186c0-60 38-96 86-96s86 36 86 96Z", C.clay) + rect(166, 170, 180, 30, 14, "#c96535") + circle(256, 86, 16, C.clayL),
+    headphones: stroke("M164 230c-6-90 40-140 92-140s98 50 92 140", C.ink, 14) + rect(146, 214, 34, 64, 14, C.lime) + rect(332, 214, 34, 64, 14, C.lime),
+  };
   const extras = (glasses ? circle(222, 222, 26, "none", `stroke="${C.ink}" stroke-width="6"`) + circle(290, 222, 26, "none", `stroke="${C.ink}" stroke-width="6"`) + stroke("M248 220h16", C.ink, 6) : "") +
     (beard ? path("M174 240c6 50 40 76 82 76s76-26 82-76c-14 22-30 30-44 30-10-14-22-14-38-14s-28 0-38 14c-14 0-30-8-44-30Z", h) + stroke("M226 270q30 18 60 0", C.ink, 6) : "") +
-    (earrings ? circle(170, 252, 7, C.gold) + circle(342, 252, 7, C.gold) : "");
-  const body = rect(226, 290, 60, 50, 20, s) + path(`M96 512c0-96 70-170 160-170s160 74 160 170Z`, SHIRT[shirt]) + path("M226 342l30 40 30-40Z", s);
+    (mustache && !beard ? path("M222 258c14-12 26-10 34-2 8-8 20-10 34 2-14 4-24 6-34 0-10 6-20 4-34 0Z", h) : "") +
+    (earrings ? circle(170, 252, 7, C.gold) + circle(342, 252, 7, C.gold) : "") + (hat ? hats[hat] : "");
+  const shirtC = SHIRT[shirt];
+  const collars = {
+    vneck: path("M226 342l30 40 30-40Z", s),
+    shirt: path("M226 342l30 40 30-40Z", s) + path("M214 346l42 36-20 24-34-50Z", C.white) + path("M298 346l-42 36 20 24 34-50Z", C.white),
+    tie: path("M226 342l30 40 30-40Z", C.white) + path("M250 352h12l6 70-12 16-12-16Z", C.clay),
+    hoodie: path("M190 352c20 30 112 30 132 0l10 20c-30 40-122 40-152 0Z", "#ffffff", `fill-opacity=".25"`) + stroke("M236 384v40M276 384v40", C.white, 4),
+    turtle: rect(222, 318, 68, 40, 18, shirtC) + rect(222, 318, 68, 40, 18, "#000000", `fill-opacity=".12"`),
+  };
+  const body = rect(226, 290, 60, 50, 20, s) + path("M96 512c0-96 70-170 160-170s160 74 160 170Z", shirtC) + collars[collar || (style === "hijab" ? "turtle" : "vneck")];
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><rect width="512" height="512" fill="${BG[bg]}"/>` +
     `<circle cx="256" cy="256" r="236" fill="#ffffff" fill-opacity=".18"/>${back}${body}${head}${front}${face}${extras}</svg>`;
+}
+/** Not a person: for those who prefer a symbol. */
+function symbolAvatar(bg, fg, kind) {
+  const shapes = {
+    loop: loopMark(256, 256, 150, fg, 22),
+    star: path("M256 120l36 76 84 10-62 58 16 82-74-40-74 40 16-82-62-58 84-10Z", fg),
+    bulb: circle(256, 220, 96, fg) + rect(216, 300, 80, 60, 12, fg) + bars(222, 372, [68, 68], 14, 8, C.ink) + path("M256 170l-24 54h28l-18 50 46-66h-28l18-38Z", C.ink),
+    leaf: path("M150 380C130 220 240 130 390 130c10 150-80 260-240 250Z", fg) + stroke("M150 380C220 300 290 230 360 170", C.ink, 10, `stroke-opacity=".35"`),
+    bolt: path("M290 90L170 290h80l-30 140 130-210h-84Z", fg),
+    heart: path("M256 400C150 320 110 270 110 210a74 74 0 0 1 146-20 74 74 0 0 1 146 20c0 60-40 110-146 190Z", fg),
+    code: stroke("M190 170l-80 86 80 86M322 170l80 86-80 86M282 140l-52 232", fg, 26),
+    compass: circle(256, 256, 130, "none", `stroke="${fg}" stroke-width="22"`) + path("M256 150l36 106-36 106-36-106Z", fg) + circle(256, 256, 16, C.ink),
+  };
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><rect width="512" height="512" fill="${bg}"/>` +
+    `<circle cx="256" cy="256" r="236" fill="#ffffff" fill-opacity=".08"/>${shapes[kind]}</svg>`;
 }
 const AVATARS = [
   { skin: 1, bg: 0, shirt: 0, hair: 0, style: "short", beard: true },
@@ -408,10 +446,141 @@ const AVATARS = [
   { skin: 1, bg: 2, shirt: 5, hair: 0, style: "hijab", glasses: true },
   { skin: 3, bg: 1, shirt: 1, hair: 1, style: "long", earrings: true },
   { skin: 4, bg: 3, shirt: 3, hair: 4, style: "short", beard: true, glasses: true },
+  // second set: more hair, ages, hats, collars
+  { skin: 1, bg: 6, shirt: 0, hair: 5, style: "sidepart", mustache: true, collar: "shirt" },
+  { skin: 2, bg: 7, shirt: 1, hair: 0, style: "short", hat: "chechia", mustache: true },
+  { skin: 0, bg: 5, shirt: 6, hair: 7, style: "ponytail", earrings: true },
+  { skin: 4, bg: 6, shirt: 3, hair: 0, style: "afro" },
+  { skin: 1, bg: 4, shirt: 7, hair: 3, style: "sidepart", glasses: true, collar: "tie" },
+  { skin: 2, bg: 2, shirt: 4, hair: 4, style: "hijab", collar: "turtle" },
+  { skin: 3, bg: 0, shirt: 2, hair: 0, style: "bald", beard: true },
+  { skin: 5, bg: 1, shirt: 0, hair: 6, style: "bun", glasses: true, collar: "turtle" },
+  { skin: 2, bg: 3, shirt: 5, hair: 1, style: "short", hat: "cap" },
+  { skin: 1, bg: 7, shirt: 2, hair: 5, style: "hijab", glasses: true },
+  { skin: 3, bg: 6, shirt: 1, hair: 1, style: "ponytail", collar: "hoodie" },
+  { skin: 0, bg: 3, shirt: 3, hair: 6, style: "bald", glasses: true, mustache: true, collar: "shirt" },
+  { skin: 4, bg: 4, shirt: 5, hair: 0, style: "fade", hat: "headphones", collar: "hoodie" },
+  { skin: 2, bg: 5, shirt: 6, hair: 2, style: "long", glasses: true },
+  { skin: 1, bg: 0, shirt: 4, hair: 7, style: "curly", earrings: true },
+  { skin: 0, bg: 1, shirt: 0, hair: 3, style: "short", hat: "beanie" },
+  { skin: 3, bg: 2, shirt: 7, hair: 6, style: "hijab", collar: "turtle" },
+  { skin: 5, bg: 6, shirt: 1, hair: 2, style: "sidepart", beard: true, collar: "shirt" },
+  { skin: 2, bg: 7, shirt: 3, hair: 0, style: "afro", glasses: true },
+  { skin: 1, bg: 3, shirt: 6, hair: 5, style: "bun", earrings: true },
+  { skin: 4, bg: 5, shirt: 2, hair: 4, style: "short", mustache: true, collar: "tie" },
+  { skin: 0, bg: 6, shirt: 5, hair: 1, style: "ponytail", glasses: true },
+  { skin: 3, bg: 4, shirt: 0, hair: 0, style: "sidepart", collar: "hoodie" },
+  { skin: 2, bg: 1, shirt: 7, hair: 6, style: "short", hat: "chechia", beard: true },
+];
+const SYMBOLS = [
+  [C.ink, C.lime, "loop"], [C.sea, C.sand, "star"], [C.lime, C.ink, "bulb"], ["#1d4a3b", C.lime, "leaf"],
+  [C.clay, C.sand, "bolt"], [C.clayL, C.clay, "heart"], [C.ink2, C.seaL, "code"], [C.gold, C.ink, "compass"],
 ];
 
+/* ---------- profile banners (wide, behind the public profile header; no text) ---------- */
+const BW = 1600, BH = 480;
+function wobble(cx, cy, r, k, sx = 1.25, sy = 1) {
+  const pts = [];
+  for (let i = 0; i <= 360; i += 5) {
+    const a = (i * Math.PI) / 180, w = 1 + 0.09 * Math.sin(3 * a + k * 0.7) + 0.05 * Math.sin(5 * a - k);
+    pts.push(`${n(cx + r * w * Math.cos(a) * sx)},${n(cy + r * w * Math.sin(a) * sy)}`);
+  }
+  return `<polyline points="${pts.join(" ")}"/>`;
+}
+const glow = (id, color) => `<radialGradient id="${id}"><stop offset="0" stop-color="${color}" stop-opacity=".55"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></radialGradient>`;
+function star8(cx, cy, r, fill, extra = "") {
+  const pts = [];
+  for (let i = 0; i < 16; i++) { const a = (i * Math.PI) / 8, rr = i % 2 ? r * 0.72 : r; pts.push(`${n(cx + rr * Math.cos(a))},${n(cy + rr * Math.sin(a))}`); }
+  return `<polygon points="${pts.join(" ")}" fill="${fill}" ${extra}/>`;
+}
+const BANNERS = {
+  "topo-ink": () => `<rect width="${BW}" height="${BH}" fill="${C.ink}"/><defs>${glow("g1", C.sea)}${glow("g2", C.lime)}</defs>` +
+    `<ellipse cx="1250" cy="120" rx="520" ry="320" fill="url(#g1)"/><ellipse cx="300" cy="460" rx="420" ry="220" fill="url(#g2)" opacity=".5"/>` +
+    `<g fill="none" stroke="${C.lime}" stroke-opacity=".22" stroke-width="1.6">${[...Array(18)].map((_, k) => wobble(1200, 180, 30 + k * 36, k)).join("")}</g>` +
+    `<g fill="none" stroke="${C.seaL}" stroke-opacity=".14" stroke-width="1.4">${[...Array(10)].map((_, k) => wobble(260, 420, 30 + k * 34, k + 3)).join("")}</g>`,
+  "topo-sea": () => `<linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f4573"/><stop offset="1" stop-color="#04223f"/></linearGradient><rect width="${BW}" height="${BH}" fill="url(#b)"/>` +
+    `<g fill="none" stroke="#ffffff" stroke-opacity=".12" stroke-width="1.5">${[...Array(22)].map((_, k) => wobble(800, 260, 20 + k * 40, k, 1.6, 0.8)).join("")}</g>` +
+    circle(800, 260, 7, C.lime) + circle(800, 260, 22, "none", `stroke="${C.lime}" stroke-opacity=".5" stroke-width="2"`),
+  "aurora": () => `<rect width="${BW}" height="${BH}" fill="${C.inkDeep}"/><defs><filter id="bl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="70"/></filter></defs>` +
+    `<g filter="url(#bl)" opacity=".85">${circle(380, 160, 210, C.sea)}${circle(820, 330, 190, C.limeD)}${circle(1240, 140, 230, "#6c5b7b")}${circle(1450, 400, 160, C.clay)}</g>` +
+    dots(40, 40, 50, 13, 32, "#ffffff", 0.08),
+  "zellige": () => {
+    let tiles = "";
+    for (let y = -40; y < BH + 80; y += 120) for (let x = -40; x < BW + 80; x += 120) {
+      const o = (Math.floor(y / 120) % 2) * 60;
+      tiles += star8(x + o, y, 44, "none", `stroke="${C.seaL}" stroke-opacity=".45" stroke-width="2.5"`) + star8(x + o, y, 14, C.lime, `fill-opacity="${((x + y) / 120) % 3 === 0 ? 0.7 : 0.15}"`);
+    }
+    return `<rect width="${BW}" height="${BH}" fill="#0b2f52"/>${tiles}<rect width="${BW}" height="${BH}" fill="url(#zf)"/><linearGradient id="zf" x1="0" x2="1"><stop offset="0" stop-color="#0b2f52" stop-opacity=".9"/><stop offset=".55" stop-color="#0b2f52" stop-opacity="0"/></linearGradient>`;
+  },
+  "medina": () => {
+    const sky = `<linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a73ad"/><stop offset="1" stop-color="#85c7f1"/></linearGradient><rect width="${BW}" height="${BH}" fill="url(#s)"/>`;
+    let city = "";
+    const blocks = [[0, 300, 180], [170, 260, 160], [320, 320, 200], [510, 230, 150], [650, 290, 220], [860, 250, 140], [990, 310, 210], [1190, 240, 170], [1350, 290, 260]];
+    blocks.forEach(([x, y, w], i) => {
+      city += rect(x, y, w, BH - y, 0, i % 3 === 1 ? "#f4f0e8" : C.white);
+      city += path(`M${x + w / 2 - 22} ${BH}v-60a22 22 0 0 1 44 0v60Z`, i % 2 ? "#1f5fa0" : C.sea);
+      if (i % 3 === 0) city += path(`M${x + w / 2 - 40} ${y}a40 40 0 0 1 80 0Z`, C.white) + circle(x + w / 2, y - 44, 5, C.gold);
+      if (i % 2 === 0) city += rect(x + 24, y + 30, 26, 36, 13, "#1f5fa0");
+    });
+    return sky + circle(1300, 110, 60, C.gold, `fill-opacity=".9"`) + city + rect(0, BH - 30, BW, 30, 0, "#e6dfd2");
+  },
+  "waves": () => `<rect width="${BW}" height="${BH}" fill="${C.seaDeep}"/>` +
+    [[C.sea, 160, 0.9], ["#2a73ad", 230, 0.95], [C.seaL, 300, 0.6], ["#0f4573", 360, 1], [C.ink, 420, 1]].map(([c, y, op], i) => {
+      let d = `M0 ${y}`;
+      for (let x = 0; x <= BW; x += 200) d += ` Q${x + 100} ${y + (i % 2 ? 40 : -40)} ${x + 200} ${y}`;
+      return path(`${d} V${BH} H0Z`, c, `fill-opacity="${op}"`);
+    }).join("") + circle(1260, 120, 54, C.gold) + circle(1260, 120, 90, C.gold, `fill-opacity=".15"`),
+  "sunset": () => `<linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b1d3a"/><stop offset=".6" stop-color="${C.clay}"/><stop offset="1" stop-color="${C.gold}"/></linearGradient><rect width="${BW}" height="${BH}" fill="url(#sk)"/>` +
+    circle(1000, 330, 120, "#fde3a7", `fill-opacity=".9"`) +
+    path("M0 330L200 240L380 320L560 210L760 330L940 260L1140 340L1360 230L1600 320V480H0Z", "#5b2e3f") +
+    path("M0 390L240 320L460 390L700 300L920 400L1180 320L1400 400L1600 350V480H0Z", "#3a1e2c") +
+    path("M0 440L300 400L620 450L900 410L1240 450L1600 420V480H0Z", C.ink),
+  "constellation": () => {
+    const pts = [[120, 120], [300, 80], [420, 200], [600, 140], [760, 260], [900, 120], [1080, 200], [1220, 90], [1380, 220], [1520, 130], [260, 300], [520, 340], [980, 330], [1300, 360]];
+    const links = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [2, 10], [10, 11], [11, 4], [4, 12], [12, 6], [8, 13], [12, 13]];
+    return `<rect width="${BW}" height="${BH}" fill="${C.ink}"/>` + dots(20, 20, 54, 16, 30, "#ffffff", 0.06) +
+      links.map(([a, b]) => stroke(`M${pts[a][0]} ${pts[a][1]}L${pts[b][0]} ${pts[b][1]}`, C.seaL, 1.6, `stroke-opacity=".35"`)).join("") +
+      pts.map(([x, y], i) => circle(x, y, i % 4 === 0 ? 9 : 5, i % 4 === 0 ? C.lime : C.sand) + (i % 4 === 0 ? circle(x, y, 22, C.lime, `fill-opacity=".15"`) : "")).join("");
+  },
+  "tiles": () => {
+    const cols = [C.ink2, C.sea, C.lime, C.clay, "#0f4573", C.gold, C.seaL];
+    let t = ""; let seed = 7;
+    const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    for (let y = 0; y < BH; y += 80) for (let x = 0; x < BW; x += 80) {
+      const c = cols[Math.floor(rnd() * cols.length)], k = rnd();
+      t += k < 0.3 ? path(`M${x} ${y + 80}A80 80 0 0 1 ${x + 80} ${y}V${y + 80}Z`, c) : k < 0.55 ? circle(x + 40, y + 40, 30, c) : k < 0.75 ? path(`M${x} ${y}h80L${x} ${y + 80}Z`, c) : rect(x + 12, y + 12, 56, 56, 12, c, `fill-opacity=".5"`);
+    }
+    return `<rect width="${BW}" height="${BH}" fill="${C.ink}"/>${t}<linearGradient id="tf" x1="0" x2="1"><stop offset="0" stop-color="${C.ink}" stop-opacity=".95"/><stop offset=".5" stop-color="${C.ink}" stop-opacity=".35"/><stop offset="1" stop-color="${C.ink}" stop-opacity="0"/></linearGradient><rect width="${BW}" height="${BH}" fill="url(#tf)"/>`;
+  },
+  "stripes": () => `<rect width="${BW}" height="${BH}" fill="${C.ink}"/>` +
+    [...Array(14)].map((_, i) => `<rect x="${700 + i * 70}" y="-200" width="34" height="900" fill="${[C.lime, C.sea, C.clay, C.gold][i % 4]}" fill-opacity="${0.15 + (i / 14) * 0.7}" transform="rotate(30 ${700 + i * 70} 240)"/>`).join(""),
+  "arcs": () => `<rect width="${BW}" height="${BH}" fill="#13263b"/>` +
+    [...Array(9)].map((_, i) => circle(1600, 480, 120 + i * 90, "none", `stroke="${[C.clay, C.gold, C.lime, C.seaL][i % 4]}" stroke-width="${i % 2 ? 26 : 10}" stroke-opacity="${0.9 - i * 0.08}"`)).join("") +
+    circle(1600, 480, 90, C.clay),
+  "grid": () => `<rect width="${BW}" height="${BH}" fill="${C.ink}"/><defs>${glow("gg", C.lime)}</defs>` +
+    [...Array(41)].map((_, i) => stroke(`M${i * 40} 0V${BH}`, "#ffffff", 1, `stroke-opacity=".06"`)).join("") + [...Array(13)].map((_, i) => stroke(`M0 ${i * 40}H${BW}`, "#ffffff", 1, `stroke-opacity=".06"`)).join("") +
+    `<ellipse cx="1150" cy="240" rx="380" ry="260" fill="url(#gg)" opacity=".5"/>` +
+    [[960, 160, 160, 120, C.sea], [1140, 120, 120, 200, C.lime], [1280, 200, 200, 120, C.clay], [1080, 340, 240, 80, C.seaL]].map(([x, y, w, h, c]) => rect(x, y, w, h, 16, c, `fill-opacity=".9"`)).join("") +
+    stroke("M960 160h400", C.lime, 2, `stroke-dasharray="6 8"`),
+  "sand-loop": () => `<rect width="${BW}" height="${BH}" fill="#2b2118"/><defs>${glow("sl", C.gold)}</defs><ellipse cx="1100" cy="240" rx="600" ry="300" fill="url(#sl)" opacity=".5"/>` +
+    [...Array(6)].map((_, i) => loopMark(1100, 240, 160 + i * 70, C.gold, 2).replace(/<circle[^>]*>/, "")).join("") + loopMark(1100, 240, 120, C.lime, 6),
+  "studio": () => `<rect width="${BW}" height="${BH}" fill="${C.clay}"/>` +
+    circle(1280, 140, 220, C.gold, `fill-opacity=".85"`) + rect(980, 220, 360, 360, 180, C.ink, `fill-opacity=".9"`) + path("M1400 480L1600 200V480Z", C.clayL) +
+    path("M0 480L0 360Q300 300 600 400T1200 380V480Z", "#c96535") + sparkle(820, 120, 26, C.sand) + sparkle(1500, 80, 16, C.ink),
+  "garden": () => `<rect width="${BW}" height="${BH}" fill="#1d4a3b"/>` +
+    [...Array(18)].map((_, i) => {
+      const x = 640 + i * 54, h = 160 + ((i * 53) % 140), c = [C.lime, C.limeD, "#2f6b4f"][i % 3];
+      return path(`M${x} ${BH}C${x - 40} ${BH - h * 0.6} ${x - 10} ${BH - h} ${x + 30} ${BH - h}C${x + 40} ${BH - h * 0.5} ${x + 20} ${BH - 40} ${x} ${BH}Z`, c, `fill-opacity=".9"`);
+    }).join("") + circle(420, 130, 70, C.gold, `fill-opacity=".8"`),
+  "blueprint": () => `<rect width="${BW}" height="${BH}" fill="#0d4f86"/>` +
+    [...Array(81)].map((_, i) => stroke(`M${i * 20} 0V${BH}`, "#ffffff", i % 5 ? 0.6 : 1.2, `stroke-opacity="${i % 5 ? 0.06 : 0.12}"`)).join("") +
+    [...Array(25)].map((_, i) => stroke(`M0 ${i * 20}H${BW}`, "#ffffff", i % 5 ? 0.6 : 1.2, `stroke-opacity="${i % 5 ? 0.06 : 0.12}"`)).join("") +
+    stroke("M900 100h420v280H900ZM900 240h200v140M1100 100v80M1200 240h120", C.white, 4, `stroke-opacity=".8"`) + circle(1460, 180, 70, "none", `stroke="${C.lime}" stroke-width="3"`) +
+    stroke("M1390 180h140M1460 110v140", C.lime, 2) + stroke("M900 420h420M900 410v20M1320 410v20", C.lime, 2),
+};
+
 /* ---------- write ---------- */
-for (const dir of ["covers", "avatars"]) {
+for (const dir of ["covers", "avatars", "banners"]) {
   rmSync(join(ROOT, "src/assets", dir), { recursive: true, force: true });
   mkdirSync(join(ROOT, "src/assets", dir), { recursive: true });
 }
@@ -422,5 +591,9 @@ for (const [cat, scenes] of Object.entries(SCENES)) {
     count++;
   });
 }
-AVATARS.forEach((a, i) => writeFileSync(join(ROOT, "src/assets/avatars", `avatar-${String(i + 1).padStart(2, "0")}.svg`), avatar(a)));
-console.log(`${count} covers, ${AVATARS.length} avatars`);
+const pad = (i) => String(i).padStart(2, "0");
+AVATARS.forEach((a, i) => writeFileSync(join(ROOT, "src/assets/avatars", `avatar-${pad(i + 1)}.svg`), avatar(a)));
+SYMBOLS.forEach(([bg, fg, kind], i) => writeFileSync(join(ROOT, "src/assets/avatars", `symbol-${pad(i + 1)}.svg`), symbolAvatar(bg, fg, kind)));
+for (const [id, make] of Object.entries(BANNERS))
+  writeFileSync(join(ROOT, "src/assets/banners", `${id}.svg`), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${BW} ${BH}" width="${BW}" height="${BH}" preserveAspectRatio="xMidYMid slice">${make()}</svg>`);
+console.log(`${count} covers, ${AVATARS.length + SYMBOLS.length} avatars, ${Object.keys(BANNERS).length} banners`);

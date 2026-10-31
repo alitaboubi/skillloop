@@ -1358,7 +1358,7 @@ input::-ms-clear {
 .ben-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, color-mix(in oklab, var(--ink) 85%, transparent), transparent 70%); }
 
 /* ---------- Public pro page (routes/pros.$id.tsx) ----------
-   Cover = the pro's own published photos (portfolio, then service photos) under an ink fade; without any, the brand
+   Cover = the banner the pro chose (presets), else their portfolio photos under an ink fade; without any, the brand
    cover. The identity card overlaps it as the page's one raised panel; the section bar stays under the header. */
 .pro-cover { position: relative; overflow: hidden; background: var(--gradient-hero); color: var(--navy-foreground); }
 .ctheme .pro-cover { background: var(--ct-cover); }
@@ -1373,6 +1373,13 @@ input::-ms-clear {
     linear-gradient(to top, var(--background) 0%, color-mix(in oklab, var(--ink) 55%, transparent) 35%, color-mix(in oklab, var(--ink) 25%, transparent) 70%, color-mix(in oklab, var(--ink) 60%, transparent) 100%);
 }
 .ctheme .pro-cover-fade { background: linear-gradient(to top, var(--background) 0%, transparent 30%), color-mix(in oklab, var(--ink) 30%, transparent); }
+/* Chosen banner (presets, src/assets/banners): designed to be seen, so a lighter fade than photos — ink at the top for
+   the breadcrumb, the page background at the bottom under the identity card. */
+.pro-cover-banner { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.pro-cover-fade.pro-cover-fade-soft { background: linear-gradient(to top, var(--background) 0%, transparent 38%), linear-gradient(to bottom, color-mix(in oklab, var(--ink) 45%, transparent) 0%, transparent 22%); }
+.banner-preview { position: relative; height: 8rem; margin: 0; overflow: hidden; border-radius: var(--radius-md); background: var(--gradient-hero); }
+.banner-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.banner-fade { position: absolute; inset: 0; background: linear-gradient(to top, color-mix(in oklab, var(--ink) 70%, transparent) 0%, transparent 70%); }
 .pro-id {
   position: relative;
   border-radius: 1.5rem;

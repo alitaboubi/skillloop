@@ -2,7 +2,7 @@ import { CATEGORIES, type CategoryId } from "./data";
 
 /**
  * Ready-made images a user can pick instead of uploading (SVG, no text; made by scripts/make-presets.mjs):
- * service covers (4:3, 3 per category) and profile avatars (1:1). A picked one is turned into a JPEG and uploaded
+ * service covers (4:3, 3 per category), profile avatars (1:1) and profile banners. A picked cover/avatar becomes a JPEG uploaded
  * like any photo, so nothing else changes. Covers are illustrations of the service, never shown as the pro's work.
  */
 export type Preset = { id: string; src: string };
@@ -43,4 +43,19 @@ export async function presetFile(p: Preset, size: { w: number; h: number }): Pro
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.9));
   if (!blob) throw new Error("encode");
   return new File([blob], `${p.id}.jpg`, { type: "image/jpeg" });
+}
+
+/** Wide profile banners (public profile header). Chosen by id and kept in professional_details — no upload. */
+export const BANNER_PRESETS = byName(import.meta.glob<string>("../assets/banners/*.svg", { eager: true, query: "?url", import: "default" }));
+
+export function readBanner(details: unknown): Preset | null {
+  const v = ((details && typeof details === "object" ? details : {}) as Record<string, unknown>)["banner"];
+  return BANNER_PRESETS.find((b) => b.id === v) ?? null;
+}
+
+/** Sets or clears the banner; other keys are kept. */
+export function writeBanner(details: unknown, id: string | null): Record<string, unknown> {
+  const next = { ...((details && typeof details === "object" ? details : {}) as Record<string, unknown>) };
+  if (id && BANNER_PRESETS.some((b) => b.id === id)) next["banner"] = id; else delete next["banner"];
+  return next;
 }
