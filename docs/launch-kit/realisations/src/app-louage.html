@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Louage Live — concept app</title>
+<link rel="stylesheet" href="fonts.css"><link rel="stylesheet" href="phone.css">
+<style>
+:root{--red:#e23b3b;--ink:#17181f;--mut:#7b7f8c;--soft:#f3f4f7;--line:#e7e8ee;--ok:#16a34a}
+body{background:radial-gradient(1200px 800px at 80% 20%,#ffe3df,transparent),linear-gradient(160deg,#fff6f4,#f4f1ee);color:var(--ink)}
+.label small{color:var(--red);opacity:1}
+.scr{color:var(--ink)}
+.pad{padding:8px 22px}
+.hello{font-size:15px;color:var(--mut)} .hello b{display:block;font-size:26px;color:var(--ink);letter-spacing:-.02em;margin-top:4px}
+.search{margin-top:18px;background:var(--ink);color:#fff;border-radius:26px;padding:18px}
+.leg{display:flex;align-items:center;gap:12px;padding:10px 0}
+.dot{width:12px;height:12px;border-radius:50%;border:3px solid #fff}.dot.r{background:var(--red);border-color:var(--red)}
+.leg small{display:block;color:#a7aab6;font-size:12px}.leg b{font-size:17px}
+.sep{height:1px;background:#2c2e38;margin-left:24px}
+.row2{display:flex;gap:10px;margin-top:12px}
+.row2 div{flex:1;background:#24262f;border-radius:14px;padding:10px 12px;font-size:13px}.row2 small{display:block;color:#a7aab6;font-size:11px}
+.go{margin-top:14px;background:var(--red);border-radius:16px;text-align:center;padding:15px;font-weight:800}
+h4{font-size:17px;margin:22px 0 10px;display:flex;justify-content:space-between}h4 span{font-size:13px;color:var(--red)}
+.dep{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid var(--line);border-radius:18px;margin-bottom:10px}
+.time{width:56px;height:56px;border-radius:16px;background:var(--soft);display:grid;place-items:center;font-weight:800;font-size:15px}
+.dep b{font-size:15px}.dep small{display:block;color:var(--mut);font-size:12px;margin-top:3px}
+.seats{margin-left:auto;font-size:12px;font-weight:800;color:var(--ok);background:#e8f7ee;border-radius:10px;padding:6px 9px}
+.seats.low{color:var(--red);background:#fdeaea}
+.tabbar{position:absolute;bottom:0;left:0;right:0;height:78px;border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;background:#fff}
+.tabbar i{width:24px;height:24px;border-radius:8px;background:#d9dbe3}.tabbar i.on{background:var(--red)}
+/* screen 2 */
+.map{height:300px;background:linear-gradient(90deg,transparent 47%,#fff 47% 53%,transparent 53%) 0 0/90px 90px,linear-gradient(0deg,transparent 47%,#fff 47% 53%,transparent 53%) 0 0/90px 90px,#eef0e8;position:relative}
+.map svg{position:absolute;inset:0}
+.back{position:absolute;top:56px;left:20px;width:42px;height:42px;border-radius:14px;background:#fff;box-shadow:0 6px 16px rgba(0,0,0,.12);display:grid;place-items:center;font-weight:800}
+.sheet{position:relative;margin-top:-28px;background:#fff;border-radius:28px 28px 0 0;padding:22px}
+.eta{display:flex;justify-content:space-between;align-items:flex-end}
+.eta b{font-size:30px;letter-spacing:-.03em}.eta small{color:var(--mut);font-size:13px}
+.price{font-size:24px;font-weight:800}
+.van{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px;background:var(--soft);border-radius:22px;padding:16px}
+.seat{height:46px;border-radius:12px 12px 8px 8px;background:#fff;border:2px solid var(--line)}
+.seat.t{background:#d9dbe3;border-color:#d9dbe3}.seat.me{background:var(--red);border-color:var(--red)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--mut);margin-top:12px}
+.legend span:before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+.cta{margin-top:18px;background:var(--ink);color:#fff;border-radius:18px;padding:17px;text-align:center;font-weight:800}
+/* screen 3 */
+.tk{margin:10px 22px;background:var(--red);border-radius:28px;color:#fff;padding:24px;position:relative}
+.tk .route{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.tk .route b{font-size:30px;letter-spacing:-.03em}.tk .route small{display:block;font-size:12px;opacity:.8}
+.tk .line{flex:1;height:2px;margin:0 12px;background:repeating-linear-gradient(90deg,#fff 0 6px,transparent 6px 12px)}
+.tk .meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:20px;font-size:12px}.tk .meta b{display:block;font-size:16px;margin-top:2px}
+.qr{margin:18px auto 0;width:190px;height:190px;background:#fff;border-radius:18px;padding:14px;display:grid;grid-template-columns:repeat(11,1fr);gap:3px}
+.qr i{background:var(--ink);border-radius:2px}.qr i.o{background:transparent}
+.share{margin:18px 22px 0;display:flex;gap:10px}
+.share div{flex:1;border:1.5px solid var(--line);border-radius:16px;padding:14px;text-align:center;font-weight:800;font-size:14px}
+.share div.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tap.t1{left:180px;top:356px;animation-name:tap1!important}.tap.t2{left:160px;top:690px;animation-name:tap2!important}
+@keyframes tap1{0%,21%{opacity:0;transform:scale(.5)}25%{opacity:1;transform:scale(1)}29%,100%{opacity:0}}
+@keyframes tap2{0%,54%{opacity:0;transform:scale(.5)}58%{opacity:1;transform:scale(1)}62%,100%{opacity:0}}
+</style>
+</head>
+<body>
+<div class="label"><small>Concept · UI/UX app mobile</small><b>Louage Live</b><p>Voir les départs de louage en temps réel, réserver sa place et partager son trajet.</p></div>
+
+<template id="s1"><div class="scr"><div class="status"><span>9:41</span><span>●●● ▮</span></div><div class="pad">
+  <div class="hello">Sbe7 el khir 👋<b>Où vas-tu aujourd'hui ?</b></div>
+  <div class="search">
+    <div class="leg"><span class="dot"></span><div><small>Départ</small><b>Tunis · Bab Alioua</b></div></div><div class="sep"></div>
+    <div class="leg"><span class="dot r"></span><div><small>Arrivée</small><b>Sousse · Station centrale</b></div></div>
+    <div class="row2"><div><small>Date</small>Aujourd'hui</div><div><small>Places</small>1 passager</div></div>
+    <div class="go">Voir les louages</div>
+  </div>
+  <h4>Départs proches <span>Tout voir</span></h4>
+  <div class="dep"><div class="time">14:20</div><div><b>Tunis → Sousse</b><small>Bab Alioua · 2h05</small></div><span class="seats low">2 places</span></div>
+  <div class="dep"><div class="time">14:45</div><div><b>Tunis → Nabeul</b><small>Bab Alioua · 1h10</small></div><span class="seats">5 places</span></div>
+</div><div class="tabbar"><i class="on"></i><i></i><i></i><i></i></div></div></template>
+
+<template id="s2"><div class="scr"><div class="map">
+  <svg viewBox="0 0 348 300"><path d="M40 250 C 90 200, 80 140, 150 130 S 250 90, 300 40" fill="none" stroke="#e23b3b" stroke-width="6" stroke-linecap="round"/><circle cx="40" cy="250" r="10" fill="#17181f"/><circle cx="300" cy="40" r="12" fill="#e23b3b" stroke="#fff" stroke-width="4"/><rect x="138" y="116" width="34" height="22" rx="7" fill="#fff" stroke="#17181f" stroke-width="3"/><rect x="138" y="124" width="34" height="5" fill="#e23b3b"/></svg>
+  <div class="back">←</div></div>
+  <div class="sheet">
+    <div class="eta"><div><small>Départ dans</small><br><b>12 min</b></div><div style="text-align:right"><small>par place</small><div class="price">11,5 DT</div></div></div>
+    <div style="font-size:13px;color:#7b7f8c;margin-top:6px">Louage 1234 TU 210 · Tunis → Sousse</div>
+    <div class="van"><div class="seat t"></div><div class="seat t"></div><div class="seat t"></div><div class="seat t"></div><div class="seat t"></div><div class="seat me"></div><div class="seat"></div><div class="seat t"></div></div>
+    <div class="legend"><span style="--c:#d9dbe3">Prise</span><span style="--c:#e23b3b">Ta place</span><span style="--c:#fff;outline:1px solid #e7e8ee">Libre</span></div>
+    <div class="cta">Réserver la place 6</div>
+  </div></div></template>
+
+<template id="s3"><div class="scr"><div class="status"><span>9:41</span><span>●●● ▮</span></div>
+  <div class="pad"><div class="hello">Ton billet<b>Bon voyage !</b></div></div>
+  <div class="tk"><small style="opacity:.85">Aujourd'hui · Place 6</small>
+    <div class="route"><div><b>TUN</b><small>14:20</small></div><div class="line"></div><div style="text-align:right"><b>SOU</b><small>16:25</small></div></div>
+    <div class="meta"><div>Louage<b>TU 210</b></div><div>Prix<b>11,5 DT</b></div><div>Quai<b>B4</b></div></div>
+  </div>
+  <div class="qr" id="qr"></div>
+  <div class="share"><div>Ajouter au calendrier</div><div class="on">Partager mon trajet</div></div>
+</div></template>
+
+<div class="phone" style="left:300px;top:360px"><div class="notch"></div><div class="view"><div class="deck" id="deck"></div></div><div class="tap t1"></div><div class="tap t2"></div></div>
+<div class="phone extra" style="left:710px;top:250px"><div class="notch"></div><div id="p2" style="height:100%"></div></div>
+<div class="phone extra" style="left:1120px;top:330px"><div class="notch"></div><div id="p3" style="height:100%"></div></div>
+<script>
+const t = (id) => document.getElementById(id).innerHTML;
+const video = location.hash === "#video";
+if (video) { document.body.classList.add("video"); document.getElementById("deck").innerHTML = t("s1") + t("s2") + t("s3"); }
+else { document.getElementById("deck").innerHTML = t("s1"); document.getElementById("deck").style.width = "100%";
+  document.querySelector("#deck>.scr").style.borderRadius = "45px"; document.getElementById("p2").innerHTML = t("s2"); document.getElementById("p3").innerHTML = t("s3"); }
+// deterministic QR-like pattern
+document.querySelectorAll(".qr").forEach((q) => { let s = 7; for (let i = 0; i < 121; i++) { s = (s * 9301 + 49297) % 233280; const x = i % 11, y = (i / 11) | 0;
+  const finder = (x < 3 && y < 3) || (x > 7 && y < 3) || (x < 3 && y > 7); const el = document.createElement("i"); if (!finder && s / 233280 < .45) el.className = "o"; q.appendChild(el); } });
+</script>
+</body></html>

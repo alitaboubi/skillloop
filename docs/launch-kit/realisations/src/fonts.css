@@ -1,0 +1,12 @@
+@font-face{font-family:"Fraunces";font-weight:600;src:url(fonts/fraunces-latin-600-normal.woff2)}
+@font-face{font-family:"Fraunces";font-weight:800;src:url(fonts/fraunces-latin-800-normal.woff2)}
+@font-face{font-family:"Fraunces";font-weight:400;font-style:italic;src:url(fonts/fraunces-latin-400-italic.woff2)}
+@font-face{font-family:"Space Grotesk";font-weight:500;src:url(fonts/space-grotesk-latin-500-normal.woff2)}
+@font-face{font-family:"Space Grotesk";font-weight:700;src:url(fonts/space-grotesk-latin-700-normal.woff2)}
+@font-face{font-family:"DM Serif Display";font-weight:400;src:url(fonts/dm-serif-display-latin-400-normal.woff2)}
+@font-face{font-family:"Jakarta";font-weight:500;src:url(fonts/plus-jakarta-sans-latin-500-normal.woff2)}
+@font-face{font-family:"Jakarta";font-weight:700;src:url(fonts/plus-jakarta-sans-latin-700-normal.woff2)}
+@font-face{font-family:"Jakarta";font-weight:800;src:url(fonts/plus-jakarta-sans-latin-800-normal.woff2)}
+@font-face{font-family:"Kufi";font-weight:700;src:url(fonts/noto-kufi-arabic-arabic-700-normal.woff2)}
+*{box-sizing:border-box;margin:0;padding:0}
+@font-face{font-family:"Emoji";src:url(fonts/noto-color-emoji.woff2)}
