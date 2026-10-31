@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Souk Fresh — concept app</title>
+<link rel="stylesheet" href="fonts.css"><link rel="stylesheet" href="phone.css">
+<style>
+:root{--g:#1f6b3a;--g2:#2f8f4e;--leaf:#dff3e4;--or:#f28c28;--cream:#fbf7ef;--ink:#1b2a21;--mut:#738078;--line:#ebe6da}
+body{background:radial-gradient(900px 700px at 15% 90%,#cfeedd,transparent),linear-gradient(200deg,#f5f1e6,#e9f3ea);color:var(--ink)}
+.label small{color:var(--g);opacity:1}
+.scr{background:var(--cream);color:var(--ink)}
+.pad{padding:6px 22px}
+.top{display:flex;justify-content:space-between;align-items:center}
+.top small{color:var(--mut);font-size:12px}.top b{display:block;font-size:15px}
+.av{width:42px;height:42px;border-radius:50%;background:var(--or);display:grid;place-items:center;color:#fff;font-weight:800}
+.big{font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1.1;margin:18px 0 14px}.big span{color:var(--g2)}
+.sbar{background:#fff;border-radius:16px;padding:14px 16px;color:var(--mut);font-size:14px;border:1px solid var(--line)}
+.promo{margin-top:16px;border-radius:24px;background:var(--g);color:#fff;padding:18px;position:relative;overflow:hidden;height:130px}
+.promo b{font-size:20px;display:block;max-width:170px;line-height:1.2}.promo small{opacity:.8;font-size:12px}
+.promo .btn{display:inline-block;margin-top:12px;background:var(--or);border-radius:12px;padding:8px 12px;font-size:12px;font-weight:800}
+.fruit{position:absolute;border-radius:50%}
+.cats{display:flex;gap:10px;margin-top:18px}
+.cat{flex:1;text-align:center;font-size:12px;font-weight:700}
+.cat i{display:grid;place-items:center;height:62px;border-radius:18px;margin-bottom:6px;font-style:normal;font-size:28px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.card{background:#fff;border-radius:20px;padding:12px;border:1px solid var(--line)}
+.card .ph{height:78px;border-radius:14px;display:grid;place-items:center;font-size:42px}
+.card b{display:block;font-size:14px;margin-top:8px}.card small{color:var(--mut);font-size:12px}
+.card .pr{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-weight:800}
+.plus{width:28px;height:28px;border-radius:9px;background:var(--g);color:#fff;display:grid;place-items:center}
+/* s2 */
+.hero{height:330px;background:var(--leaf);display:grid;place-items:center;position:relative;font-size:150px}
+.back{position:absolute;top:56px;left:20px;width:42px;height:42px;border-radius:14px;background:#fff;display:grid;place-items:center;font-weight:800;font-size:16px}
+.det{padding:22px}
+.badge{display:inline-block;background:var(--leaf);color:var(--g);font-weight:800;font-size:12px;border-radius:999px;padding:6px 10px}
+.det h3{font-size:26px;letter-spacing:-.02em;margin:10px 0 4px}.det p{color:var(--mut);font-size:14px;line-height:1.5}
+.qty{display:flex;align-items:center;justify-content:space-between;margin-top:18px}
+.qty .pick{display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px 12px;font-weight:800}
+.qty .pick span{width:30px;height:30px;border-radius:9px;background:var(--leaf);display:grid;place-items:center;color:var(--g)}
+.qty .p{font-size:26px;font-weight:800}
+.farm{display:flex;gap:12px;align-items:center;background:#fff;border-radius:18px;padding:12px;margin-top:16px;border:1px solid var(--line)}
+.farm i{width:44px;height:44px;border-radius:12px;background:var(--or);display:grid;place-items:center;font-style:normal;font-size:22px}
+.farm b{font-size:14px}.farm small{display:block;color:var(--mut);font-size:12px}
+.add{margin-top:18px;background:var(--g);color:#fff;border-radius:18px;padding:17px;text-align:center;font-weight:800}
+/* s3 */
+.h{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:8px 0 14px}
+.item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.item i{width:50px;height:50px;border-radius:14px;display:grid;place-items:center;font-style:normal;font-size:26px}
+.item b{font-size:14px}.item small{display:block;color:var(--mut);font-size:12px}.item .p{margin-left:auto;font-weight:800}
+.slots{display:flex;gap:8px;margin-top:14px}
+.slot{flex:1;border:1.5px solid var(--line);border-radius:14px;padding:10px 6px;text-align:center;font-size:12px;background:#fff}
+.slot b{display:block;font-size:14px}.slot.on{border-color:var(--g);background:var(--leaf);color:var(--g)}
+.sum{margin-top:16px;background:#fff;border-radius:18px;padding:14px 16px;border:1px solid var(--line);font-size:14px}
+.sum div{display:flex;justify-content:space-between;padding:4px 0}.sum .tot{font-weight:800;font-size:17px;border-top:1px dashed var(--line);margin-top:6px;padding-top:10px}
+.pay{margin-top:14px;background:var(--or);color:#fff;border-radius:18px;padding:17px;text-align:center;font-weight:800}
+.tap.t1{left:250px;top:560px;animation-name:tap1!important}.tap.t2{left:160px;top:700px;animation-name:tap2!important}
+@keyframes tap1{0%,21%{opacity:0;transform:scale(.5)}25%{opacity:1;transform:scale(1)}29%,100%{opacity:0}}
+@keyframes tap2{0%,54%{opacity:0;transform:scale(.5)}58%{opacity:1;transform:scale(1)}62%,100%{opacity:0}}
+</style>
+</head>
+<body>
+<div class="label"><small>Concept · UI/UX app mobile</small><b>Souk Fresh</b><p>Le marché du quartier livré chez vous : fruits et légumes des producteurs tunisiens, en un créneau.</p></div>
+
+<template id="s1"><div class="scr"><div class="status"><span>9:41</span><span>●●● ▮</span></div><div class="pad">
+  <div class="top"><div><small>Livraison à</small><b>La Marsa · Rue Taieb Mhiri</b></div><div class="av">S</div></div>
+  <div class="big">Le marché du jour,<br><span>livré en 1h.</span></div>
+  <div class="sbar">🔍 Tomates, fraises, menthe…</div>
+  <div class="promo"><small>Cette semaine</small><b>Fraises de Korba, cueillies hier</b><span class="btn">Découvrir</span>
+    <div class="fruit" style="right:-20px;top:20px;width:130px;height:130px;background:#e8433a"></div><div class="fruit" style="right:70px;top:70px;width:70px;height:70px;background:#ff6b5f"></div></div>
+  <div class="cats"><div class="cat"><i style="background:#ffe1dc">🍅</i>Légumes</div><div class="cat"><i style="background:#ffeacc">🍊</i>Fruits</div><div class="cat"><i style="background:#dff3e4">🌿</i>Herbes</div><div class="cat"><i style="background:#f3e8d6">🫒</i>Épicerie</div></div>
+  <div class="grid">
+    <div class="card"><div class="ph" style="background:#ffe1dc">🍅</div><b>Tomates</b><small>Cap Bon · 1 kg</small><div class="pr">2,8 DT<span class="plus">+</span></div></div>
+    <div class="card"><div class="ph" style="background:#ffeacc">🍊</div><b>Oranges maltaises</b><small>Menzel Bouzelfa · 1 kg</small><div class="pr">3,2 DT<span class="plus">+</span></div></div>
+  </div>
+</div></div></template>
+
+<template id="s2"><div class="scr"><div class="hero">🍓<div class="back">←</div></div>
+  <div class="det"><span class="badge">Récolté hier</span><h3>Fraises de Korba</h3><p>Sucrées, cueillies à la main et livrées dans une barquette compostable.</p>
+    <div class="qty"><div class="pick"><span>−</span>2<span>+</span></div><div class="p">9,0 DT</div></div>
+    <div class="farm"><i>👨‍🌾</i><div><b>Ferme Ben Salah</b><small>Korba · producteur partenaire</small></div></div>
+    <div class="add">Ajouter au panier · 9,0 DT</div>
+  </div></div></template>
+
+<template id="s3"><div class="scr"><div class="status"><span>9:41</span><span>●●● ▮</span></div><div class="pad">
+  <div class="h">Mon panier</div>
+  <div class="item"><i style="background:#ffe1dc">🍓</i><div><b>Fraises de Korba</b><small>2 barquettes</small></div><span class="p">9,0 DT</span></div>
+  <div class="item"><i style="background:#ffe1dc">🍅</i><div><b>Tomates</b><small>1 kg</small></div><span class="p">2,8 DT</span></div>
+  <div class="item"><i style="background:#dff3e4">🌿</i><div><b>Menthe fraîche</b><small>1 botte</small></div><span class="p">0,8 DT</span></div>
+  <div style="font-weight:800;font-size:15px;margin-top:16px">Créneau de livraison</div>
+  <div class="slots"><div class="slot">Auj.<b>17–18h</b></div><div class="slot on">Auj.<b>18–19h</b></div><div class="slot">Dem.<b>9–10h</b></div></div>
+  <div class="sum"><div><span>Produits</span><span>12,6 DT</span></div><div><span>Livraison</span><span>3,0 DT</span></div><div class="tot"><span>Total</span><span>15,6 DT</span></div></div>
+  <div class="pay">Commander · paiement à la livraison</div>
+</div></div></template>
+
+<div class="phone" style="left:300px;top:360px"><div class="notch"></div><div class="view"><div class="deck" id="deck"></div></div><div class="tap t1"></div><div class="tap t2"></div></div>
+<div class="phone extra" style="left:710px;top:250px"><div class="notch"></div><div id="p2" style="height:100%"></div></div>
+<div class="phone extra" style="left:1120px;top:330px"><div class="notch"></div><div id="p3" style="height:100%"></div></div>
+<script>
+const t = (id) => document.getElementById(id).innerHTML;
+if (location.hash === "#video") { document.body.classList.add("video"); document.getElementById("deck").innerHTML = t("s1") + t("s2") + t("s3"); }
+else { const d = document.getElementById("deck"); d.innerHTML = t("s1"); d.style.width = "100%"; d.firstElementChild.style.borderRadius = "45px";
+  document.getElementById("p2").innerHTML = t("s2"); document.getElementById("p3").innerHTML = t("s3"); }
+</script>
+</body></html>

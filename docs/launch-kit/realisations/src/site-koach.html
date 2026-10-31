@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Koach — Coaching sportif en ligne & à Tunis</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+:root{--bg:#0d0f12;--card:#16191f;--line:#262b33;--hot:#ff5b2e;--lime:#d4ff3f;--txt:#f2f3f5;--mut:#9aa1ad}
+body{font-family:"Space Grotesk",sans-serif;background:var(--bg);color:var(--txt)}
+.wrap{max-width:1240px;margin:0 auto;padding:0 40px}
+nav{display:flex;align-items:center;justify-content:space-between;padding:26px 0}
+.logo{font-weight:700;font-size:26px;letter-spacing:-.03em}.logo span{color:var(--hot)}
+nav ul{display:flex;gap:34px;list-style:none;color:var(--mut);font-weight:500}
+.btn{display:inline-flex;align-items:center;gap:10px;background:var(--lime);color:#0d0f12;font-weight:700;padding:16px 26px;border-radius:12px;text-decoration:none;font-size:16px}
+.btn.line{background:transparent;color:var(--txt);box-shadow:inset 0 0 0 1.5px var(--line)}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center;padding:50px 0 80px}
+.pill{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:8px 14px;color:var(--mut);font-size:14px}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--lime)}
+h1{font-size:96px;line-height:.9;letter-spacing:-.05em;margin:24px 0;font-weight:700}
+h1 .o{color:var(--hot)} h1 .s{-webkit-text-stroke:2px var(--txt);color:transparent}
+.lead{font-size:20px;color:var(--mut);line-height:1.55;max-width:500px}
+.cta{display:flex;gap:14px;margin-top:34px}
+.art{position:relative;height:560px}
+.ring{position:absolute;inset:30px 20px 30px 40px;border-radius:50%;background:conic-gradient(var(--hot) 0 72%,var(--line) 72%);mask:radial-gradient(circle,transparent 62%,#000 62.5%)}
+.core{position:absolute;inset:150px 140px 150px 160px;border-radius:50%;background:var(--card);display:grid;place-items:center;text-align:center}
+.core b{font-size:64px;letter-spacing:-.04em;display:block}.core span{color:var(--mut)}
+.kb{position:absolute;right:0;top:40px;width:150px;height:170px}
+.kb:before{content:"";position:absolute;left:35px;top:0;width:80px;height:70px;border:16px solid var(--lime);border-bottom:0;border-radius:40px 40px 0 0}
+.kb:after{content:"";position:absolute;left:0;top:56px;width:150px;height:114px;border-radius:50% 50% 44% 44%;background:var(--lime)}
+.chip{position:absolute;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 18px;font-size:14px;color:var(--mut)}
+.chip b{color:var(--txt);display:block;font-size:17px}
+section{padding:80px 0;border-top:1px solid var(--line)}
+h2{font-size:56px;letter-spacing:-.04em;margin-bottom:40px}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.plan{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:30px}
+.plan.hot{background:var(--hot);border-color:var(--hot);color:#140802}
+.plan h3{font-size:22px}.plan .p{font-size:52px;font-weight:700;letter-spacing:-.04em;margin:18px 0 6px}
+.plan .p small{font-size:16px;font-weight:500;opacity:.7}
+.plan ul{list-style:none;margin-top:20px;display:grid;gap:12px;font-size:15px}
+.plan li:before{content:"→ ";color:var(--lime)} .plan.hot li:before{color:#140802}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+.day{background:var(--card);border-radius:14px;padding:16px;min-height:120px;border:1px solid var(--line)}
+.day b{display:block;color:var(--mut);font-size:13px;margin-bottom:12px;letter-spacing:.1em}
+.day span{display:block;border-radius:8px;padding:8px;font-size:13px;font-weight:700;margin-top:6px}
+.a{background:rgba(255,91,46,.18);color:#ff9a7b}.b{background:rgba(212,255,63,.15);color:var(--lime)}
+footer{padding:36px 0;color:var(--mut);font-size:14px;border-top:1px solid var(--line)}
+@media (max-width:700px){
+ .wrap{padding:0 20px} nav ul{display:none} nav .btn{padding:11px 14px;font-size:14px}
+ .hero{grid-template-columns:1fr;padding:16px 0 40px} h1{font-size:58px} .lead{font-size:16px}
+ .art{height:300px} .ring{inset:10px 40px} .core{inset:84px 110px} .core b{font-size:36px}
+ .kb{transform:scale(.55);right:-20px;top:-20px} .cta{flex-direction:column}
+ h2{font-size:36px} .plans{grid-template-columns:1fr} .week{grid-template-columns:repeat(2,1fr)} section{padding:50px 0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><div class="logo">koach<span>.</span></div><ul><li>Programmes</li><li>Méthode</li><li>Tarifs</li><li>FAQ</li></ul><a class="btn" href="#">Séance d'essai</a></nav>
+  <div class="hero">
+    <div>
+      <span class="pill"><i></i>En ligne · ou en salle à Tunis</span>
+      <h1>Ton corps.<br><span class="o">Ton rythme.</span><br><span class="s">Ton plan.</span></h1>
+      <p class="lead">Un programme sur 12 semaines construit pour toi : entraînements, nutrition simple et un point chaque semaine avec ton coach.</p>
+      <div class="cta"><a class="btn" href="#">Réserver ma séance d'essai</a><a class="btn line" href="#">Voir la méthode</a></div>
+    </div>
+    <div class="art">
+      <div class="ring"></div>
+      <div class="core"><div><b>Sem. 9</b><span>sur 12 · objectif force</span></div></div>
+      <div class="kb"></div>
+      <div class="chip" style="left:0;bottom:60px"><b>Séance du jour</b>Haut du corps · 45 min</div>
+      <div class="chip" style="right:10px;bottom:10px"><b>Prochain point</b>Jeudi, 19h (visio)</div>
+    </div>
+  </div>
+</div>
+<section><div class="wrap">
+  <h2>Choisis ta formule</h2>
+  <div class="plans">
+    <div class="plan"><h3>Essentiel</h3><div class="p">89 DT<small> /mois</small></div><ul><li>Programme personnalisé</li><li>Vidéos des exercices</li><li>Bilan mensuel</li></ul></div>
+    <div class="plan hot"><h3>Coaching</h3><div class="p">149 DT<small> /mois</small></div><ul><li>Tout l'Essentiel</li><li>Point visio chaque semaine</li><li>Plan nutrition simple</li><li>Messages illimités</li></ul></div>
+    <div class="plan"><h3>Duo</h3><div class="p">239 DT<small> /mois</small></div><ul><li>Coaching pour 2</li><li>Séances en salle à Tunis</li><li>Défis à deux</li></ul></div>
+  </div>
+</div></section>
+<section><div class="wrap">
+  <h2>Ta semaine type</h2>
+  <div class="week">
+    <div class="day"><b>LUN</b><span class="a">Force · bas</span></div>
+    <div class="day"><b>MAR</b><span class="b">Cardio 30'</span></div>
+    <div class="day"><b>MER</b><span class="a">Force · haut</span></div>
+    <div class="day"><b>JEU</b><span class="b">Mobilité</span><span class="a">Point coach</span></div>
+    <div class="day"><b>VEN</b><span class="a">Full body</span></div>
+    <div class="day"><b>SAM</b><span class="b">Marche 8k</span></div>
+    <div class="day"><b>DIM</b><span class="b">Repos</span></div>
+  </div>
+</div></section>
+<footer><div class="wrap">koach. · Tunis · Instagram · WhatsApp</div></footer>
+</body></html>

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dar Yasmine — Cuisine tunisienne, Sidi Bou Saïd</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+:root{--blue:#1b56a6;--blue-d:#0f3672;--sand:#f6efe2;--white:#fffdf8;--ink:#14213a;--jas:#e9c46a;--terra:#c8553d}
+body{font-family:Jakarta,Emoji,sans-serif;background:var(--white);color:var(--ink)}
+.wrap{max-width:1240px;margin:0 auto;padding:0 40px}
+nav{display:flex;align-items:center;justify-content:space-between;padding:26px 0}
+.logo{display:flex;align-items:center;gap:12px;font-family:Fraunces;font-weight:800;font-size:24px;color:var(--blue-d)}
+.logo i{width:38px;height:38px;border-radius:19px 19px 4px 4px;background:var(--blue);display:inline-block;position:relative}
+.logo i:after{content:"";position:absolute;inset:9px 11px 0;border-radius:9px 9px 0 0;background:var(--jas)}
+nav ul{display:flex;gap:34px;list-style:none;font-weight:700;font-size:15px}
+.btn{display:inline-flex;align-items:center;gap:10px;background:var(--blue);color:#fff;font-weight:800;padding:15px 26px;border-radius:999px;font-size:15px;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--blue-d);box-shadow:inset 0 0 0 2px var(--blue-d)}
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;padding:40px 0 90px}
+.ar{font-family:Kufi;color:var(--terra);font-size:22px;letter-spacing:.02em}
+h1{font-family:Fraunces;font-weight:800;font-size:76px;line-height:.98;letter-spacing:-.02em;margin:14px 0 22px;color:var(--blue-d)}
+h1 em{font-style:italic;font-weight:400;color:var(--terra)}
+.lead{font-size:19px;line-height:1.6;max-width:480px;color:#3b4660}
+.cta{display:flex;gap:14px;margin-top:34px}
+.facts{display:flex;gap:30px;margin-top:44px;font-size:14px;color:#56607a}
+.facts b{display:block;font-family:Fraunces;font-size:26px;color:var(--ink)}
+.art{position:relative;height:560px}
+.door{position:absolute;right:40px;top:0;width:360px;height:540px;border-radius:180px 180px 14px 14px;background:var(--blue);box-shadow:0 40px 80px -30px rgba(15,54,114,.6)}
+.door:before{content:"";position:absolute;inset:26px;border-radius:154px 154px 8px 8px;border:3px solid rgba(255,255,255,.35)}
+.studs{position:absolute;inset:70px 60px 60px;display:grid;grid-template-columns:repeat(4,1fr);gap:26px}
+.studs span{width:12px;height:12px;border-radius:50%;background:#0a2a5c;box-shadow:inset 2px 2px 0 rgba(255,255,255,.25);justify-self:center}
+.plate{position:absolute;left:0;bottom:20px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle at 50% 50%,#f3d9a4 0 34%,#e8a557 35% 46%,#fff 47% 63%,#1b56a6 64% 66%,#fff 67%);box-shadow:0 30px 60px -20px rgba(20,33,58,.45)}
+.plate:after{content:"";position:absolute;inset:112px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#c8553d 0 30%,#9e3a27 31%)}
+.jasmine{position:absolute;width:64px;height:64px}
+.jasmine:before{content:"✿";font-size:64px;line-height:64px;color:#fff;text-shadow:0 6px 18px rgba(0,0,0,.18)}
+.tag{position:absolute;right:0;bottom:70px;background:#fff;border-radius:18px;padding:16px 20px;box-shadow:0 20px 40px -18px rgba(20,33,58,.4);font-size:14px}
+.tag b{display:block;font-size:16px}
+section{padding:90px 0}
+.sand{background:var(--sand)}
+.kicker{font-weight:800;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--terra)}
+h2{font-family:Fraunces;font-weight:800;font-size:52px;letter-spacing:-.02em;color:var(--blue-d);margin:10px 0 40px}
+.menu{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.dish{background:#fff;border-radius:24px;padding:22px;box-shadow:0 1px 0 rgba(20,33,58,.06)}
+.dish .pic{height:150px;border-radius:16px;margin-bottom:18px;display:grid;place-items:center}
+.dish .pic i{width:96px;height:96px;border-radius:50%;box-shadow:0 14px 26px -12px rgba(0,0,0,.4)}
+.dish h3{font-family:Fraunces;font-size:22px}
+.dish p{font-size:14px;color:#5b6479;margin:8px 0 14px;line-height:1.5}
+.price{font-weight:800;color:var(--blue)}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.hours{background:var(--blue-d);color:#fff;border-radius:28px;padding:44px}
+.hours h3{font-family:Fraunces;font-size:30px;margin-bottom:24px}
+.row{display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.15);font-size:16px}
+.map{height:340px;border-radius:28px;background:
+ linear-gradient(90deg,transparent 48%,#fff 48% 52%,transparent 52%) 0 0/120px 120px,
+ linear-gradient(0deg,transparent 48%,#fff 48% 52%,transparent 52%) 0 0/120px 120px,#dfe9f5;position:relative}
+.map:after{content:"";position:absolute;left:46%;top:38%;width:44px;height:44px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--terra);box-shadow:0 10px 20px rgba(0,0,0,.25)}
+footer{background:var(--ink);color:#c9d0e0;padding:40px 0;font-size:14px}
+footer .wrap{display:flex;justify-content:space-between}
+@media (max-width:700px){
+ .wrap{padding:0 20px} nav ul{display:none} nav .btn{padding:11px 16px;font-size:13px}
+ .hero{grid-template-columns:1fr;padding:10px 0 50px} h1{font-size:46px} .lead{font-size:16px}
+ .art{height:330px;order:-1} .door{width:210px;height:320px;right:10px} .studs{inset:44px 34px 34px;gap:16px}
+ .plate{width:180px;height:180px} .plate:after{inset:66px} .tag{bottom:0;right:auto;left:120px}
+ .cta{flex-direction:column} .facts{gap:18px} section{padding:56px 0} h2{font-size:34px}
+ .menu{grid-template-columns:1fr 1fr;gap:14px} .dish .pic{height:100px} .dish .pic i{width:64px;height:64px}
+ .split{grid-template-columns:1fr;gap:24px}
+}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <nav><div class="logo"><i></i>Dar Yasmine</div>
+    <ul><li>La carte</li><li>Notre maison</li><li>Événements</li><li>Accès</li></ul>
+    <a class="btn" href="#">Réserver une table</a></nav>
+  <div class="hero">
+    <div>
+      <div class="ar">دار ياسمين</div>
+      <h1>La cuisine de nos <em>grands-mères</em>, face à la mer.</h1>
+      <p class="lead">Une maison bleue et blanche au cœur de Sidi Bou Saïd. Couscous du vendredi, poissons du jour et thé aux pignons sur la terrasse.</p>
+      <div class="cta"><a class="btn" href="#">💬 Réserver sur WhatsApp</a><a class="btn ghost" href="#">Voir la carte</a></div>
+      <div class="facts"><div><b>12h – 23h</b>tous les jours</div><div><b>Terrasse</b>vue sur le golfe</div><div><b>Groupes</b>jusqu'à 40 pers.</div></div>
+    </div>
+    <div class="art">
+      <div class="door"><div class="studs"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+      <div class="plate"></div>
+      <div class="jasmine" style="right:340px;top:30px"></div>
+      <div class="jasmine" style="right:-10px;top:180px;transform:scale(.7)"></div>
+      <div class="tag"><b>Couscous au mérou</b>le plat du vendredi</div>
+    </div>
+  </div>
+</header>
+<section class="sand"><div class="wrap">
+  <div class="kicker">La carte</div><h2>Les incontournables</h2>
+  <div class="menu">
+    <div class="dish"><div class="pic" style="background:#fbe3cf"><i style="background:radial-gradient(circle,#f1c27d 0 40%,#d98c3f 41%)"></i></div><h3>Brik à l'œuf</h3><p>Feuille croustillante, œuf coulant, thon et câpres.</p><span class="price">9 DT</span></div>
+    <div class="dish"><div class="pic" style="background:#f9d7d0"><i style="background:radial-gradient(circle,#e0643f 0 45%,#a83a22 46%)"></i></div><h3>Ojja merguez</h3><p>Sauce tomate épicée, poivrons et œufs pochés.</p><span class="price">18 DT</span></div>
+    <div class="dish"><div class="pic" style="background:#dfe9f5"><i style="background:radial-gradient(circle,#f3d9a4 0 45%,#e2b061 46%)"></i></div><h3>Couscous au poisson</h3><p>Semoule fine, mérou du jour, légumes de saison.</p><span class="price">34 DT</span></div>
+    <div class="dish"><div class="pic" style="background:#f3ead0"><i style="background:radial-gradient(circle,#b8742f 0 50%,#7d4a1b 51%)"></i></div><h3>Makroudh & thé</h3><p>Dattes, miel, et thé vert aux pignons.</p><span class="price">8 DT</span></div>
+  </div>
+</div></section>
+<section><div class="wrap split">
+  <div class="hours"><h3>Infos pratiques</h3>
+    <div class="row"><span>Déjeuner</span><b>12h – 15h30</b></div>
+    <div class="row"><span>Dîner</span><b>19h – 23h</b></div>
+    <div class="row"><span>Terrasse</span><b>Sur réservation</b></div>
+    <div class="row" style="border:0"><span>Rue Hédi Zarrouk, Sidi Bou Saïd</span></div>
+  </div>
+  <div class="map"></div>
+</div></section>
+<footer><div class="wrap"><span>Dar Yasmine · Sidi Bou Saïd</span><span>Instagram · Facebook · WhatsApp</span></div></footer>
+</body></html>
