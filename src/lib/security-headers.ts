@@ -2,7 +2,8 @@
  * Security headers for every response the Worker/SSR server produces (applied in src/server.ts).
  *
  * Allowed third parties — exactly what the app uses:
- *   - Supabase project (REST/Auth/Storage over https, Realtime over wss; signed photo URLs are images)
+ *   - Supabase project (REST/Auth/Storage over https, Realtime over wss; signed photo URLs are images, signed
+ *     portfolio video URLs are media)
  *   - Cloudflare Turnstile (script + iframe on challenges.cloudflare.com)
  *   - Google Fonts (stylesheet on fonts.googleapis.com, files on fonts.gstatic.com)
  * Google sign-in is a full-page redirect to Supabase → Google → back (no popup, no Google script), so it needs
@@ -37,6 +38,9 @@ export function contentSecurityPolicy({ supabaseUrl, dev }: HeaderOptions): stri
     "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
     // blob: = local photo previews before upload; Supabase = signed photo URLs.
     "img-src": ["'self'", "data:", "blob:", ...(sb ? [sb.https] : [])],
+    // Portfolio videos: blob: = the upload check reads the picked file (motion.ts probeVideo); Supabase = signed video URLs.
+    // Without it media falls back to default-src and every video is refused ("cannot read this video").
+    "media-src": ["'self'", "blob:", ...(sb ? [sb.https] : [])],
     "connect-src": ["'self'", ...(sb ? [sb.https, sb.wss] : []), ...(dev ? ["ws:", "wss:"] : [])],
     "frame-src": [TURNSTILE],
     "worker-src": ["'self'", "blob:"],
