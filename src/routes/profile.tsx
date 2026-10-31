@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { myRequestsQuery } from "@/lib/requests-db";
 import { profileQuery } from "@/lib/profiles-db";
 import { PhotoPicker } from "@/components/photo-picker";
+import { AVATAR_PRESETS, AVATAR_SIZE } from "@/lib/presets";
 import { CarnetEditor, ContactsEditor, PortfolioEditor } from "@/components/profile-editors";
 import { ThemePicker } from "@/components/pro-tools";
 import { PRO_TOOLS_ENABLED } from "@/lib/pro-tools";
@@ -281,7 +282,8 @@ function SettingsForm({ userId, p }: { userId: string; p: LoadedProfile }) {
       <div id="photo" className="scroll-mt-36">
         <p className="text-sm font-semibold">{t("f_photo")}</p>
         <p className="mb-2 text-xs text-muted-foreground">{t("f_photo_help")}</p>
-        <PhotoPicker round alt="f_photo" image={removed ? null : p.avatar ?? null} onPick={(fl) => { setFile(fl); setRemoved(!fl); }} />
+        <PhotoPicker round alt="f_photo" image={removed ? null : p.avatar ?? null} onPick={(fl) => { setFile(fl); setRemoved(!fl); }}
+          presets={{ groups: [{ items: AVATAR_PRESETS }], size: AVATAR_SIZE, pick: "preset_avatar_pick", title: "preset_avatar_title", description: "preset_avatar_desc" }} />
       </div>
 
       <div>
