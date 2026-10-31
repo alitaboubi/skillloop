@@ -10,6 +10,9 @@ vi.mock("@/lib/profiles-db", () => ({
   profileQuery: (id: string) => queryOptions({ queryKey: ["profile", id], queryFn: async () => ({ display_name: "Amel Ben Ali", avatar: undefined }) }),
 }));
 vi.mock("@/lib/services-db", () => ({ publishedServicesQuery: queryOptions({ queryKey: ["services", "published"], queryFn: async () => [] }) }));
+// Signed in, the header reads unread counts (Realtime) and the plan: both hit Supabase, which CI has no config for.
+vi.mock("@/lib/use-unread", () => ({ useUnread: () => ({ count: 0 }), useUnreadLive: () => {} }));
+vi.mock("@/lib/plan", async (orig) => ({ ...(await orig<typeof import("@/lib/plan")>()), useIsPro: () => false }));
 
 import { SiteHeader } from "@/components/site";
 
