@@ -2,6 +2,8 @@ import { ErrorState, RequestTimeline, StatusBadge } from "@/components/states";
 import { limitMessage } from "@/lib/limits";
 import { toast } from "sonner";
 import { RequestActions } from "@/components/request-actions";
+import { RequestProgress } from "@/components/request-progress";
+import { REQUEST_PROGRESS_ENABLED } from "@/lib/request-progress";
 import { threadGuidance } from "@/lib/request-timeline";
 import { rememberCurrentPage } from "@/lib/return-to";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -107,7 +109,7 @@ function Page() {
                     </span>
                     <span dir="auto" className="block truncate text-xs text-muted-foreground">{x.services?.title ?? t("svc_unavailable")}</span>
                     <span dir="auto" className={`mt-1 block truncate text-sm ${isUnread ? "font-semibold text-foreground" : ""}`}>{preview}</span>
-                    <span className="mt-1.5 inline-block"><StatusBadge status={x.status} /></span>
+                    <span className="mt-1.5 inline-block"><StatusBadge status={x.status} progress={REQUEST_PROGRESS_ENABLED ? x : undefined} /></span>
                   </span>
                 </button>
               </li>
@@ -149,6 +151,15 @@ export function Thread({ req, userId, onBack }: { req: RequestRow; userId: strin
     return () => { supabase.removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [req.id]);
+  // Suivi d'intervention: the pro's steps reach the open conversation live (RLS: only its two parties).
+  useEffect(() => {
+    if (!REQUEST_PROGRESS_ENABLED) return;
+    const ch = supabase
+      .channel(`req-${req.id}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "requests", filter: `id=eq.${req.id}` }, () => qc.invalidateQueries({ queryKey: ["requests"] }))
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [req.id, qc]);
   useEffect(() => { bottom.current?.scrollIntoView({ block: "nearest" }); }, [msgs.data?.length, outbox.length]);
   // Opening a conversation (or receiving a message while it is open and visible) marks it read on this device.
   const newestAt = msgs.data?.length ? msgs.data[msgs.data.length - 1]!.created_at : null;
@@ -168,6 +179,7 @@ export function Thread({ req, userId, onBack }: { req: RequestRow; userId: strin
   const otherName = (role === "client" ? req.provider?.display_name : req.client?.display_name) || t("account_deleted_name");
   const otherAvatar = role === "client" ? req.provider_avatar : req.client_avatar;
   const svc = req.services;
+  const progress = REQUEST_PROGRESS_ENABLED ? { ...req, remote: !!svc?.remote } : undefined;
   const price = !svc ? "" : svc.price_model === "quote" ? t("pm_quote") : svc.price == null || svc.price <= 0 ? t("sd_price_missing")
     : `${svc.price_model === "from" ? `${t("price_from")} ` : ""}${formatPrice(svc.price, lang)}${svc.price_model === "hourly" ? ` ${t("per_hour")}` : ""}`;
 
@@ -205,7 +217,7 @@ export function Thread({ req, userId, onBack }: { req: RequestRow; userId: strin
             <div className="min-w-0">
               <h2 className="sr-only">{t("thread_with", { name: otherName })}</h2>
               <Link to="/pros/$id" params={{ id: otherId }} dir="auto" className="block truncate font-bold underline-offset-4 hover:underline">{otherName}</Link>
-              <StatusBadge status={req.status} />
+              <StatusBadge status={req.status} progress={progress} />
             </div>
           </div>
           <RequestActions req={req} userId={userId} />
@@ -225,12 +237,13 @@ export function Thread({ req, userId, onBack }: { req: RequestRow; userId: strin
         )}
       </header>
       <div role="note" className={`flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3 text-sm ${req.status === "accepted" ? "bg-success/10" : req.status === "pending" ? "bg-sea-soft/60" : "bg-muted"}`}>
-        <p className="min-w-0">{t(threadGuidance(req.status, role))}</p>
+        <p className="min-w-0">{t(threadGuidance(req.status, role, progress))}</p>
         {req.status === "declined" && role === "client" && <Link to="/explore" className="shrink-0 font-semibold text-sea underline-offset-4 hover:underline">{t("explore_services")}</Link>}
       </div>
+      <RequestProgress req={req} userId={userId} proName={role === "client" ? otherName : ""} remote={!!svc?.remote} />
       <details className="border-b px-4 py-3">
         <summary className="cursor-pointer text-sm font-semibold">{t("tl_title")}</summary>
-        <div className="mt-3"><RequestTimeline status={req.status} createdAt={req.created_at} /></div>
+        <div className="mt-3"><RequestTimeline status={req.status} createdAt={req.created_at} progress={progress} /></div>
       </details>
       <div className="flex-1 space-y-3 overflow-y-auto p-4" aria-live="polite" aria-busy={msgs.isLoading}>
         {msgs.isLoading ? (
