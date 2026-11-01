@@ -1,0 +1,442 @@
+# SkillLoop Media Studio Kit — single source of truth.
+# Tools, recipes, lessons and the production workflow, with explicit links between them.
+# `python3 marketing/media-kit/build.py` turns this file into KIT.md and a graphify graph (graphify-out/graph.json).
+#
+# status: verified = used successfully on this machine (WSL2, RTX 2050 4 GB, ~3 GB RAM, no sudo)
+#         planned  = recommended, not installed yet
+#         external = runs outside this machine (web app or rented GPU)
+
+machine:
+  os: "WSL2 Ubuntu 22.04 (no sudo password)"
+  gpu: "NVIDIA RTX 2050, 4 GB VRAM — too small for local video diffusion models"
+  ram: "~3 GB visible to WSL (raise with %UserProfile%\\.wslconfig memory=10GB, then wsl --shutdown)"
+  network: "can be slow (~100 KB/s seen): avoid multi-GB model downloads during a session"
+  python: "system python3.10, user site-packages; graphify has its own venv"
+
+stages:
+  - {id: brief, name: "Brief & story", does: "Pick the pain point, the hook, the characters and the CTA."}
+  - {id: generate, name: "Generate footage", does: "Write Veo prompts, generate 2–4 takes per scene, pick the best."}
+  - {id: ingest, name: "Ingest", does: "Rename, upscale to 1080×1920, grade, extract stills."}
+  - {id: qa_source, name: "Source QA", does: "Contact sheets, transcripts, spectrograms: find every Veo mistake before editing."}
+  - {id: repair, name: "Repair", does: "Fix wrong words, missing lines, fake text, blank props."}
+  - {id: edit, name: "Edit & motion", does: "Remotion edit list: cuts, titles, subtitles, app screens, overlays."}
+  - {id: sound, name: "Sound", does: "Dialogue, music bed with ducking, sound effects."}
+  - {id: master, name: "Render & master", does: "Render, loudness to -14 LUFS, faststart MP4."}
+  - {id: qa_final, name: "Final QA", does: "Contact sheet of the render, loudness check, honesty check."}
+  - {id: publish, name: "Publish & measure", does: "Caption, first comment, timing, then read the views."}
+
+tools:
+  - id: ffmpeg
+    name: FFmpeg
+    category: video
+    status: verified
+    does: "Cut, scale, encode, filter, mix, loudness, spectrograms, contact sheets. The backbone of every step."
+    usage: "ffmpeg -i in.mp4 -vf scale=1080:1920:flags=lanczos -c:v libx264 -crf 16 out.mp4"
+    limits: "Run encodes one by one on this machine: 11 in parallel got killed (out of memory)."
+    stages: [ingest, qa_source, repair, sound, master, qa_final]
+  - id: remotion
+    name: Remotion 4
+    category: motion
+    status: verified
+    url: https://www.remotion.dev
+    license: "Free for individuals and companies of up to 3 people; company licence from 4."
+    does: "Video and stills as React: edit list, titles, subtitles, phone UI scenes, tracked overlays, carousels."
+    usage: "npm run bundle && npm run render (see marketing/reel-ep1/edit)"
+    limits: "Needs the Chrome libs fix on WSL (lesson wsl_chrome_libs). Bundle once, then render many stills."
+    stages: [edit, sound, master]
+  - id: chrome_headless
+    name: Chrome headless shell (Remotion)
+    category: motion
+    status: verified
+    does: "The browser Remotion renders with."
+    limits: "Missing libnspr4/libnss3 on this WSL; no emoji font."
+    stages: [edit]
+  - id: faster_whisper
+    name: faster-whisper (small)
+    category: audio
+    status: verified
+    url: https://github.com/SYSTRAN/faster-whisper
+    does: "Transcribe dialogue with word timestamps (Arabic)."
+    usage: "python3 -E marketing/media-kit/scripts/transcribe.py <folder> small [hint]"
+    limits: "Hallucinates on silence; word times can be off by 0.5–2 s; 'medium' is 1.5 GB (too slow to download here)."
+    stages: [qa_source]
+  - id: whisperx
+    name: WhisperX
+    category: audio
+    status: planned
+    url: https://github.com/m-bain/whisperX
+    does: "Forced alignment: exact word boundaries for subtitles and surgical audio edits."
+    stages: [qa_source, edit]
+  - id: numpy_synth
+    name: NumPy synthesis (music.py)
+    category: audio
+    status: verified
+    does: "Original music bed (darbuka maqsoum, hijaz bass, Karplus-Strong qanun) and SFX, no licence issues."
+    usage: "python3 -E marketing/reel-ep1/edit/scripts/music.py marketing/reel-ep1/edit/public"
+    stages: [sound]
+  - id: demucs
+    name: Demucs
+    category: audio
+    status: planned
+    url: https://github.com/facebookresearch/demucs
+    does: "Split voice from music/ambience in Veo clips, so dialogue can be cleaned or re-mixed."
+    stages: [repair, sound]
+  - id: pedalboard
+    name: Pedalboard (Spotify)
+    category: audio
+    status: planned
+    url: https://github.com/spotify/pedalboard
+    does: "Studio effects in Python: EQ, compressor, reverb, limiter for a pro mix."
+    stages: [sound, master]
+  - id: f5_tts
+    name: F5-TTS / Habibi-TTS
+    category: voice
+    status: planned
+    url: https://github.com/SWivid/F5-TTS
+    does: "Voice cloning and speech editing: re-say one word in the same voice. Arabic checkpoint (Habibi)."
+    limits: "Needs GPU memory; check consent before cloning a real person's voice."
+    stages: [repair]
+  - id: acestep
+    name: ACE-Step
+    category: music
+    status: external
+    does: "Full songs with lyrics (closest open model to Suno). Rent a GPU."
+    stages: [sound]
+  - id: musicgen
+    name: MusicGen / AudioGen (AudioCraft)
+    category: music
+    status: external
+    does: "Instrumental beds (MusicGen) and foley sound effects (AudioGen)."
+    stages: [sound]
+  - id: stable_audio_open
+    name: Stable Audio Open
+    category: music
+    status: external
+    does: "Loops, textures and sound design."
+    limits: "Check the licence before commercial use."
+    stages: [sound]
+  - id: real_esrgan
+    name: Real-ESRGAN (ncnn-vulkan)
+    category: image
+    status: planned
+    url: https://github.com/xinntao/Real-ESRGAN
+    does: "AI upscale 720p → 1080p+ with real detail instead of lanczos."
+    limits: "ncnn-vulkan build runs on small GPUs; Vulkan inside WSL must be checked."
+    stages: [ingest]
+  - id: rife
+    name: RIFE (ncnn-vulkan)
+    category: image
+    status: planned
+    does: "Frame interpolation: smooth slow motion, 24 → 60 fps."
+    stages: [ingest, edit]
+  - id: pyscenedetect
+    name: PySceneDetect
+    category: video
+    status: planned
+    url: https://github.com/Breakthrough/PySceneDetect
+    does: "Finds cuts inside a clip (Veo sometimes starts with a stray shot)."
+    stages: [qa_source]
+  - id: auto_editor
+    name: auto-editor
+    category: video
+    status: planned
+    does: "Cuts silences and dead air automatically (talking-head content)."
+    stages: [edit]
+  - id: sam2
+    name: SAM 2
+    category: tracking
+    status: external
+    url: https://github.com/facebookresearch/sam2
+    does: "Segment and track any object through a video from one click: masks for overlays and removal."
+    stages: [repair]
+  - id: propainter
+    name: ProPainter
+    category: tracking
+    status: external
+    does: "Video inpainting: really erases fake text, logos or objects (with a SAM 2 mask)."
+    stages: [repair]
+  - id: blob_tracker
+    name: Bright-blob tracker (track_blob.py)
+    category: tracking
+    status: verified
+    does: "Tracks a bright flat object (blank sticker, paper) frame by frame and prints its box per time."
+    usage: "python3 -E marketing/media-kit/scripts/track_blob.py clip.mp4 start dur x y w h [fps] [level]"
+    limits: "Light objects only; the subject's clothes can merge with the blob: always check on a grid frame."
+    stages: [repair]
+  - id: blender
+    name: Blender (VSE + compositor, bpy)
+    category: motion
+    status: planned
+    does: "3D titles, compositing, camera tracking, headless renders from Python."
+    stages: [edit]
+  - id: rembg
+    name: rembg / BiRefNet
+    category: image
+    status: planned
+    does: "Background removal for avatars and cut-outs."
+    stages: [edit]
+  - id: veo3
+    name: Veo 3 (Google Flow)
+    category: generation
+    status: external
+    does: "8–10 s photoreal clips with dialogue and sound, 9:16."
+    limits: "Derja comes out as MSA or with long vowels; drops off-screen voices; invents text; blank props become rectangles."
+    stages: [generate]
+  - id: comfyui
+    name: ComfyUI (Wan, LTX, HunyuanVideo)
+    category: generation
+    status: external
+    does: "Open video/image generation pipelines on a rented GPU."
+    stages: [generate]
+  - id: graphify
+    name: graphify
+    category: knowledge
+    status: verified
+    does: "Queryable graph of this kit: `graphify query --graph marketing/media-kit/graphify-out/graph.json \"…\"`."
+    stages: [brief]
+  - id: app_pro_card
+    name: SkillLoop pro card (src/lib/pro-card.ts)
+    category: brand
+    status: verified
+    does: "The app's real QR sticker/card as SVG, reused in videos and posts."
+    usage: "bun marketing/reel-ep1/edit/scripts/sticker.ts"
+    stages: [edit]
+
+recipes:
+  - id: veo_prompting
+    title: "Write Veo prompts that cut together"
+    problem: "Faces change between clips; clips don't match; screens show gibberish."
+    stage: generate
+    uses: [veo3]
+    steps:
+      - "Paste one STYLE block and one block per character verbatim in every prompt."
+      - "For a montage, ask for the same locked-off framing in every prompt (Veo still drifts: plan badges/flashes to hide it)."
+      - "Phone screens away from camera, signs/stickers blank: the real UI and QR are composited later."
+      - "Write dialogue in Arabic script and say 'Tunisian Arabic dialect'; keep each line short."
+      - "Ask for 2–4 takes per scene; note which take you keep."
+    learned_from: [veo_mistakes]
+  - id: ingest_upscale
+    title: "Ingest and upscale clips"
+    problem: "Veo delivers 720×1280 at 24 fps."
+    stage: ingest
+    uses: [ffmpeg, real_esrgan]
+    steps:
+      - "Rename to v01_*, v02a_* … in story order."
+      - "marketing/media-kit/scripts/upscale.sh in.mp4 out.mp4 (lanczos + light unsharp + common grade), one file at a time."
+      - "Later: Real-ESRGAN for real detail."
+    learned_from: [parallel_encode_oom]
+  - id: contact_sheet
+    title: "See every clip at a glance"
+    problem: "Need to spot stray shots, continuity errors and fake text fast."
+    stage: qa_source
+    uses: [ffmpeg]
+    steps:
+      - "marketing/media-kit/scripts/contact_sheet.sh clip.mp4 sheet.png (6 frames per clip, numbered)."
+      - "Re-check any interesting moment with a full-resolution frame: thumbnail times are approximate."
+    learned_from: [thumbnail_timing]
+  - id: transcribe_dialogue
+    title: "Know exactly what each clip says"
+    problem: "Veo may say the wrong words or nothing at all."
+    stage: qa_source
+    uses: [faster_whisper, ffmpeg, whisperx]
+    steps:
+      - "Run transcribe.py on the clips folder (small model, word timestamps)."
+      - "Cross-check with ffmpeg silencedetect: words inside silence are hallucinations."
+      - "Unclear clip: rerun with a hint prompt of the expected line."
+      - "Confirm timings on a spectrogram before cutting."
+    learned_from: [whisper_hallucination, whisper_timing, python_isolated_flag]
+  - id: spectrogram_read
+    title: "Find words and vowels on a spectrogram"
+    problem: "Need cut points precise to ~10 ms."
+    stage: qa_source
+    uses: [ffmpeg]
+    steps:
+      - "marketing/media-kit/scripts/spectrogram.sh clip.mp4 start dur out.png"
+      - "Fricatives (sh, kh) = broad noise; vowels = stacked harmonics; stops = short gaps."
+  - id: fix_wrong_word
+    title: "Fix a mispronounced word and keep lip sync"
+    problem: "Salma said « خادمتو » instead of « خدمتو » (long vowel)."
+    stage: repair
+    uses: [ffmpeg, f5_tts]
+    steps:
+      - "Locate the vowel on the spectrogram."
+      - "Cut its steady middle (keep the transitions), 10–12 ms crossfades."
+      - "Insert the same length of room tone right after the word, so everything after stays in sync."
+      - "Mute the clip in the edit and play the fixed WAV from the same source second."
+      - "Better later: F5-TTS speech edit re-says the word in her voice."
+    learned_from: [veo_mistakes]
+  - id: reuse_voice_line
+    title: "Add a line Veo forgot"
+    problem: "The phone's answer « غدوة إن شاء الله » was missing in the winter shot."
+    stage: repair
+    uses: [ffmpeg]
+    steps:
+      - "Take the same voice from another clip (the promise)."
+      - "Phone filter: highpass 350 Hz, lowpass 3200 Hz, compressor, a short echo."
+      - "Place it as a sound effect with its subtitle; it doubles as a callback joke."
+  - id: track_overlay
+    title: "Put the real QR on a blank sticker or paper"
+    problem: "Veo shows blank paper; a scan of blank paper reads as a mistake."
+    stage: repair
+    uses: [blob_tracker, remotion, app_pro_card, sam2]
+    steps:
+      - "Measure the box per frame with track_blob.py, then verify on a grid frame."
+      - "Interpolate keyframes in a component drawn inside the Clip (it shares the push-in)."
+      - "Match the plate: slight blur, lower contrast, perspective (clip-path + skew)."
+      - "Cut before anything passes in front of it (phone, hand), or use SAM 2 masks."
+    learned_from: [occlusion_cut]
+  - id: hide_fake_text
+    title: "Hide invented text"
+    problem: "Veo writes fake Arabic on signs and meter boxes."
+    stage: repair
+    uses: [remotion, propainter, sam2]
+    steps:
+      - "Quick: backdrop-filter blur box that follows the same camera drift as the tracked object."
+      - "Clean: SAM 2 mask + ProPainter inpaint on a rented GPU."
+    learned_from: [veo_mistakes]
+  - id: subtitles_ar_fr
+    title: "Arabic + French burned-in subtitles"
+    problem: "Every line readable without sound, in derja and French."
+    stage: edit
+    uses: [remotion]
+    steps:
+      - "Subtitle component: Arabic 64 px over French 38 px lime, spring pop."
+      - "Font stack: Arabic font, then the Latin font, then Noto Color Emoji."
+    learned_from: [arabic_space_glyph, emoji_font]
+  - id: app_screen_scene
+    title: "Show the real app in the video"
+    problem: "Viewers must see what SkillLoop actually does."
+    stage: edit
+    uses: [remotion]
+    steps:
+      - "Rebuild the screen in Remotion with the app's own French copy (src/lib/i18n.tsx)."
+      - "Only show features that exist and are switched on in production."
+      - "Show cause then effect: the character takes out the phone before the app screen."
+    learned_from: [honesty_rules, cause_effect]
+  - id: music_ducking
+    title: "Music bed that never covers dialogue"
+    problem: "Silent video dies; loud music hides the lines."
+    stage: sound
+    uses: [numpy_synth, remotion]
+    steps:
+      - "Generate the bed with section times from the edit (break for sad moments)."
+      - "Volume 0.38, ducked to 0.13 from 4 frames before to 4 frames after each subtitle."
+  - id: sfx_layer
+    title: "Sound effects that keep it alive"
+    problem: "Cuts and UI moments feel flat."
+    stage: sound
+    uses: [numpy_synth, ffmpeg]
+    steps:
+      - "whoosh + flash on montage cuts, clock under waiting, rain in winter."
+      - "pop on UI changes, buzz + notification on push, ding-dong before the door, success on the result."
+      - "riser into the end card, thump on the title."
+  - id: master_loudness
+    title: "Master for Instagram"
+    problem: "Consistent loudness across reels."
+    stage: master
+    uses: [ffmpeg, pedalboard]
+    steps:
+      - "marketing/media-kit/scripts/master.sh raw.mp4 final.mp4 (loudnorm I=-14 TP=-1.5, AAC 256k, faststart)."
+      - "Check with loudness.sh: integrated ≈ -14 LUFS."
+  - id: remotion_wsl
+    title: "Render Remotion on this WSL"
+    problem: "Chrome won't start; emojis are boxes."
+    stage: master
+    uses: [remotion, chrome_headless]
+    steps:
+      - "marketing/media-kit/scripts/remotion_libs.sh <project> once (libnspr4, libnss3, emoji font, no sudo)."
+      - "export LD_LIBRARY_PATH=<project>/node_modules/.remotion/libs/root/usr/lib/x86_64-linux-gnu"
+      - "npx remotion bundle once, then render/still from out/bundle."
+    learned_from: [wsl_chrome_libs, emoji_font, bundle_once]
+  - id: carousel_stills
+    title: "Carousel from the same story"
+    problem: "A post that explains what the reel only shows."
+    stage: edit
+    uses: [remotion]
+    steps:
+      - "Still compositions 1080×1350, counter n/8, swipe chip, same palette as the reel."
+      - "Hook → pain → solution (real app) → result → pros (vitrine, QR, themes) → CTA steps."
+      - "Label AI characters' pages « Exemple »; tag Pro-only features « SkillLoop Pro »."
+    learned_from: [honesty_rules]
+  - id: episode_structure
+    title: "Story structure that gets views"
+    problem: "Hold attention for 35 s and turn viewers into followers."
+    stage: brief
+    uses: [veo3, remotion]
+    steps:
+      - "Hook in 2 s (relatable Tunisian pain + punch title)."
+      - "Exaggerated montage of the pain (seasons, counters)."
+      - "Turn: someone shows SkillLoop; show the real flow."
+      - "Payoff with a laugh, then the pro side (vitrine, QR)."
+      - "End on a question for comments + DM 'PRO' + follow. ≤ 35 s."
+    learned_from: [reel_ghodwa_result, keep_it_short]
+  - id: publish_instagram
+    title: "Publish so the algorithm helps"
+    problem: "Reach."
+    stage: publish
+    uses: []
+    steps:
+      - "Reel alone (Reels tab reaches non-followers); carousel 1–2 days later or the same evening."
+      - "19–21 h; first comment from the account asking the question; trending sound at 10–15 % if wanted."
+      - "Note views at 4 h and 24 h in this kit (lesson reel_ghodwa_result)."
+
+lessons:
+  - id: wsl_chrome_libs
+    text: "Remotion's Chrome needs libnspr4/libnss3: apt-get download + dpkg-deb -x into node_modules/.remotion/libs, then LD_LIBRARY_PATH. No sudo needed."
+    applies_to: [remotion, chrome_headless]
+  - id: emoji_font
+    text: "The render browser has no emoji font: ship NotoColorEmoji.ttf (apt-get download fonts-noto-color-emoji) and load it with FontFace."
+    applies_to: [remotion]
+  - id: arabic_space_glyph
+    text: "Google Fonts Arabic subsets have no space glyph: with the emoji font next in the stack, Arabic words get huge gaps. Put the Latin font between them."
+    applies_to: [remotion]
+  - id: bundle_once
+    text: "remotion still re-bundles on every call: run `remotion bundle` once and point still/render at out/bundle."
+    applies_to: [remotion]
+  - id: parallel_encode_oom
+    text: "11 ffmpeg 1080p encodes in parallel were killed (≈3 GB RAM). Encode sequentially or 2 at a time."
+    applies_to: [ffmpeg]
+  - id: python_isolated_flag
+    text: "python3 -I ignores user site-packages (faster-whisper not found). Run from the scratch folder with python3 -E instead."
+    applies_to: [faster_whisper]
+  - id: pkill_self
+    text: "pkill -f 'pattern' also matched the shell running it and killed the command. Use pgrep first or a narrower pattern."
+    applies_to: []
+  - id: whisper_hallucination
+    text: "Whisper writes « اشتركوا في القناة », « موسيقى », « بخير » over silence or noise. Trust only words inside detected speech."
+    applies_to: [faster_whisper]
+  - id: whisper_timing
+    text: "Whisper word times were off by up to 2 s (« جيت » placed at 3.5 s, really 3.15 s; « بالحق جيت » at 5.9 s). Confirm on a spectrogram."
+    applies_to: [faster_whisper]
+  - id: thumbnail_timing
+    text: "Times read from fps-filtered tiles were off by ~1 s. Measure on full-resolution frames before placing overlays."
+    applies_to: [ffmpeg]
+  - id: veo_mistakes
+    text: "Veo 3 checklist: stray shot at clip start; MSA (« مرحبا ») instead of derja; long vowels (« خادمتو »); missing off-screen voice; blank props drawn as rectangles; fake Arabic on signs; wrong pronunciation of brand names."
+    applies_to: [veo3]
+  - id: occlusion_cut
+    text: "When a phone or hand passes in front of the tracked paper, cut to a POV/screen shot instead of fighting occlusion."
+    applies_to: [blob_tracker]
+  - id: cause_effect
+    text: "User feedback: after « مازلت تستنى؟ » show him taking the phone out before the app screen; never show a scan of blank paper."
+    applies_to: [remotion]
+  - id: keep_it_short
+    text: "User feedback: 46 s was too long; 35 s worked. Cut duplicate words (keep « بالحق جيت », drop the first « جيت »)."
+    applies_to: [remotion]
+  - id: honesty_rules
+    text: "Show only real, enabled features; no stars/reviews (none exist); don't say « gratuit » unless confirmed; label AI characters' pages « Exemple »; mark Pro-only features."
+    applies_to: [remotion]
+  - id: reel_ghodwa_result
+    text: "« غدوة إن شاء الله » (Veo characters + relatable story, 35 s): ~1.2k views in 4 h — best start of the account (2026-11-01)."
+    applies_to: [veo3, remotion]
+  - id: slow_downloads
+    text: "Network gave ~100 KB/s: Whisper medium (1.5 GB) would take hours. Prefer small models + hint prompts, or download overnight."
+    applies_to: [faster_whisper]
+
+episodes:
+  - id: ep1_ghodwa
+    title: "غدوة إن شاء الله"
+    path: marketing/reel-ep1
+    date: 2026-11-01
+    result: "~1.2k views in 4 h"
+    recipes: [veo_prompting, ingest_upscale, contact_sheet, transcribe_dialogue, spectrogram_read, fix_wrong_word, reuse_voice_line, track_overlay, hide_fake_text, subtitles_ar_fr, app_screen_scene, music_ducking, sfx_layer, master_loudness, remotion_wsl, carousel_stills, episode_structure, publish_instagram]
