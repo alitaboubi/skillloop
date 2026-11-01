@@ -16,6 +16,7 @@ import { useI18n, type TKey } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { BrandBackdrop, CATEGORY_ICONS, PointerField } from "@/components/brand";
 import { ShareKit } from "@/components/share-kit";
+import { ThemeFont } from "@/components/theme-font";
 import { CountUp, useActiveSection } from "@/components/motion-kit";
 import { profilePath } from "@/lib/share";
 import { CATEGORIES, type CategoryId, type Service } from "@/lib/data";
@@ -153,6 +154,7 @@ function Page() {
 
   return (
     <div className={`pb-16 ${theme ? `ctheme ctheme-${theme}` : ""}`}>
+      {theme && <ThemeFont theme={theme} />}
       <div className="pro-cover">
         {banner ? (
           <img aria-hidden src={banner.src} alt="" className="pro-cover-banner sd-cover" />
