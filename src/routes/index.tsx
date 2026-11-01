@@ -11,6 +11,7 @@ import forClients from "@/assets/home/for-clients.webp";
 import forPros from "@/assets/home/for-pros.webp";
 import { ServiceCardSkeleton, useAllServices } from "@/components/site";
 import { ServiceShowcase } from "@/components/service-showcase";
+import { CityRibbon } from "@/components/city-ribbon";
 import { homeSeo } from "@/lib/seo";
 import { ErrorState, FirstVisitEmpty } from "@/components/states";
 
@@ -203,16 +204,16 @@ function Index() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6" aria-labelledby="loc">
-        <h2 id="loc" className="section-title">{t("hp_loc_title")}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{t("hp_loc_sub")}</p>
-        <ul className="mt-5 flex flex-wrap gap-2">
-          <li><Link to="/explore" search={{ mode: "remote" }} className="chip"><Wifi className="size-4 text-sea" aria-hidden />{t("hp_loc_remote")}</Link></li>
-          <li><Link to="/explore" search={{ mode: "inperson" }} className="chip"><User className="size-4 text-sea" aria-hidden />{t("hp_loc_inperson")}</Link></li>
-          {CITIES.map((c) => (
-            <li key={c}><Link to="/explore" search={{ city: c }} className="chip"><MapPin className="size-4 text-clay-strong" aria-hidden /><span dir="ltr">{c}</span></Link></li>
-          ))}
-        </ul>
+      <section className="py-16" aria-labelledby="loc">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <h2 id="loc" className="section-title">{t("hp_loc_title")}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t("hp_loc_sub")}</p>
+          <ul className="mt-5 flex flex-wrap gap-2">
+            <li><Link to="/explore" search={{ mode: "remote" }} className="chip"><Wifi className="size-4 text-sea" aria-hidden />{t("hp_loc_remote")}</Link></li>
+            <li><Link to="/explore" search={{ mode: "inperson" }} className="chip"><User className="size-4 text-sea" aria-hidden />{t("hp_loc_inperson")}</Link></li>
+          </ul>
+        </div>
+        <CityRibbon />
       </section>
 
       <section className="bg-card" aria-labelledby="faq">
