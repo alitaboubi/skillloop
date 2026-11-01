@@ -9,6 +9,8 @@ describe("content security policy", () => {
   it("allows exactly the third parties the app uses", () => {
     expect(directive(csp, "connect-src")).toBe(`connect-src 'self' ${SB} wss://abcdefghijklmnopqrst.supabase.co`);
     expect(directive(csp, "img-src")).toBe(`img-src 'self' data: blob: ${SB}`);
+    // The portfolio video check plays the picked file from a blob: URL; signed videos come from Supabase.
+    expect(directive(csp, "media-src")).toBe(`media-src 'self' blob: ${SB}`);
     expect(directive(csp, "script-src")).toBe("script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com");
     expect(directive(csp, "frame-src")).toBe("frame-src https://challenges.cloudflare.com");
     expect(directive(csp, "style-src")).toContain("https://fonts.googleapis.com");

@@ -16,11 +16,13 @@ import { useI18n, type TKey } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { BrandBackdrop, CATEGORY_ICONS, PointerField } from "@/components/brand";
 import { ShareKit } from "@/components/share-kit";
+import { ThemeFont } from "@/components/theme-font";
 import { CountUp, useActiveSection } from "@/components/motion-kit";
 import { profilePath } from "@/lib/share";
 import { CATEGORIES, type CategoryId, type Service } from "@/lib/data";
 import { COMMITMENT_KEYS, hasCarnet, readCarnet, readTheme } from "@/lib/carnet";
 import { PRO_TOOLS_ENABLED, hasProQuery, recordPageEvent } from "@/lib/pro-tools";
+import { readBanner } from "@/lib/presets";
 
 /** Pro state for the theme; any failure (function missing, network) is "no theme" — never a broken page. */
 const loadHasPro = (qc: import("@tanstack/react-query").QueryClient, id: string) =>
@@ -127,8 +129,10 @@ function Page() {
   // Carnet theme (SkillLoop Pro): applied only while the pro has Pro; the stored choice is kept otherwise.
   const theme = PRO_TOOLS_ENABLED && proQ.data ? readTheme(pd) : null;
 
-  // Cover: the pro's own published photos only (portfolio first, then service photos) — never category art.
-  const coverPhotos = [...new Set([...shown.filter((x) => !x.video).map((x) => x.image!), ...services.filter((s) => s.hasPhoto).map((s) => s.image)])].slice(0, 3);
+  // Cover: the banner the pro chose; otherwise their own portfolio photos — never category art, and not service photos
+  // (often a ready-made cover with its own layout, which a wide crop cuts badly); otherwise the brand background.
+  const banner = readBanner(pd);
+  const coverPhotos = banner ? [] : [...new Set(shown.filter((x) => !x.video).map((x) => x.image!))].slice(0, 3);
   const sections = [
     p.bio ? { id: "about", label: t("pp_about") } : null,
     { id: "services", label: t("pp_services") },
@@ -150,8 +154,11 @@ function Page() {
 
   return (
     <div className={`pb-16 ${theme ? `ctheme ctheme-${theme}` : ""}`}>
+      {theme && <ThemeFont theme={theme} />}
       <div className="pro-cover">
-        {coverPhotos.length > 0 ? (
+        {banner ? (
+          <img aria-hidden src={banner.src} alt="" className="pro-cover-banner sd-cover" />
+        ) : coverPhotos.length > 0 ? (
           <div aria-hidden className="pro-cover-mosaic sd-cover" data-n={coverPhotos.length}>
             {coverPhotos.map((src) => <img key={src} src={src} alt="" />)}
           </div>
@@ -161,7 +168,7 @@ function Page() {
             <PointerField />
           </>
         )}
-        <div aria-hidden className="pro-cover-fade" />
+        <div aria-hidden className={`pro-cover-fade ${banner ? "pro-cover-fade-soft" : ""}`} />
         <div className="relative mx-auto max-w-6xl px-4 pb-44 pt-5 sm:px-6 md:pb-64">
           <nav aria-label="Breadcrumb">
             <ol className="flex flex-wrap items-center gap-1 text-sm text-navy-muted">

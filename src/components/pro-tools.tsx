@@ -8,7 +8,7 @@ import { useI18n, type TKey } from "@/lib/i18n";
 import { planQuery, trialDaysLeft, useIsPro } from "@/lib/plan";
 import { PRO_TOOLS_ENABLED, STATS_DAYS, myStatsQuery, type StatKind } from "@/lib/pro-tools";
 import { CARD_SIZE_MM, buildCardSvg, qrLink, type CardVariant } from "@/lib/pro-card";
-import { CARNET_THEMES, THEME_KEYS, readTheme, writeTheme, type CarnetTheme } from "@/lib/carnet";
+import { CARNET_THEMES, THEME_DESC_KEYS, THEME_KEYS, readTheme, writeTheme, type CarnetTheme } from "@/lib/carnet";
 import { MOTION_MAX_SECONDS } from "@/lib/motion";
 import { limitMessage } from "@/lib/limits";
 import { saveProfessionalDetails } from "@/lib/marketplace-writes";
@@ -18,6 +18,7 @@ import { ProLock } from "@/components/pro-lock";
 import { ShareKit } from "@/components/share-kit";
 import { profilePath } from "@/lib/share";
 import { PortfolioForm } from "@/components/profile-editors";
+import { ThemeFont } from "@/components/theme-font";
 import { BrandBackdrop, LoopProgress, PointerField } from "@/components/brand";
 import { markCardSaved, useProSteps, type ProStepId } from "@/lib/pro-onboarding";
 
@@ -244,21 +245,29 @@ export function ThemePicker({ userId, details }: { userId: string; details: unkn
         <p className="mt-1 max-w-md text-sm text-muted-foreground">{t("ct_sub")}</p>
       </div>
       {locked && saved && <p role="note" className="rounded-xl bg-surface-sunken px-3 py-2 text-sm">{t("ct_paused")}</p>}
-      {/* Live preview of the chosen cover, with the pro's own name. */}
-      <figure aria-label={t("ct_preview")} className={`ct-swatch ct-preview ${choice ? `ctheme ctheme-${choice}` : ""}`}>
-        <span key={choice ?? "default"} className="swap-in absolute inset-x-4 bottom-3 flex items-end justify-between gap-3">
-          <span dir="auto" className="min-w-0 truncate text-xl font-extrabold text-navy-foreground">{name}</span>
-          <span aria-hidden className="ct-swatch-dot static shrink-0" />
+      {/* Live preview: a small version of the public page in the chosen theme, with the pro's own name. */}
+      {CARNET_THEMES.map((o) => <ThemeFont key={o} theme={o} />)}
+      <figure aria-label={t("ct_preview")} className={`ct-mini ct-page ${choice ? `ctheme ctheme-${choice}` : ""}`}>
+        <span aria-hidden className="ct-mini-cover" />
+        <span key={choice ?? "default"} className="swap-in ct-mini-card">
+          <span dir="auto" className="ct-mini-title truncate">{name}</span>
+          <span aria-hidden className="ct-mini-line" />
+          <span aria-hidden className="ct-mini-line w-1/2" />
+          <span aria-hidden className="ct-mini-cta" />
         </span>
       </figure>
       <fieldset disabled={locked || busy}>
         <legend className="sr-only">{t("ct_title")}</legend>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           {options.map((o) => (
-            <label key={o ?? "default"} className={`group cursor-pointer rounded-2xl border p-2 text-center text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60 ${choice === o ? "border-lime font-semibold ring-2 ring-lime" : "hover:bg-muted"}`}>
+            <label key={o ?? "default"} className={`group cursor-pointer rounded-2xl border p-2 text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60 ${choice === o ? "border-lime ring-2 ring-lime" : "hover:bg-muted"}`}>
               <input type="radio" name="carnet-theme" className="sr-only" checked={choice === o} onChange={() => setChoice(o)} />
-              <span aria-hidden className={`ct-swatch ${o ? `ctheme ctheme-${o}` : ""}`}><span className="ct-swatch-dot" /></span>
-              <span className="mt-2 block">{t(o ? THEME_KEYS[o] : "ct_default")}</span>
+              <span aria-hidden className={`ct-mini ${o ? `ctheme ctheme-${o}` : ""}`}>
+                <span className="ct-mini-cover" />
+                <span className="ct-mini-card"><span className="ct-mini-title">Aa</span><span className="ct-mini-line" /><span className="ct-mini-cta" /></span>
+              </span>
+              <span className={`mt-2 block ${choice === o ? "font-semibold" : ""}`}>{t(o ? THEME_KEYS[o] : "ct_default")}</span>
+              {o && <span className="block text-sm text-muted-foreground">{t(THEME_DESC_KEYS[o])}</span>}
             </label>
           ))}
         </div>

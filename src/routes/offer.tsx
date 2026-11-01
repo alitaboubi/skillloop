@@ -10,6 +10,7 @@ import { PageHero, ServiceCard, ServiceCardSkeleton } from "@/components/site";
 import { ShareKit } from "@/components/share-kit";
 import { servicePath } from "@/lib/share";
 import { PhotoPicker } from "@/components/photo-picker";
+import { COVER_SIZE, coverGroups } from "@/lib/presets";
 import { AiAssist } from "@/components/ai-assist";
 import { ErrorState, EmptyState, ListSkeleton } from "@/components/states";
 import { seo } from "@/lib/seo";
@@ -356,7 +357,8 @@ function Wizard({ userId, titleParam, original }: { userId: string; titleParam: 
               <div>
                 <p className="text-sm font-semibold">{t("f_image")} <span className="font-normal text-muted-foreground">({t("optional")})</span></p>
                 <div className="mt-2">
-                  <PhotoPicker image={photoUrl} onPick={(fl) => { setFile(fl); setRemoved(!fl); }} />
+                  <PhotoPicker image={photoUrl} onPick={(fl) => { setFile(fl); setRemoved(!fl); }}
+                    presets={{ groups: coverGroups(f.category), size: COVER_SIZE, pick: "preset_cover_pick", title: "preset_cover_title", description: "preset_cover_desc" }} />
                 </div>
                 {!photoUrl && <p className="mt-2 text-xs text-muted-foreground">{t("photo_hint_none")}</p>}
               </div>
