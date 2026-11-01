@@ -11,6 +11,7 @@ Query it: `graphify query --graph marketing/media-kit/graphify-out/graph.json "h
 - **ram**: ~3 GB visible to WSL (raise with %UserProfile%\.wslconfig memory=10GB, then wsl --shutdown)
 - **network**: can be slow (~100 KB/s seen): avoid multi-GB model downloads during a session
 - **python**: system python3.10, user site-packages; graphify has its own venv
+- **media_tools**: ~/.local/share/skillloop-media (venv + ncnn binaries + lavapipe Vulkan): install with scripts/install_tools.sh, use with `source scripts/env.sh`
 
 ## Workflow
 
@@ -41,6 +42,7 @@ Fix wrong words, missing lines, fake text, blank props.
 
 ### Edit & motion
 Remotion edit list: cuts, titles, subtitles, app screens, overlays.
+- [Cut out a person for posts and thumbnails](#cutout_portrait)
 - [Arabic + French burned-in subtitles](#subtitles_ar_fr)
 - [Show the real app in the video](#app_screen_scene)
 - [Carousel from the same story](#carousel_stills)
@@ -70,29 +72,37 @@ Caption, first comment, timing, then read the views.
 | [Remotion 4](https://www.remotion.dev) | verified | Video and stills as React: edit list, titles, subtitles, phone UI scenes, tracked overlays, carousels. | Needs the Chrome libs fix on WSL (lesson wsl_chrome_libs). Bundle once, then render many stills. |
 | Chrome headless shell (Remotion) | verified | The browser Remotion renders with. | Missing libnspr4/libnss3 on this WSL; no emoji font. |
 | [faster-whisper (small)](https://github.com/SYSTRAN/faster-whisper) | verified | Transcribe dialogue with word timestamps (Arabic). | Hallucinates on silence; word times can be off by 0.5–2 s; 'medium' is 1.5 GB (too slow to download here). |
-| [WhisperX](https://github.com/m-bain/whisperX) | planned | Forced alignment: exact word boundaries for subtitles and surgical audio edits. |  |
+| [WhisperX](https://github.com/m-bain/whisperX) | planned | Forced alignment: exact word boundaries for subtitles and surgical audio edits. | Deferred: the Arabic alignment model is ~1.2 GB (too slow on this network); faster-whisper + spectrogram covers it. |
 | NumPy synthesis (music.py) | verified | Original music bed (darbuka maqsoum, hijaz bass, Karplus-Strong qanun) and SFX, no licence issues. |  |
-| [Demucs](https://github.com/facebookresearch/demucs) | planned | Split voice from music/ambience in Veo clips, so dialogue can be cleaned or re-mixed. |  |
-| [Pedalboard (Spotify)](https://github.com/spotify/pedalboard) | planned | Studio effects in Python: EQ, compressor, reverb, limiter for a pro mix. |  |
+| [Demucs](https://github.com/facebookresearch/demucs) | verified | Split voice from music/ambience in Veo clips, so dialogue can be cleaned or re-mixed. | CPU: ~1 min of compute per 10 s clip (+80 MB model on first run). |
+| [Pedalboard (Spotify)](https://github.com/spotify/pedalboard) | verified | Studio effects in Python: EQ, compressor, reverb, limiter for a pro mix. | Pinned 0.9.16: 0.9.2x crashes with 'Illegal instruction' on this CPU. |
 | [F5-TTS / Habibi-TTS](https://github.com/SWivid/F5-TTS) | planned | Voice cloning and speech editing: re-say one word in the same voice. Arabic checkpoint (Habibi). | Needs GPU memory; check consent before cloning a real person's voice. |
 | ACE-Step | external | Full songs with lyrics (closest open model to Suno). Rent a GPU. |  |
 | MusicGen / AudioGen (AudioCraft) | external | Instrumental beds (MusicGen) and foley sound effects (AudioGen). |  |
 | Stable Audio Open | external | Loops, textures and sound design. | Check the licence before commercial use. |
-| [Real-ESRGAN (ncnn-vulkan)](https://github.com/xinntao/Real-ESRGAN) | planned | AI upscale 720p → 1080p+ with real detail instead of lanczos. | ncnn-vulkan build runs on small GPUs; Vulkan inside WSL must be checked. |
-| RIFE (ncnn-vulkan) | planned | Frame interpolation: smooth slow motion, 24 → 60 fps. |  |
-| [PySceneDetect](https://github.com/Breakthrough/PySceneDetect) | planned | Finds cuts inside a clip (Veo sometimes starts with a stray shot). |  |
-| auto-editor | planned | Cuts silences and dead air automatically (talking-head content). |  |
+| [Real-ESRGAN (ncnn-vulkan)](https://github.com/xinntao/Real-ESRGAN) | verified | AI upscale 720p → 1080p+ with real detail instead of lanczos. | ncnn-vulkan build runs on small GPUs; Vulkan inside WSL must be checked. Linux build runs on Mesa lavapipe (CPU Vulkan): ~10 s for 220 px ×2, minutes per 720p frame → stills only. The Windows .exe would use the RTX 2050 from WSL, but running it needs the user's permission. |
+| RIFE (ncnn-vulkan) | installed | Frame interpolation: smooth slow motion, 24 → 60 fps. | Installed (lavapipe, CPU); running downloaded binaries needs the user's permission in this setup — not benchmarked yet. |
+| [PySceneDetect](https://github.com/Breakthrough/PySceneDetect) | verified | Finds cuts inside a clip (Veo sometimes starts with a stray shot). | Found the stray first shot of the sheep clip (0–1.29 s) and Karim's cuts. |
+| auto-editor | incompatible | Cuts silences and dead air automatically (talking-head content). | 29.x needs glibc 2.38 (Ubuntu 22.04 has 2.35); 23.x no longer builds. Use ffmpeg silencedetect. |
 | [SAM 2](https://github.com/facebookresearch/sam2) | external | Segment and track any object through a video from one click: masks for overlays and removal. |  |
 | ProPainter | external | Video inpainting: really erases fake text, logos or objects (with a SAM 2 mask). |  |
 | Bright-blob tracker (track_blob.py) | verified | Tracks a bright flat object (blank sticker, paper) frame by frame and prints its box per time. | Light objects only; the subject's clothes can merge with the blob: always check on a grid frame. |
 | Blender (VSE + compositor, bpy) | planned | 3D titles, compositing, camera tracking, headless renders from Python. |  |
-| rembg / BiRefNet | planned | Background removal for avatars and cut-outs. |  |
+| rembg / BiRefNet | verified | Background removal for avatars and cut-outs. | Use the Python API (the CLI needs extra packages). u2netp = 4.6 MB model, ~3 s per image. |
 | Veo 3 (Google Flow) | external | 8–10 s photoreal clips with dialogue and sound, 9:16. | Derja comes out as MSA or with long vowels; drops off-screen voices; invents text; blank props become rectangles. |
 | ComfyUI (Wan, LTX, HunyuanVideo) | external | Open video/image generation pipelines on a rented GPU. |  |
 | graphify | verified | Queryable graph of this kit: `graphify query --graph marketing/media-kit/graphify-out/graph.json "…"`. |  |
 | SkillLoop pro card (src/lib/pro-card.ts) | verified | The app's real QR sticker/card as SVG, reused in videos and posts. |  |
 
 ## Recipes
+
+<a id="cutout_portrait"></a>
+### Cut out a person for posts and thumbnails
+_Problem:_ Need Karim/avatars on a brand background.  
+_Tools:_ rembg, real_esrgan
+
+1. rembg Python API with u2netp (fast) or isnet-general-use (better hair, bigger download).
+2. Composite on the lime/ink background; upscale the still with Real-ESRGAN if it will be printed big.
 
 <a id="veo_prompting"></a>
 ### Write Veo prompts that cut together
@@ -121,22 +131,24 @@ _Lessons:_ parallel_encode_oom
 <a id="contact_sheet"></a>
 ### See every clip at a glance
 _Problem:_ Need to spot stray shots, continuity errors and fake text fast.  
-_Tools:_ ffmpeg
+_Tools:_ ffmpeg, pyscenedetect
 
-1. marketing/media-kit/scripts/contact_sheet.sh clip.mp4 sheet.png (6 frames per clip, numbered).
-2. Re-check any interesting moment with a full-resolution frame: thumbnail times are approximate.
+1. PySceneDetect first: it lists Veo's internal cuts (stray first shot) with exact times.
+2. marketing/media-kit/scripts/contact_sheet.sh clip.mp4 sheet.png (6 frames per clip, numbered).
+3. Re-check any interesting moment with a full-resolution frame: thumbnail times are approximate.
 
 _Lessons:_ thumbnail_timing
 
 <a id="transcribe_dialogue"></a>
 ### Know exactly what each clip says
 _Problem:_ Veo may say the wrong words or nothing at all.  
-_Tools:_ faster_whisper, ffmpeg, whisperx
+_Tools:_ faster_whisper, ffmpeg, whisperx, demucs
 
 1. Run transcribe.py on the clips folder (small model, word timestamps).
 2. Cross-check with ffmpeg silencedetect: words inside silence are hallucinations.
 3. Unclear clip: rerun with a hint prompt of the expected line.
 4. Confirm timings on a spectrogram before cutting.
+5. Noisy clip: separate the voice first with Demucs (vocals.wav) and transcribe that.
 
 _Lessons:_ whisper_hallucination, whisper_timing, python_isolated_flag
 
@@ -284,6 +296,10 @@ _Tools:_ —
 
 ## Lessons
 
+- **pedalboard_illegal_instruction** — pedalboard 0.9.2x dies with 'Illegal instruction' on the Ryzen 7 7435HS: pin 0.9.16.
+- **glibc_235** — Ubuntu 22.04 = glibc 2.35: prebuilt binaries needing 2.38 (auto-editor 29) fail; check before choosing a tool.
+- **wsl_vulkan_cpu_only** — No GPU Vulkan inside this WSL (Mesa 23.2 has no D3D12 'dozen' driver): ncnn tools fall back to lavapipe on CPU. For GPU, run the Windows build — needs the user's permission.
+- **downloaded_binary_permission** — Running binaries downloaded from GitHub (RIFE, Windows .exe) was blocked by the permission classifier: ask the user to allow it instead of working around it.
 - **wsl_chrome_libs** — Remotion's Chrome needs libnspr4/libnss3: apt-get download + dpkg-deb -x into node_modules/.remotion/libs, then LD_LIBRARY_PATH. No sudo needed.
 - **emoji_font** — The render browser has no emoji font: ship NotoColorEmoji.ttf (apt-get download fonts-noto-color-emoji) and load it with FontFace.
 - **arabic_space_glyph** — Google Fonts Arabic subsets have no space glyph: with the emoji font next in the stack, Arabic words get huge gaps. Put the Latin font between them.

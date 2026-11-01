@@ -2,8 +2,10 @@
 # Tools, recipes, lessons and the production workflow, with explicit links between them.
 # `python3 marketing/media-kit/build.py` turns this file into KIT.md and a graphify graph (graphify-out/graph.json).
 #
-# status: verified = used successfully on this machine (WSL2, RTX 2050 4 GB, ~3 GB RAM, no sudo)
-#         planned  = recommended, not installed yet
+# status: verified     = used successfully on this machine (WSL2, RTX 2050 4 GB, ~3 GB RAM, no sudo)
+#         installed    = on disk, not run yet
+#         incompatible = does not run here (reason in limits)
+#         planned      = recommended, not installed yet
 #         external = runs outside this machine (web app or rented GPU)
 
 machine:
@@ -12,6 +14,7 @@ machine:
   ram: "~3 GB visible to WSL (raise with %UserProfile%\\.wslconfig memory=10GB, then wsl --shutdown)"
   network: "can be slow (~100 KB/s seen): avoid multi-GB model downloads during a session"
   python: "system python3.10, user site-packages; graphify has its own venv"
+  media_tools: "~/.local/share/skillloop-media (venv + ncnn binaries + lavapipe Vulkan): install with scripts/install_tools.sh, use with `source scripts/env.sh`"
 
 stages:
   - {id: brief, name: "Brief & story", does: "Pick the pain point, the hook, the characters and the CTA."}
@@ -64,6 +67,7 @@ tools:
     name: WhisperX
     category: audio
     status: planned
+    limits: "Deferred: the Arabic alignment model is ~1.2 GB (too slow on this network); faster-whisper + spectrogram covers it."
     url: https://github.com/m-bain/whisperX
     does: "Forced alignment: exact word boundaries for subtitles and surgical audio edits."
     stages: [qa_source, edit]
@@ -77,14 +81,18 @@ tools:
   - id: demucs
     name: Demucs
     category: audio
-    status: planned
+    status: verified
+    limits: "CPU: ~1 min of compute per 10 s clip (+80 MB model on first run)."
+    usage: "source scripts/env.sh; demucs --two-stems=vocals -n htdemucs -d cpu -o sep clip.wav"
     url: https://github.com/facebookresearch/demucs
     does: "Split voice from music/ambience in Veo clips, so dialogue can be cleaned or re-mixed."
     stages: [repair, sound]
   - id: pedalboard
     name: Pedalboard (Spotify)
     category: audio
-    status: planned
+    status: verified
+    limits: "Pinned 0.9.16: 0.9.2x crashes with 'Illegal instruction' on this CPU."
+    usage: "$MEDIA_PY -c 'from pedalboard import Pedalboard, Compressor, Limiter …'"
     url: https://github.com/spotify/pedalboard
     does: "Studio effects in Python: EQ, compressor, reverb, limiter for a pro mix."
     stages: [sound, master]
@@ -118,28 +126,33 @@ tools:
   - id: real_esrgan
     name: Real-ESRGAN (ncnn-vulkan)
     category: image
-    status: planned
+    status: verified
+    usage: "source scripts/env.sh; env $MEDIA_VK $REALESRGAN -i in.png -o out.png -n realesrgan-x4plus -s 4"
     url: https://github.com/xinntao/Real-ESRGAN
     does: "AI upscale 720p → 1080p+ with real detail instead of lanczos."
-    limits: "ncnn-vulkan build runs on small GPUs; Vulkan inside WSL must be checked."
+    limits: "ncnn-vulkan build runs on small GPUs; Vulkan inside WSL must be checked. Linux build runs on Mesa lavapipe (CPU Vulkan): ~10 s for 220 px ×2, minutes per 720p frame → stills only. The Windows .exe would use the RTX 2050 from WSL, but running it needs the user's permission."
     stages: [ingest]
   - id: rife
     name: RIFE (ncnn-vulkan)
     category: image
-    status: planned
+    status: installed
+    limits: "Installed (lavapipe, CPU); running downloaded binaries needs the user's permission in this setup — not benchmarked yet."
     does: "Frame interpolation: smooth slow motion, 24 → 60 fps."
     stages: [ingest, edit]
   - id: pyscenedetect
     name: PySceneDetect
     category: video
-    status: planned
+    status: verified
+    limits: "Found the stray first shot of the sheep clip (0–1.29 s) and Karim's cuts."
+    usage: "$MEDIA_PY -c 'from scenedetect import detect, ContentDetector; print(detect(\"clip.mp4\", ContentDetector(threshold=22)))'"
     url: https://github.com/Breakthrough/PySceneDetect
     does: "Finds cuts inside a clip (Veo sometimes starts with a stray shot)."
     stages: [qa_source]
   - id: auto_editor
     name: auto-editor
     category: video
-    status: planned
+    status: incompatible
+    limits: "29.x needs glibc 2.38 (Ubuntu 22.04 has 2.35); 23.x no longer builds. Use ffmpeg silencedetect."
     does: "Cuts silences and dead air automatically (talking-head content)."
     stages: [edit]
   - id: sam2
@@ -172,7 +185,9 @@ tools:
   - id: rembg
     name: rembg / BiRefNet
     category: image
-    status: planned
+    status: verified
+    limits: "Use the Python API (the CLI needs extra packages). u2netp = 4.6 MB model, ~3 s per image."
+    usage: "$MEDIA_PY: from rembg import remove, new_session; remove(img, session=new_session('u2netp'))"
     does: "Background removal for avatars and cut-outs."
     stages: [edit]
   - id: veo3
@@ -203,6 +218,14 @@ tools:
     stages: [edit]
 
 recipes:
+  - id: cutout_portrait
+    title: "Cut out a person for posts and thumbnails"
+    problem: "Need Karim/avatars on a brand background."
+    stage: edit
+    uses: [rembg, real_esrgan]
+    steps:
+      - "rembg Python API with u2netp (fast) or isnet-general-use (better hair, bigger download)."
+      - "Composite on the lime/ink background; upscale the still with Real-ESRGAN if it will be printed big."
   - id: veo_prompting
     title: "Write Veo prompts that cut together"
     problem: "Faces change between clips; clips don't match; screens show gibberish."
@@ -229,8 +252,9 @@ recipes:
     title: "See every clip at a glance"
     problem: "Need to spot stray shots, continuity errors and fake text fast."
     stage: qa_source
-    uses: [ffmpeg]
+    uses: [ffmpeg, pyscenedetect]
     steps:
+      - "PySceneDetect first: it lists Veo's internal cuts (stray first shot) with exact times."
       - "marketing/media-kit/scripts/contact_sheet.sh clip.mp4 sheet.png (6 frames per clip, numbered)."
       - "Re-check any interesting moment with a full-resolution frame: thumbnail times are approximate."
     learned_from: [thumbnail_timing]
@@ -238,12 +262,13 @@ recipes:
     title: "Know exactly what each clip says"
     problem: "Veo may say the wrong words or nothing at all."
     stage: qa_source
-    uses: [faster_whisper, ffmpeg, whisperx]
+    uses: [faster_whisper, ffmpeg, whisperx, demucs]
     steps:
       - "Run transcribe.py on the clips folder (small model, word timestamps)."
       - "Cross-check with ffmpeg silencedetect: words inside silence are hallucinations."
       - "Unclear clip: rerun with a hint prompt of the expected line."
       - "Confirm timings on a spectrogram before cutting."
+      - "Noisy clip: separate the voice first with Demucs (vocals.wav) and transcribe that."
     learned_from: [whisper_hallucination, whisper_timing, python_isolated_flag]
   - id: spectrogram_read
     title: "Find words and vowels on a spectrogram"
@@ -381,6 +406,18 @@ recipes:
       - "Note views at 4 h and 24 h in this kit (lesson reel_ghodwa_result)."
 
 lessons:
+  - id: pedalboard_illegal_instruction
+    text: "pedalboard 0.9.2x dies with 'Illegal instruction' on the Ryzen 7 7435HS: pin 0.9.16."
+    applies_to: [pedalboard]
+  - id: glibc_235
+    text: "Ubuntu 22.04 = glibc 2.35: prebuilt binaries needing 2.38 (auto-editor 29) fail; check before choosing a tool."
+    applies_to: [auto_editor]
+  - id: wsl_vulkan_cpu_only
+    text: "No GPU Vulkan inside this WSL (Mesa 23.2 has no D3D12 'dozen' driver): ncnn tools fall back to lavapipe on CPU. For GPU, run the Windows build — needs the user's permission."
+    applies_to: [real_esrgan, rife]
+  - id: downloaded_binary_permission
+    text: "Running binaries downloaded from GitHub (RIFE, Windows .exe) was blocked by the permission classifier: ask the user to allow it instead of working around it."
+    applies_to: [rife, real_esrgan]
   - id: wsl_chrome_libs
     text: "Remotion's Chrome needs libnspr4/libnss3: apt-get download + dpkg-deb -x into node_modules/.remotion/libs, then LD_LIBRARY_PATH. No sudo needed."
     applies_to: [remotion, chrome_headless]

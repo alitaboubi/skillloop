@@ -18,7 +18,10 @@ Everything learned on past episodes lives in `marketing/media-kit/`:
 1. Ask the graph about the problem, then read only the recipe it points to:
    `graphify query "<problem in plain words>" --graph marketing/media-kit/graphify-out/graph.json --budget 1200`
    (`--graph` goes after the question.) Then `grep -n -A12 'id="<recipe_id>"' marketing/media-kit/KIT.md`.
-2. Respect the machine limits in `kit.yaml → machine` (≈3 GB RAM, 4 GB GPU, no sudo, slow downloads): encode one file at a time, no multi-GB model downloads mid-session, heavy models go to a rented GPU.
+2. Local tools (Demucs, Pedalboard, PySceneDetect, rembg, Real-ESRGAN, RIFE) live outside the repo: `source marketing/media-kit/scripts/env.sh`
+   (`$MEDIA_PY`, `$REALESRGAN`, `$MEDIA_VK`). Missing? `marketing/media-kit/scripts/install_tools.sh`. Check each tool's `status` and
+   `limits` in kit.yaml before relying on it (`installed` = not run yet, `incompatible` = don't).
+3. Respect the machine limits in `kit.yaml → machine` (≈3 GB RAM, 4 GB GPU, no sudo, slow downloads): encode one file at a time, no multi-GB model downloads mid-session, heavy models go to a rented GPU.
 
 ## Workflow (stages in kit.yaml)
 
@@ -29,7 +32,7 @@ New episode: `marketing/media-kit/scripts/new_episode.sh <name>`, then `npm inst
 
 ## QA is mandatory — never send a file that skipped it
 
-Source QA (every clip): contact sheet, `silences.sh`, `transcribe.py` (cross-check words against speech), spectrogram for any cut
+Source QA (every clip): PySceneDetect (stray shots), contact sheet, `silences.sh`, `transcribe.py` (cross-check words against speech), spectrogram for any cut
 inside dialogue, and the Veo checklist (lesson `veo_mistakes`): stray first shot, MSA instead of derja, long vowels, missing
 off-screen voice, blank props, fake text.
 
