@@ -1586,6 +1586,57 @@ input::-ms-clear {
 @keyframes sd-cover { to { translate: 0 18%; scale: 1.08; } }
 @keyframes sd-shadow { to { box-shadow: 0 12px 28px -16px color-mix(in oklab, var(--ink) 50%, transparent); } }
 
+/* ---------- Home showcase (service-showcase.tsx) ----------
+   One horizontal stage on the ink brand surface: native scroll + snap (each card can sit in the centre thanks to the
+   inline padding). The coverflow is a view(inline) timeline per slide: side cards turn toward the centre, smaller and
+   dimmer (never under 0.45 opacity); the bar follows the track's scroll timeline. Individual rotate/scale/translate only,
+   so the card's own pointer tilt (transform) still works. No support / reduced motion: a flat carousel, no bar. */
+.sc-stage { position: relative; overflow: hidden; isolation: isolate; background: var(--gradient-ink); color: var(--ink-foreground); timeline-scope: --sc; }
+.sc-track {
+  --sc-w: min(72vw, 21rem);
+  position: relative;
+  display: flex;
+  gap: clamp(1rem, 2vw, 1.5rem);
+  margin: 0;
+  padding: 2.5rem calc(50% - var(--sc-w) / 2) 2rem;
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: calc(50% - var(--sc-w) / 2);
+  scrollbar-width: none;
+  perspective: 1400px;
+  scroll-timeline: --sc inline;
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.sc-track::-webkit-scrollbar { display: none; }
+.sc-track:focus-visible { outline: 2px solid var(--lime); outline-offset: -6px; border-radius: 1rem; }
+.sc-slide { display: flex; flex: 0 0 var(--sc-w); width: var(--sc-w); min-width: 0; scroll-snap-align: center; transform-style: preserve-3d; }
+.sc-slide > * { flex: 1; min-width: 0; }
+.sc-bar { display: none; position: relative; height: 3px; border-radius: 3px; background: oklch(1 0 0 / 0.14); overflow: hidden; }
+.sc-bar-fill { position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(90deg, var(--lime), var(--clay)); transform-origin: left; }
+[dir="rtl"] .sc-bar-fill { transform-origin: right; }
+@media (prefers-reduced-motion: no-preference) {
+  .sc-track { scroll-behavior: smooth; }
+  @supports (animation-timeline: view()) {
+    .sc-slide { animation: sc-flow linear both; animation-timeline: view(inline); }
+    [dir="rtl"] .sc-slide { animation-name: sc-flow-rtl; }
+    .sc-bar { display: block; }
+    .sc-bar-fill { animation: sc-bar linear both; animation-timeline: --sc; }
+  }
+}
+@keyframes sc-flow {
+  0% { rotate: y 42deg; scale: 0.78; opacity: 0.45; translate: 8% 0; }
+  50% { rotate: y 0deg; scale: 1; opacity: 1; translate: 0 0; }
+  100% { rotate: y -42deg; scale: 0.78; opacity: 0.45; translate: -8% 0; }
+}
+@keyframes sc-flow-rtl {
+  0% { rotate: y -42deg; scale: 0.78; opacity: 0.45; translate: -8% 0; }
+  50% { rotate: y 0deg; scale: 1; opacity: 1; translate: 0 0; }
+  100% { rotate: y 42deg; scale: 0.78; opacity: 0.45; translate: 8% 0; }
+}
+@keyframes sc-bar { from { transform: scaleX(0.06); } to { transform: scaleX(1); } }
+
 /* ---------- Dashboard & settings (dash-kit.tsx) ---------- */
 .dash-hero { position: relative; overflow: hidden; isolation: isolate; color: var(--ink-foreground); background: var(--gradient-ink); }
 .dash-hero-orb {

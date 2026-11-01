@@ -9,7 +9,8 @@ import { CATEGORIES, CITIES, type CategoryId } from "@/lib/data";
 import { CATEGORY_IMAGES } from "@/lib/category-images";
 import forClients from "@/assets/home/for-clients.webp";
 import forPros from "@/assets/home/for-pros.webp";
-import { ServiceCard, ServiceCardSkeleton, useAllServices } from "@/components/site";
+import { ServiceCardSkeleton, useAllServices } from "@/components/site";
+import { ServiceShowcase } from "@/components/service-showcase";
 import { homeSeo } from "@/lib/seo";
 import { ErrorState, FirstVisitEmpty } from "@/components/states";
 
@@ -145,28 +146,19 @@ function Index() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6" aria-labelledby="latest">
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <h2 id="latest" className="section-title">{t("hp_live_title")}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{t("hp_live_sub")}</p>
-          </div>
-          {services.length > 0 && <Link to="/explore" className="link-sea shrink-0 text-sm">{t("view_all")}</Link>}
-        </div>
-        {isLoading ? (
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Every published service on one 3D stage (scroll-driven coverflow; flat without support or with reduced motion). */}
+      <ServiceShowcase
+        services={services}
+        body={isLoading ? (
+          <div className="relative mx-auto mt-8 grid max-w-7xl gap-5 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-3">
             {[0, 1, 2].map((i) => <ServiceCardSkeleton key={i} />)}
           </div>
         ) : isError ? (
-          <div className="mt-6"><ErrorState onRetry={() => refetch()} /></div>
-        ) : services.length ? (
-          <div className="sd-stagger mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {services.slice(0, 6).map((s) => <ServiceCard key={s.id} s={s} />)}
-          </div>
-        ) : (
-          <div className="mt-6"><FirstVisitEmpty /></div>
-        )}
-      </section>
+          <div className="relative mx-auto mt-8 max-w-7xl px-4 text-foreground sm:px-6"><ErrorState onRetry={() => refetch()} /></div>
+        ) : services.length === 0 ? (
+          <div className="relative mx-auto mt-8 max-w-7xl px-4 text-foreground sm:px-6"><FirstVisitEmpty /></div>
+        ) : undefined}
+      />
 
       <HowItWorks />
 
