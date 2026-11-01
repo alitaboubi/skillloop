@@ -4,7 +4,7 @@ import { CITIES } from "@/lib/data";
 import { useI18n } from "@/lib/i18n";
 
 /**
- * Home "Où ?" cities on one tilted lime ribbon with large names that slide sideways forever. Each city links to Explore;
+ * Home "Où ?" cities on one straight lime ribbon with large names that slide sideways forever. Each city links to Explore;
  * the copies (for the seamless loop) are decorative and hidden from assistive tech. Moves with transform only, stops on hover/focus, and stands
  * still (wrapped, nothing cut) under reduced motion. City names are Latin, so the ribbons run left to right everywhere.
  */
