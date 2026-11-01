@@ -1634,29 +1634,25 @@ input::-ms-clear {
 @keyframes sc-bar { from { transform: scaleX(0.06); } to { transform: scaleX(1); } }
 
 /* ---------- Home cities ribbon (city-ribbon.tsx) ----------
-   Two crossing ribbons: lime in front (the real city links), ink behind (decorative, opposite way). Each moves by one
-   row of four identical rows, transform only; hover/focus stops it; reduced motion = one still, wrapped ribbon. */
-.ribbons { position: relative; margin-top: 1.5rem; padding-block: 3rem; overflow: hidden; }
+   One tilted lime ribbon of city links. It moves by one row of four identical rows, transform only; hover/focus stops
+   it; reduced motion = still and wrapped. */
+.ribbons { position: relative; margin-top: 1rem; padding-block: 2rem; overflow: hidden; }
 .ribbon { direction: ltr; overflow: hidden; margin-inline: -2rem; }
-.ribbon-front { position: relative; z-index: 1; rotate: -2deg; background: var(--lime); color: var(--lime-foreground); box-shadow: var(--elevation-1); }
-.ribbon-back { position: absolute; inset-inline: 0; top: 50%; translate: 0 -50%; rotate: 2.5deg; background: var(--ink); color: var(--ink-foreground); }
-.dark .ribbon-back { background: var(--ink-2); }
+.ribbon-front { position: relative; rotate: -1.5deg; background: var(--lime); color: var(--lime-foreground); box-shadow: var(--elevation-1); }
 .ribbon-move { display: flex; width: max-content; }
 .ribbon-row { display: flex; flex-shrink: 0; align-items: center; margin: 0; padding: 0; list-style: none; }
-.ribbon-item { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.85rem 1.4rem; font-size: clamp(1.75rem, 4vw, 3.25rem); font-weight: 800; line-height: 1; letter-spacing: -0.025em; white-space: nowrap; }
-.ribbon-item::after { content: ""; width: 0.5rem; height: 0.5rem; margin-inline-start: 1.6rem; border-radius: 9999px; background: currentColor; opacity: 0.45; }
-.ribbon-back .ribbon-item { padding-block: 0.7rem; font-size: clamp(1.25rem, 2.6vw, 2rem); font-weight: 700; opacity: 0.85; }
+.ribbon-item { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.1rem; font-size: clamp(1.25rem, 2.6vw, 2.125rem); font-weight: 800; line-height: 1; letter-spacing: -0.025em; white-space: nowrap; }
+.ribbon-item::after { content: ""; width: 0.4rem; height: 0.4rem; margin-inline-start: 1.25rem; border-radius: 9999px; background: currentColor; opacity: 0.45; }
 .ribbon-pin { width: 0.7em; height: 0.7em; flex-shrink: 0; }
 a.ribbon-item { border-radius: 0.5rem; transition: opacity var(--duration-fast) var(--ease-out); }
-a.ribbon-item:hover { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 6px; }
-a.ribbon-item:focus-visible { outline: 3px solid var(--ink); outline-offset: -6px; }
+a.ribbon-item:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; }
+a.ribbon-item:focus-visible { outline: 3px solid var(--ink); outline-offset: -4px; }
 @media (prefers-reduced-motion: no-preference) {
   .ribbon-move { animation: ribbon-run 36s linear infinite; }
-  .ribbon-back .ribbon-move { animation-duration: 48s; animation-direction: reverse; }
   .ribbon:hover .ribbon-move, .ribbon:focus-within .ribbon-move { animation-play-state: paused; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ribbon-back, .ribbon-copy { display: none; }
+  .ribbon-copy { display: none; }
   .ribbon-front { rotate: 0deg; margin-inline: 0; }
   .ribbon-move { width: auto; }
   .ribbon-front .ribbon-row { flex-wrap: wrap; justify-content: center; }

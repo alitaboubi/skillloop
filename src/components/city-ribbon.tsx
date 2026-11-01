@@ -4,9 +4,8 @@ import { CITIES } from "@/lib/data";
 import { useI18n } from "@/lib/i18n";
 
 /**
- * Home "Où ?" cities as two crossing ribbons (lime in front, ink behind) with large names that slide sideways forever.
- * Only the lime ribbon is real: each city links to Explore; the second copy inside it (for the seamless loop) and the
- * ink ribbon are decorative and hidden from assistive tech. Moves with transform only, stops on hover/focus, and stands
+ * Home "Où ?" cities on one tilted lime ribbon with large names that slide sideways forever. Each city links to Explore;
+ * the copies (for the seamless loop) are decorative and hidden from assistive tech. Moves with transform only, stops on hover/focus, and stands
  * still (wrapped, nothing cut) under reduced motion. City names are Latin, so the ribbons run left to right everywhere.
  */
 export function CityRibbon() {
@@ -24,11 +23,6 @@ export function CityRibbon() {
   );
   return (
     <div className="ribbons">
-      <div aria-hidden className="ribbon ribbon-back">
-        <div className="ribbon-move">
-          {[0, 1, 2, 3].map((k) => <span key={k} className="ribbon-row">{CITIES.map((c) => <span key={c} className="ribbon-item">{c}</span>)}</span>)}
-        </div>
-      </div>
       <nav aria-label={t("hp_loc_title")} className="ribbon ribbon-front">
         {/* One real row + three copies, moved by a quarter: seamless even on very wide screens. */}
         <div className="ribbon-move">{row(false)}{row(true)}{row(true)}{row(true)}</div>
