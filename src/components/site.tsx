@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Menu, X, MapPin, Wifi, Star, BadgeCheck, Sun, Moon, Monitor, Home, Search, MessageSquare, User, PlusCircle, ChevronDown, LayoutDashboard, Briefcase, Settings, LogOut, Sparkles, ImageIcon } from "lucide-react";
+import { Menu, X, MapPin, Wifi, Star, BadgeCheck, Sun, Moon, Monitor, Home, Search, MessageSquare, User, PlusCircle, ChevronDown, LayoutDashboard, Briefcase, Settings, LogOut, Sparkles, ImageIcon, ShieldCheck } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { profileQuery } from "@/lib/profiles-db";
 import { useTheme, type ThemePref } from "@/lib/theme";
@@ -17,6 +17,7 @@ import { CATEGORY_ICONS, PointerField } from "@/components/brand";
 import { peek } from "@/lib/peek";
 import { Avatar } from "@/components/media-viewer";
 import { PRO_PLAN_ENABLED, useIsPro } from "@/lib/plan";
+import { useIsAdmin } from "@/lib/admin";
 
 // Loaded on first open only, so cmdk stays out of every page's initial bundle.
 const SearchPalette = lazy(() => import("@/components/search-palette").then((m) => ({ default: m.SearchPalette })));
@@ -239,6 +240,7 @@ function AccountMenu() {
   const signOut = useSignOut();
   const prof = useQuery({ ...profileQuery(user?.id ?? ""), enabled: !!user });
   const pro = useIsPro(user?.id ?? "");
+  const admin = useIsAdmin(user?.id ?? "");
   if (!user) return null;
   const name = prof.data?.display_name || user.email?.split("@")[0] || "—";
   const initial = (name.trim()[0] ?? "?").toUpperCase();
@@ -265,6 +267,7 @@ function AccountMenu() {
         <DropdownMenuItem asChild className="gap-2 rounded-xl py-2"><Link to="/pros/$id" params={{ id: user.id }}><User className="size-4" aria-hidden />{t("view_public_profile")}</Link></DropdownMenuItem>
         <DropdownMenuItem asChild className="gap-2 rounded-xl py-2"><Link to="/profile" search={{ space: "pro", tab: "services" }}><Briefcase className="size-4" aria-hidden />{t("my_services")}</Link></DropdownMenuItem>
         <DropdownMenuItem asChild className="gap-2 rounded-xl py-2"><Link to="/profile" search={{ tab: "settings" }}><Settings className="size-4" aria-hidden />{t("settings")}</Link></DropdownMenuItem>
+        {admin && <DropdownMenuItem asChild className="gap-2 rounded-xl py-2"><Link to="/admin"><ShieldCheck className="size-4 text-sea" aria-hidden />{t("adm_title")}</Link></DropdownMenuItem>}
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => { void signOut(); }} className="gap-2 rounded-xl py-2 text-destructive focus:text-destructive"><LogOut className="size-4" aria-hidden />{t("logout")}</DropdownMenuItem>
       </DropdownMenuContent>

@@ -51,7 +51,7 @@ update public.subscriptions set trial_ends_at = now() - interval '1 day' where u
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}', true);
 select lives_ok($$ update public.portfolio_items set title = 'Clip (2026)' where title = 'Clip' $$, 'an existing video item stays editable');
-select is((select count(*)::int from public.portfolio_items where video_url is not null), 1, 'the video stays published');
+select is((select count(*)::int from public.portfolio_items where video_url is not null and owner_id = '11111111-1111-1111-1111-111111111111'), 1, 'the video stays published');
 reset role;
 update public.subscriptions set trial_ends_at = now() + interval '30 days' where user_id = '11111111-1111-1111-1111-111111111111';
 

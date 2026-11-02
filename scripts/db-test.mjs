@@ -82,10 +82,12 @@ try {
   for (const f of readdirSync("supabase/tests/database").filter((x) => x.endsWith(".test.sql")).sort()) {
     const raw = readFileSync(`supabase/tests/database/${f}`, "utf8");
     // A test for a migration that isn't applied yet declares `-- requires: <table>`; it is skipped unless one of the
-    // --pending migrations creates that object (its bare name appears in the migration's SQL).
+    // --pending migrations creates that object (a `create table|function|view … <name>` statement; a mere mention, like
+    // a to_regclass() check in another migration, does not count).
     const needs = raw.match(/^-- requires: (\S+)/m)?.[1];
     const bare = needs?.replace(/^\w+\./, "").replace(/\(.*$/, "");
-    if (needs && !pending.some((p) => bare && p.sql.includes(bare))) {
+    const creates = (sql) => bare && new RegExp(`create\\s+(or\\s+replace\\s+)?(table|function|view)\\s+(if\\s+not\\s+exists\\s+)?(\\w+\\.)?${bare}\\b`, "i").test(sql);
+    if (needs && !pending.some((p) => creates(p.sql))) {
       const [{ found }] = await sql`select (case when ${needs} like '%(%' then to_regprocedure(${needs})::text else to_regclass(${needs})::text end) is not null as found`;
       if (!found) { lines.push(`# ${f}`, `# SKIP (needs ${needs}: migration not applied — use --pending to dry-run it)`); continue; }
     }
