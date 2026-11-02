@@ -3,7 +3,7 @@ import { limitMessage } from "@/lib/limits";
 import { setReturnTo } from "@/lib/return-to";
 import { useEffect, useId, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowUpRight, Check, Pencil, CheckCircle2, ChevronRight, Clock, ImageOff, Info, Languages, MapPin, Package, Send, Tag, User, Wifi } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Check, MessageSquare, Handshake, Pencil, CheckCircle2, ChevronRight, Clock, ImageOff, Info, Languages, MapPin, Package, Send, Tag, User, Wifi } from "lucide-react";
 import { Avatar, EnlargeHint, FramedImage, MediaViewer } from "@/components/media-viewer";
 import { ErrorState } from "@/components/states";
 import { profileQuery } from "@/lib/profiles-db";
@@ -396,12 +396,18 @@ function Detail({ s }: { s: Service }) {
           <span className="tag tag-sea">{s.remote ? <Wifi className="size-3.5" aria-hidden /> : <User className="size-3.5" aria-hidden />}{s.remote ? t("remote") : t("on_site")}</span>
           {s.city && <span className="tag tag-sea"><MapPin className="size-3.5" aria-hidden /><span dir="auto">{s.city}</span></span>}
         </div>
-        <h1 dir="auto" className="display-title break-words text-[2rem] md:text-5xl">{s.title}</h1>
-        <p className="text-sm text-muted-foreground">
-          {t("sd_by")}{" "}
-          {s.ownerId ? <Link to="/pros/$id" params={{ id: s.ownerId }} dir="auto" className="font-semibold text-foreground underline-offset-4 hover:underline">{s.provider}</Link> : <span dir="auto" className="font-semibold text-foreground">{s.provider}</span>}
-          {s.profession && <span dir="auto"> · {s.profession}</span>}
-        </p>
+        <h1 dir="auto" className="display-title break-words text-[2rem] leading-[1.08] md:text-[2.75rem]">{s.title}</h1>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
+          <span className="flex min-w-0 items-center gap-3">
+            <Avatar src={s.providerAvatar} name={s.provider} size="sm" />
+            <span className="min-w-0 text-sm leading-tight">
+              <span className="block text-muted-foreground">{t("sd_by")}</span>
+              {s.ownerId ? <Link to="/pros/$id" params={{ id: s.ownerId }} dir="auto" className="font-bold text-foreground underline-offset-4 hover:underline">{s.provider}</Link> : <span dir="auto" className="font-bold text-foreground">{s.provider}</span>}
+              {s.profession && <span dir="auto" className="text-muted-foreground"> · {s.profession}</span>}
+            </span>
+          </span>
+          {typeof s.accepting === "boolean" && <span className={`avail-chip ${s.accepting ? "avail-open" : "avail-closed"}`}>{t(s.accepting ? "avail_open" : "avail_closed")}</span>}
+        </div>
       </header>
 
       <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1fr)_24rem]">
@@ -435,6 +441,22 @@ function Detail({ s }: { s: Service }) {
               </ul>
             </section>
           )}
+
+          <section aria-labelledby="sd-flow">
+            <h2 id="sd-flow" className="text-xl font-bold">{t("sd_flow_t")}</h2>
+            <ol className="mt-4 grid gap-3 sm:grid-cols-3">
+              {([[Send, "sd_flow1_t", "sd_flow1_d"], [MessageSquare, "sd_flow2_t", "sd_flow2_d"], [Handshake, "sd_flow3_t", "sd_flow3_d"]] as const).map(([Icon, ti, de], i) => (
+                <li key={ti} className="rounded-2xl border bg-card p-4">
+                  <span className="flex items-center gap-2.5">
+                    <span className="icon-well-clay size-9"><Icon className="size-4 rtl:-scale-x-100" aria-hidden /></span>
+                    <span className="text-sm font-bold tabular-nums text-sea">0{i + 1}</span>
+                  </span>
+                  <p className="mt-3 font-bold">{t(ti)}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{t(de)}</p>
+                </li>
+              ))}
+            </ol>
+          </section>
 
           <section aria-labelledby="sd-practical">
             <h2 id="sd-practical" className="text-xl font-bold">{t("sd_practical")}</h2>
@@ -470,6 +492,18 @@ function Detail({ s }: { s: Service }) {
         </aside>
       </div>
 
+      {similar.length === 0 && (
+        <section aria-labelledby="sd-more" className="mt-16 flex flex-wrap items-center justify-between gap-4 rounded-3xl border bg-card p-6 sm:p-8">
+          <div className="flex items-center gap-4">
+            <span className="icon-well-clay size-12"><CatIcon className="size-5" aria-hidden /></span>
+            <div>
+              <h2 id="sd-more" className="text-lg font-bold">{t("sd_more_t", { cat: t(cat.key) })}</h2>
+              <p className="text-sm text-muted-foreground">{t("sd_more_d")}</p>
+            </div>
+          </div>
+          <Link to="/explore" className="btn btn-outline">{t("sd_more_cta")}<ArrowRight className="size-4 rtl:-scale-x-100" aria-hidden /></Link>
+        </section>
+      )}
       {similar.length > 0 && (
         <section aria-labelledby="sd-similar" className="mt-16 border-t pt-10">
           <h2 id="sd-similar" className="text-xl font-bold">{t("similar")}</h2>
