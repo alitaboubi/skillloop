@@ -58,8 +58,13 @@ select ok(abs(extract(epoch from ((public.my_plan())->>'period_end')::timestampt
 -- B (never published) pays a year, then the operator refuses it with a note; B can then declare again and cancel.
 select set_config('request.jwt.claims', '{"sub":"33333333-3333-3333-3333-333333333333","role":"authenticated"}', true);
 select public.declare_payment('year', 'transfer', 'VIR-2026-001');
+reset role;
+-- The operator reads payments only through admin_payments(), so the id is looked up outside the role.
+create temp table b_pay on commit drop as select id from public.payments where user_id = '33333333-3333-3333-3333-333333333333';
+grant select on b_pay to authenticated;
+set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}', true);
-select public.admin_decide_payment((select id from public.payments where user_id = '33333333-3333-3333-3333-333333333333'), false, 'Virement introuvable');
+select public.admin_decide_payment((select id from b_pay), false, 'Virement introuvable');
 select set_config('request.jwt.claims', '{"sub":"33333333-3333-3333-3333-333333333333","role":"authenticated"}', true);
 select is((select note from public.payments where status = 'refused'), 'Virement introuvable', 'the pro sees why it was refused');
 select lives_ok($$ select public.cancel_my_payment(public.declare_payment('year', 'flouci', 'FL-42')) $$, 'a pro can declare again and cancel');
