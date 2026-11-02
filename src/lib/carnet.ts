@@ -66,7 +66,8 @@ export function writeCarnet(details: unknown, d: CarnetDraft): Record<string, un
 }
 
 /**
- * Carnet themes (SkillLoop Pro): a cover and accent for the public page, stored as professional_details.carnet_theme.
+ * Page themes (SkillLoop Pro): a complete style for the public page (colours in both modes, display font, card shape,
+ * main button, cover pattern), stored as professional_details.carnet_theme.
  * No theme = the standard SkillLoop look. The database refuses a new theme without Pro ("plan_required:themes"), and the
  * public page applies it only while the pro has Pro (the stored choice is kept for a renewal). Styles: .ctheme-* in
  * src/styles.css.
@@ -74,6 +75,14 @@ export function writeCarnet(details: unknown, d: CarnetDraft): Record<string, un
 export const CARNET_THEMES = ["sea", "clay", "olive", "night"] as const;
 export type CarnetTheme = (typeof CARNET_THEMES)[number];
 export const THEME_KEYS: Record<CarnetTheme, TKey> = { sea: "ct_sea", clay: "ct_clay", olive: "ct_olive", night: "ct_night" };
+export const THEME_DESC_KEYS: Record<CarnetTheme, TKey> = { sea: "ct_sea_desc", clay: "ct_clay_desc", olive: "ct_olive_desc", night: "ct_night_desc" };
+/** Display font of each theme (Google Fonts, already allowed by the CSP); loaded only where the theme is shown. */
+export const THEME_FONTS: Record<CarnetTheme, string> = {
+  sea: "https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&display=swap",
+  clay: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap",
+  olive: "https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap",
+  night: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap",
+};
 
 export function readTheme(details: unknown): CarnetTheme | null {
   const v = ((details && typeof details === "object" ? details : {}) as Record<string, unknown>)["carnet_theme"];

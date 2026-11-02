@@ -1,14 +1,30 @@
 import type { TKey } from "./i18n";
 import { hasCarnet, readCarnet } from "./carnet";
+import { STEP_KEY, progressChain, type Progress } from "./request-progress";
 
 export type TimelineStep = { key: TKey; state: "done" | "current" | "upcoming"; tone: "default" | "positive" | "negative"; at?: string };
 
-/** Uses only existing statuses: pending, accepted, declined, cancelled. Only the creation time is stored. */
-export function timelineSteps(status: string, createdAt: string): TimelineStep[] {
+/**
+ * Statuses: pending, accepted, declined, cancelled. Only the creation time is stored for them. With `progress` (suivi
+ * d'intervention on), an accepted request continues with the pro's recorded steps and their database times.
+ */
+export function timelineSteps(status: string, createdAt: string, progress?: Progress & { remote?: boolean }): TimelineStep[] {
   const sent: TimelineStep = { key: "tl_sent", state: "done", tone: "default", at: createdAt };
   switch (status) {
-    case "accepted":
-      return [sent, { key: "st_accepted", state: "current", tone: "positive" }];
+    case "accepted": {
+      if (!progress) return [sent, { key: "st_accepted", state: "current", tone: "positive" }];
+      const chain = progressChain(progress, !!progress.remote);
+      const anyDone = chain.some((s) => s.at);
+      const steps: TimelineStep[] = [sent, { key: "st_accepted", state: anyDone ? "done" : "current", tone: "positive" }];
+      const lastDone = chain.map((s) => !!s.at).lastIndexOf(true);
+      chain.forEach((s, i) => steps.push({
+        key: STEP_KEY[s.step],
+        state: i < lastDone ? "done" : i === lastDone ? "current" : "upcoming",
+        tone: s.step === "completed" && s.at ? "positive" : "default",
+        ...(s.at ? { at: s.at } : {}),
+      }));
+      return steps;
+    }
     case "declined":
       return [sent, { key: "st_declined", state: "current", tone: "negative" }];
     case "cancelled":
@@ -74,10 +90,10 @@ export function requestGate(p: {
   return { kind: "can_request" };
 }
 
-/** One honest line per status and side, shown above the conversation. */
-export function threadGuidance(status: string, role: "client" | "provider"): TKey {
+/** One honest line per status and side, shown above the conversation. `progress`: suivi d'intervention is on. */
+export function threadGuidance(status: string, role: "client" | "provider", progress?: Progress): TKey {
   switch (status) {
-    case "accepted": return "tg_accepted";
+    case "accepted": return !progress ? "tg_accepted" : progress.completed_at ? "tg_completed" : "tg_accepted_progress";
     case "declined": return role === "client" ? "tg_declined_client" : "tg_declined_provider";
     case "cancelled": return role === "client" ? "tg_cancelled_client" : "tg_cancelled_provider";
     default: return role === "client" ? "tg_pending_client" : "tg_pending_provider";

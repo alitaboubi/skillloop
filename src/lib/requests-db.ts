@@ -1,9 +1,10 @@
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { signImages } from "./services-db";
+import { PROGRESS_COLUMNS, REQUEST_PROGRESS_ENABLED, type Progress } from "./request-progress";
 
 type Party = { display_name: string; avatar_url?: string | null } | null;
-export type RequestRow = {
+export type RequestRow = Progress & {
   id: string; service_id: string; client_id: string; provider_id: string; message: string; status: string; created_at: string;
   /** Null when the service is no longer visible to this user (e.g. archived). */
   services: { title: string; category?: string; price?: number | null; price_model?: string; city?: string; remote?: boolean } | null;
@@ -20,7 +21,7 @@ export const myRequestsQuery = (userId: string) =>
     queryFn: async () => {
       const { data, error } = await supabase
         .from("requests")
-        .select("id, service_id, client_id, provider_id, message, status, created_at, services(title, category, price, price_model, city, remote), client:profiles!requests_client_id_fkey(display_name, avatar_url), provider:profiles!requests_provider_id_fkey(display_name, avatar_url)")
+        .select(`id, service_id, client_id, provider_id, message, status, created_at, ${REQUEST_PROGRESS_ENABLED ? `${PROGRESS_COLUMNS}, ` : ""}services(title, category, price, price_model, city, remote), client:profiles!requests_client_id_fkey(display_name, avatar_url), provider:profiles!requests_provider_id_fkey(display_name, avatar_url)`)
         .order("created_at", { ascending: false });
       if (error) throw error;
       const rows = data as unknown as RequestRow[];

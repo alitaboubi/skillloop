@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Site presentation</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+html,body{width:1600px;height:1200px;overflow:hidden}
+body{font-family:Jakarta,sans-serif;background:var(--bg);color:var(--fg);position:relative}
+.label{position:absolute;left:90px;top:76px}
+.label small{display:block;font-size:18px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--accent)}
+.label b{display:block;font-size:56px;letter-spacing:-.03em;font-weight:800;margin-top:8px}
+.label p{font-size:20px;margin-top:8px;opacity:.75;max-width:620px;line-height:1.45}
+.browser{position:absolute;left:90px;top:320px;width:1188px;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 60px 120px -40px rgba(0,0,0,.5)}
+.bar{height:44px;background:#eceef2;display:flex;align-items:center;gap:8px;padding:0 16px}
+.bar i{width:12px;height:12px;border-radius:50%}
+.url{margin-left:20px;background:#fff;border-radius:8px;padding:5px 14px;font-size:13px;color:#555;width:340px}
+.view{position:relative;width:1188px;height:792px;overflow:hidden}
+.view iframe{border:0;width:1440px;height:960px;transform:scale(.825);transform-origin:0 0}
+.phone{position:absolute;left:1180px;top:430px;width:330px;height:690px;border-radius:50px;background:#0b0c10;padding:11px;box-shadow:0 60px 120px -40px rgba(0,0,0,.6)}
+.phone .in{width:100%;height:100%;border-radius:40px;overflow:hidden;position:relative;background:#fff}
+.phone iframe{border:0;width:390px;height:812px;transform:scale(.789);transform-origin:0 0}
+/* video: browser fills the frame and the page scrolls */
+body.video .label,body.video .phone{display:none}
+body.video .browser{left:60px;top:60px;width:1480px}
+body.video .view{width:1480px;height:1036px}
+body.video .view iframe{width:1440px;height:1008px;transform:scale(1.0278)}
+</style>
+</head>
+<body>
+<div class="label"><small id="k"></small><b id="n"></b><p id="d"></p></div>
+<div class="browser"><div class="bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span class="url" id="u"></span></div>
+  <div class="view"><iframe id="desk"></iframe></div></div>
+<div class="phone"><div class="in"><iframe id="mob"></iframe></div></div>
+<script>
+const q = new URLSearchParams(location.search);
+const css = document.documentElement.style;
+css.setProperty("--bg", q.get("bg")); css.setProperty("--fg", q.get("fg")); css.setProperty("--accent", q.get("accent"));
+k.textContent = "Concept · Site web"; n.textContent = q.get("name"); d.textContent = q.get("desc"); u.textContent = q.get("url");
+desk.src = mob.src = q.get("site");
+if (location.hash === "#video") document.body.classList.add("video");
+/** Scroll the desktop page to a fraction of its height (driven frame by frame by the renderer). */
+window.scrollTo01 = (f) => { const w = desk.contentWindow; const max = w.document.documentElement.scrollHeight - w.innerHeight; w.scrollTo(0, Math.round(max * f)); };
+</script>
+</body></html>

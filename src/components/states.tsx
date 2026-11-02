@@ -6,6 +6,7 @@ import { CATEGORY_ICONS, PointerField } from "@/components/brand";
 import { useI18n } from "@/lib/i18n";
 import { statusTone, timelineSteps } from "@/lib/request-timeline";
 import { STATUS_KEY } from "@/lib/requests-db";
+import { STEP_KEY, latestStep, type Progress } from "@/lib/request-progress";
 import { proNoun } from "@/lib/pro-noun";
 import { absoluteUrl, whatsappShareUrl } from "@/lib/share";
 import { NOTIFY_ME_ENABLED } from "@/lib/notify-me";
@@ -106,10 +107,10 @@ export function ListSkeleton({ rows = 3 }: { rows?: number }) {
   );
 }
 
-export function RequestTimeline({ status, createdAt }: { status: string; createdAt: string }) {
+export function RequestTimeline({ status, createdAt, progress }: { status: string; createdAt: string; progress?: (Progress & { remote?: boolean }) | undefined }) {
   const { t, lang } = useI18n();
   const fmt = new Intl.DateTimeFormat(lang === "ar" ? "ar-TN" : lang, { dateStyle: "medium", timeStyle: "short" });
-  const steps = timelineSteps(status, createdAt);
+  const steps = timelineSteps(status, createdAt, progress);
   return (
     <ol aria-label={t("tl_title")} className="relative space-y-4 ps-6">
       <span className="absolute inset-y-1.5 start-[0.4375rem] w-px bg-border" aria-hidden />
@@ -135,10 +136,11 @@ export function RequestTimeline({ status, createdAt }: { status: string; created
   );
 }
 
-/** Request status with a consistent tone everywhere (pending · accepted · declined/cancelled). */
-export function StatusBadge({ status }: { status: string }) {
+/** Request status with a consistent tone everywhere (pending · accepted · declined/cancelled); an accepted request shows its latest recorded step. */
+export function StatusBadge({ status, progress }: { status: string; progress?: Progress | undefined }) {
   const { t } = useI18n();
-  return <span className={`badge ${statusTone(status)}`}>{t(STATUS_KEY[status as keyof typeof STATUS_KEY] ?? "st_pending")}</span>;
+  const step = status === "accepted" && progress ? latestStep(progress) : null;
+  return <span className={`badge ${statusTone(status)}`}>{t(step ? STEP_KEY[step] : STATUS_KEY[status as keyof typeof STATUS_KEY] ?? "st_pending")}</span>;
 }
 
 /**

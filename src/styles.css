@@ -1031,22 +1031,126 @@
   color: var(--navy-foreground);
 }
 
-/* ---------- Carnet themes (SkillLoop Pro; src/lib/carnet.ts) ----------
-   Scoped variables, not :root tokens: a theme gives the public page a cover and one accent for the carnet (method step
-   numbers + top edge, commitment checks). Covers stay dark so the cover text keeps its contrast in both modes. */
-.ctheme-sea { --ct-cover: linear-gradient(160deg, oklch(0.27 0.075 240) 0%, oklch(0.42 0.115 230) 120%); --ct-accent: var(--sea); --ct-accent-soft: var(--sea-soft); }
-.ctheme-clay { --ct-cover: linear-gradient(160deg, oklch(0.25 0.045 40) 0%, oklch(0.45 0.115 42) 120%); --ct-accent: var(--clay-strong); --ct-accent-soft: var(--clay-soft); }
-.ctheme-olive { --ct-cover: linear-gradient(160deg, oklch(0.24 0.035 125) 0%, oklch(0.42 0.075 122) 120%); --ct-accent: oklch(0.45 0.09 125); --ct-accent-soft: oklch(0.95 0.03 120); }
-.ctheme-night { --ct-cover: linear-gradient(170deg, oklch(0.12 0.02 265) 0%, oklch(0.22 0.05 275) 120%); --ct-accent: var(--clay-strong); --ct-accent-soft: var(--clay-soft); }
-.dark .ctheme-olive { --ct-accent: oklch(0.8 0.12 125); --ct-accent-soft: oklch(0.28 0.04 125); }
+/* ---------- Page themes (SkillLoop Pro; src/lib/carnet.ts) ----------
+   A theme is a complete style for the public page (/pros/$id), scoped to its wrapper: it redefines the page's colour
+   tokens (light and dark mode; Nuit is always dark), so every card, chip, tag and panel inside follows; plus a display
+   font (loaded only when used: THEME_FONTS), card shape (--ct-radius), the main button, a cover pattern and a title
+   ornament. Covers stay dark so the cover text keeps its contrast. Proof/trust colours stay meaningful in every theme. */
+.ctheme-sea {
+  --background: oklch(0.985 0.008 240); --foreground: oklch(0.24 0.06 258); --card: oklch(1 0 0); --card-foreground: oklch(0.24 0.06 258);
+  --popover: oklch(1 0 0); --popover-foreground: oklch(0.24 0.06 258); --muted: oklch(0.96 0.015 240); --muted-foreground: oklch(0.48 0.045 252);
+  --border: oklch(0.9 0.03 242); --input: oklch(0.9 0.03 242); --surface-sunken: oklch(0.955 0.02 240); --ring: oklch(0.47 0.16 258);
+  --sea: oklch(0.47 0.16 258); --sea-soft: oklch(0.94 0.035 250); --clay-strong: oklch(0.47 0.16 258); --clay-soft: oklch(0.94 0.035 250);
+  --ct-accent: var(--sea); --ct-accent-soft: var(--sea-soft); --ct-cta: oklch(0.47 0.16 258); --ct-cta-fg: oklch(0.99 0.005 240);
+  --ct-font: "Outfit", var(--font-sans); --ct-radius: 1.5rem; --ct-shadow: 0 1px 2px oklch(0.4 0.12 255 / 0.06), 0 18px 40px -22px oklch(0.4 0.14 255 / 0.4);
+  --ct-cover: linear-gradient(160deg, oklch(0.3 0.12 260) 0%, oklch(0.5 0.15 245) 120%); --ct-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Cpath d='M14 96V50a34 34 0 0 1 68 0v46' fill='none' stroke='%23fff' stroke-opacity='.09' stroke-width='2'/%3E%3Ccircle cx='48' cy='22' r='3' fill='%23fff' fill-opacity='.12'/%3E%3C/svg%3E");
+}
+.dark .ctheme-sea {
+  --background: oklch(0.17 0.035 255); --foreground: oklch(0.96 0.01 240); --card: oklch(0.22 0.045 255); --card-foreground: oklch(0.96 0.01 240);
+  --popover: oklch(0.22 0.045 255); --popover-foreground: oklch(0.96 0.01 240); --muted: oklch(0.25 0.04 255); --muted-foreground: oklch(0.76 0.04 245);
+  --border: oklch(0.32 0.05 255); --input: oklch(0.34 0.05 255); --surface-sunken: oklch(0.2 0.04 255); --ring: oklch(0.76 0.12 245);
+  --sea: oklch(0.76 0.12 245); --sea-soft: oklch(0.28 0.07 255); --clay-strong: oklch(0.76 0.12 245); --clay-soft: oklch(0.28 0.07 255);
+  --ct-cta: oklch(0.76 0.12 245); --ct-cta-fg: oklch(0.17 0.04 255); --ct-shadow: var(--elevation-1);
+}
+.ctheme-clay {
+  --background: oklch(0.968 0.018 75); --foreground: oklch(0.26 0.04 45); --card: oklch(0.99 0.01 80); --card-foreground: oklch(0.26 0.04 45);
+  --popover: oklch(0.99 0.01 80); --popover-foreground: oklch(0.26 0.04 45); --muted: oklch(0.94 0.02 70); --muted-foreground: oklch(0.49 0.04 50);
+  --border: oklch(0.88 0.03 60); --input: oklch(0.88 0.03 60); --surface-sunken: oklch(0.945 0.022 70); --ring: oklch(0.53 0.15 40);
+  --sea: oklch(0.53 0.15 40); --sea-soft: oklch(0.94 0.035 55); --clay-strong: oklch(0.53 0.15 40); --clay-soft: oklch(0.94 0.035 55);
+  --ct-accent: var(--sea); --ct-accent-soft: var(--sea-soft); --ct-cta: oklch(0.53 0.15 40); --ct-cta-fg: oklch(0.99 0.01 80);
+  --ct-font: "Fraunces", "Noto Sans Arabic", Georgia, serif; --ct-radius: 0.5rem; --ct-shadow: 0 1px 2px oklch(0.35 0.06 45 / 0.08), 0 16px 36px -22px oklch(0.35 0.08 45 / 0.45);
+  --ct-cover: linear-gradient(160deg, oklch(0.25 0.05 40) 0%, oklch(0.46 0.12 42) 120%); --ct-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cpath d='M36 8l8 14 16-4-4 16 14 8-14 8 4 16-16-4-8 14-8-14-16 4 4-16-14-8 14-8-4-16 16 4z' fill='none' stroke='%23fff' stroke-opacity='.1' stroke-width='1.5'/%3E%3Ccircle cx='36' cy='36' r='4' fill='%23fff' fill-opacity='.1'/%3E%3C/svg%3E");
+}
+.dark .ctheme-clay {
+  --background: oklch(0.17 0.025 45); --foreground: oklch(0.95 0.015 75); --card: oklch(0.22 0.03 45); --card-foreground: oklch(0.95 0.015 75);
+  --popover: oklch(0.22 0.03 45); --popover-foreground: oklch(0.95 0.015 75); --muted: oklch(0.25 0.03 45); --muted-foreground: oklch(0.77 0.03 60);
+  --border: oklch(0.33 0.04 45); --input: oklch(0.35 0.04 45); --surface-sunken: oklch(0.2 0.03 45); --ring: oklch(0.75 0.13 45);
+  --sea: oklch(0.75 0.13 45); --sea-soft: oklch(0.3 0.06 42); --clay-strong: oklch(0.75 0.13 45); --clay-soft: oklch(0.3 0.06 42);
+  --ct-cta: oklch(0.75 0.13 45); --ct-cta-fg: oklch(0.18 0.03 45); --ct-shadow: var(--elevation-1);
+}
+.ctheme-olive {
+  --background: oklch(0.972 0.016 115); --foreground: oklch(0.25 0.04 130); --card: oklch(0.995 0.006 110); --card-foreground: oklch(0.25 0.04 130);
+  --popover: oklch(0.995 0.006 110); --popover-foreground: oklch(0.25 0.04 130); --muted: oklch(0.945 0.02 115); --muted-foreground: oklch(0.47 0.04 125);
+  --border: oklch(0.885 0.035 120); --input: oklch(0.885 0.035 120); --surface-sunken: oklch(0.95 0.022 115); --ring: oklch(0.45 0.1 128);
+  --sea: oklch(0.45 0.1 128); --sea-soft: oklch(0.93 0.045 120); --clay-strong: oklch(0.45 0.1 128); --clay-soft: oklch(0.93 0.045 120);
+  --ct-accent: var(--sea); --ct-accent-soft: var(--sea-soft); --ct-cta: oklch(0.38 0.08 130); --ct-cta-fg: oklch(0.98 0.02 110);
+  --ct-font: "Nunito", var(--font-sans); --ct-radius: 1.75rem; --ct-shadow: 0 1px 2px oklch(0.4 0.08 128 / 0.06), 0 18px 40px -24px oklch(0.4 0.1 128 / 0.45);
+  --ct-cover: linear-gradient(160deg, oklch(0.26 0.045 128) 0%, oklch(0.45 0.09 122) 120%); --ct-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='110' height='110'%3E%3Cpath d='M10 100C40 70 70 50 100 10' fill='none' stroke='%23fff' stroke-opacity='.1' stroke-width='1.5'/%3E%3Cpath d='M40 70c-14-4-22-14-22-26 14 2 22 12 22 26zM60 52c14-6 20-18 18-30-14 4-20 16-18 30zM78 32c-12-2-20-10-22-22 12 0 20 10 22 22z' fill='%23fff' fill-opacity='.08'/%3E%3C/svg%3E");
+}
+.dark .ctheme-olive {
+  --background: oklch(0.17 0.025 128); --foreground: oklch(0.95 0.015 115); --card: oklch(0.22 0.03 128); --card-foreground: oklch(0.95 0.015 115);
+  --popover: oklch(0.22 0.03 128); --popover-foreground: oklch(0.95 0.015 115); --muted: oklch(0.25 0.03 128); --muted-foreground: oklch(0.77 0.04 120);
+  --border: oklch(0.33 0.04 125); --input: oklch(0.35 0.04 125); --surface-sunken: oklch(0.2 0.03 128); --ring: oklch(0.82 0.13 125);
+  --sea: oklch(0.82 0.13 125); --sea-soft: oklch(0.3 0.06 128); --clay-strong: oklch(0.82 0.13 125); --clay-soft: oklch(0.3 0.06 128);
+  --ct-cta: oklch(0.82 0.13 125); --ct-cta-fg: oklch(0.2 0.04 130); --ct-shadow: var(--elevation-1);
+}
+/* Nuit: a dark studio page in both modes. */
+.ctheme-night {
+  color-scheme: dark;
+  --background: oklch(0.13 0.02 270); --foreground: oklch(0.96 0.01 270); --card: oklch(0.18 0.03 272); --card-foreground: oklch(0.96 0.01 270);
+  --popover: oklch(0.18 0.03 272); --popover-foreground: oklch(0.96 0.01 270); --primary: oklch(0.92 0.01 85); --primary-foreground: oklch(0.16 0.03 255);
+  --muted: oklch(0.22 0.03 272); --muted-foreground: oklch(0.74 0.03 270); --accent: oklch(0.24 0.035 272); --accent-foreground: oklch(0.96 0.01 270);
+  --border: oklch(0.29 0.04 272); --input: oklch(0.32 0.04 272); --surface-sunken: oklch(0.16 0.025 270); --ring: oklch(0.89 0.2 128);
+  --destructive: oklch(0.7 0.19 22); --success: oklch(0.78 0.15 150);
+  --ink: oklch(0.26 0.04 272); --ink-2: oklch(0.3 0.05 272); --ink-foreground: oklch(0.97 0.006 85);
+  --sea: oklch(0.89 0.2 128); --sea-soft: oklch(0.27 0.06 130); --clay: oklch(0.74 0.13 48); --clay-strong: oklch(0.8 0.12 52); --clay-soft: oklch(0.29 0.055 45);
+  --proof-declared: oklch(0.8 0.02 250); --proof-declared-soft: oklch(0.24 0.02 260); --proof-confirmed: oklch(0.8 0.1 238); --proof-confirmed-soft: oklch(0.27 0.05 245);
+  --proof-verified: oklch(0.92 0.01 85); --proof-verified-foreground: oklch(0.16 0.03 255);
+  --elevation-1: 0 1px 2px oklch(0 0 0 / 0.4), 0 14px 34px -16px oklch(0 0 0 / 0.8); --shadow-raised: var(--elevation-1);
+  --ct-accent: oklch(0.89 0.2 128); --ct-accent-soft: oklch(0.27 0.06 130); --ct-cta: oklch(0.89 0.2 128); --ct-cta-fg: oklch(0.16 0.03 255);
+  --ct-font: "Space Grotesk", var(--font-sans); --ct-radius: 1rem; --ct-shadow: 0 0 0 1px oklch(0.89 0.2 128 / 0.08), 0 20px 44px -24px oklch(0 0 0 / 0.9);
+  --ct-cover: radial-gradient(60% 90% at 85% 10%, oklch(0.89 0.2 128 / 0.16), transparent 70%), linear-gradient(170deg, oklch(0.1 0.02 265) 0%, oklch(0.2 0.05 275) 120%);
+  --ct-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Ccircle cx='2' cy='2' r='1.3' fill='%23fff' fill-opacity='.14'/%3E%3C/svg%3E");
+}
+
+/* What every theme restyles. */
+.ctheme { background: var(--background); color: var(--foreground); }
+.ctheme .pro-cover { background: var(--ct-pattern), var(--ct-cover); }
 .ctheme .profile-cover { background: var(--ct-cover); }
+.ctheme .display-title, .ctheme .section-title, .ctheme .pro-stat-n { font-family: var(--ct-font); }
+.ctheme .eyebrow { color: var(--ct-accent); }
+.ctheme .btn-lime { background: var(--ct-cta); color: var(--ct-cta-fg); }
+.ctheme .btn-lime:hover { box-shadow: 0 12px 28px -12px var(--ct-cta); }
+.ctheme .pro-id, .ctheme .panel, .ctheme .panel-action, .ctheme .listing-card, .ctheme .media-trigger { border-radius: var(--ct-radius); }
+.ctheme .pro-id, .ctheme .panel-action { box-shadow: var(--ct-shadow); }
+.ctheme .pro-stats { border-radius: 0 0 var(--ct-radius) var(--ct-radius); }
+.ctheme .panel-action { background-image: linear-gradient(var(--ct-accent), var(--ct-accent)); }
+.ctheme .pro-tabs { background: color-mix(in oklab, var(--background) 90%, transparent); backdrop-filter: blur(10px); }
+.ctheme .pro-tab::after { background: var(--ct-accent); }
+.ctheme .section-count { background: var(--ct-accent-soft); color: var(--ct-accent); }
+.ctheme .chip:hover { border-color: var(--ct-accent); }
 .ctheme .ct-step { border-top: 3px solid var(--ct-accent); }
 .ctheme .ct-num, .ctheme .ct-check { background: var(--ct-accent-soft); color: var(--ct-accent); }
-.ct-swatch { position: relative; display: block; height: 3.5rem; border-radius: var(--radius-md); background: var(--gradient-hero); overflow: hidden; }
-.ct-swatch-dot { position: absolute; inset-inline-end: 0.5rem; bottom: 0.5rem; width: 0.875rem; height: 0.875rem; border-radius: 9999px; background: var(--ct-accent, var(--clay)); box-shadow: 0 0 0 2px var(--card); }
-.ctheme.ct-swatch { background: var(--ct-cover); }
-.ct-preview { height: 6.5rem; margin: 0; }
-.ct-preview .ct-swatch-dot { position: static; }
+@media (hover: hover) { .ctheme .listing-card:hover { border-color: var(--ct-accent); box-shadow: var(--ct-shadow); } }
+
+/* Each theme's own touch. */
+.ctheme-sea .section-title::after { content: ""; display: block; width: 3rem; height: 0.625rem; margin-top: 0.5rem; background: var(--ct-accent); mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='10' viewBox='0 0 48 10'%3E%3Cpath d='M1 5q5.5-5 11 0t11 0 11 0 11 0' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat; }
+.ctheme-sea .pro-id { border-top: 4px solid var(--ct-accent); }
+.ctheme-clay .display-title, .ctheme-clay .section-title { font-weight: 600; letter-spacing: -0.02em; }
+.ctheme-clay .section-title::after { content: ""; display: block; width: 2.5rem; height: 2px; margin-top: 0.75rem; background: var(--ct-accent); }
+.ctheme-clay .pro-id { box-shadow: 0 0 0 6px var(--card), 0 0 0 7px var(--border), var(--ct-shadow); }
+.ctheme-clay .pro-quote { font-family: var(--ct-font); font-style: italic; font-size: 1.25rem; border-inline-start-width: 2px; }
+.ctheme-clay .eyebrow { letter-spacing: 0.16em; }
+.ctheme-olive .section-title::before { content: ""; display: inline-block; width: 0.75em; height: 0.75em; margin-inline-end: 0.4em; background: var(--ct-accent); mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 20C4 10 10 4 20 4c0 10-6 16-16 16z'/%3E%3C/svg%3E") center / contain no-repeat; vertical-align: -0.05em; }
+[dir="rtl"] .ctheme-olive .section-title::before { transform: scaleX(-1); }
+.ctheme-olive .chip, .ctheme-olive .tag { border-radius: 9999px; }
+.ctheme-olive .pro-quote { border-inline-start: 0; padding: 1.25rem 1.5rem; border-radius: var(--ct-radius); background: var(--ct-accent-soft); }
+.ctheme-night .section-title::after { content: ""; display: block; width: 3rem; height: 3px; margin-top: 0.6rem; border-radius: 3px; background: linear-gradient(90deg, var(--ct-accent), oklch(0.76 0.11 238)); box-shadow: 0 0 14px oklch(0.89 0.2 128 / 0.6); }
+[dir="rtl"] .ctheme-night .section-title::after { background: linear-gradient(-90deg, var(--ct-accent), oklch(0.76 0.11 238)); }
+.ctheme-night .pro-id { border-color: oklch(0.89 0.2 128 / 0.18); }
+.ctheme-night .display-title { letter-spacing: -0.04em; }
+.ctheme-night .btn-lime:hover { box-shadow: 0 0 0 1px var(--ct-cta), 0 0 28px -4px oklch(0.89 0.2 128 / 0.6); }
+
+/* Theme picker (pro-tools.tsx ThemePicker): a small page per theme, drawn with the theme's own tokens. */
+.ct-mini { position: relative; display: block; overflow: hidden; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--background); aspect-ratio: 4 / 3; }
+.ct-mini-cover { position: absolute; inset: 0 0 auto; height: 42%; background: var(--ct-pattern, none), var(--ct-cover, var(--gradient-hero)); }
+.ct-mini-card { position: absolute; inset-inline: 10%; top: 28%; bottom: 10%; display: flex; flex-direction: column; gap: 0.35rem; padding: 0.6rem; border-radius: calc(var(--ct-radius, 1.5rem) * 0.5); border: 1px solid var(--border); background: var(--card); color: var(--card-foreground); box-shadow: var(--ct-shadow, var(--elevation-1)); }
+.ct-mini-title { font-family: var(--ct-font, var(--font-sans)); font-weight: 700; font-size: 1.125rem; line-height: 1.1; }
+.ct-mini-line { display: block; height: 0.35rem; width: 70%; border-radius: 9999px; background: var(--muted); }
+.ct-mini-cta { display: block; margin-top: auto; height: 0.9rem; width: 55%; border-radius: 9999px; background: var(--ct-cta, var(--lime)); }
+.ct-page { aspect-ratio: auto; height: 11rem; margin: 0; }
+.ct-page .ct-mini-card { inset-inline: 6%; top: 34%; bottom: 8%; padding: 0.9rem 1rem; }
+.ct-page .ct-mini-title { font-size: 1.5rem; }
 
 /* ---------- Homepage / marketplace surfaces ---------- */
 
@@ -1358,10 +1462,9 @@ input::-ms-clear {
 .ben-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, color-mix(in oklab, var(--ink) 85%, transparent), transparent 70%); }
 
 /* ---------- Public pro page (routes/pros.$id.tsx) ----------
-   Cover = the pro's own published photos (portfolio, then service photos) under an ink fade; without any, the brand
+   Cover = the banner the pro chose (presets), else their portfolio photos under an ink fade; without any, the brand
    cover. The identity card overlaps it as the page's one raised panel; the section bar stays under the header. */
 .pro-cover { position: relative; overflow: hidden; background: var(--gradient-hero); color: var(--navy-foreground); }
-.ctheme .pro-cover { background: var(--ct-cover); }
 .pro-cover-mosaic { position: absolute; inset: 0; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 3px; opacity: 0.8; }
 .pro-cover-mosaic > img { width: 100%; height: 100%; min-width: 0; object-fit: cover; }
 .pro-cover-mosaic[data-n="1"] { grid-template-columns: 1fr; }
@@ -1373,6 +1476,13 @@ input::-ms-clear {
     linear-gradient(to top, var(--background) 0%, color-mix(in oklab, var(--ink) 55%, transparent) 35%, color-mix(in oklab, var(--ink) 25%, transparent) 70%, color-mix(in oklab, var(--ink) 60%, transparent) 100%);
 }
 .ctheme .pro-cover-fade { background: linear-gradient(to top, var(--background) 0%, transparent 30%), color-mix(in oklab, var(--ink) 30%, transparent); }
+/* Chosen banner (presets, src/assets/banners): designed to be seen, so a lighter fade than photos — ink at the top for
+   the breadcrumb, the page background at the bottom under the identity card. */
+.pro-cover-banner { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.pro-cover-fade.pro-cover-fade-soft { background: linear-gradient(to top, var(--background) 0%, transparent 38%), linear-gradient(to bottom, color-mix(in oklab, var(--ink) 45%, transparent) 0%, transparent 22%); }
+.banner-preview { position: relative; height: 8rem; margin: 0; overflow: hidden; border-radius: var(--radius-md); background: var(--gradient-hero); }
+.banner-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.banner-fade { position: absolute; inset: 0; background: linear-gradient(to top, color-mix(in oklab, var(--ink) 70%, transparent) 0%, transparent 70%); }
 .pro-id {
   position: relative;
   border-radius: 1.5rem;
@@ -1475,6 +1585,78 @@ input::-ms-clear {
 @keyframes sd-hero-out { to { translate: 0 10vh; scale: 0.95; opacity: 0.35; } }
 @keyframes sd-cover { to { translate: 0 18%; scale: 1.08; } }
 @keyframes sd-shadow { to { box-shadow: 0 12px 28px -16px color-mix(in oklab, var(--ink) 50%, transparent); } }
+
+/* ---------- Home showcase (service-showcase.tsx) ----------
+   One horizontal stage on the ink brand surface: native scroll + snap (each card can sit in the centre thanks to the
+   inline padding). The coverflow is a view(inline) timeline per slide: side cards turn toward the centre, smaller and
+   dimmer (never under 0.45 opacity); the bar follows the track's scroll timeline. Individual rotate/scale/translate only,
+   so the card's own pointer tilt (transform) still works. No support / reduced motion: a flat carousel, no bar. */
+.sc-stage { position: relative; overflow: hidden; isolation: isolate; background: var(--gradient-ink); color: var(--ink-foreground); timeline-scope: --sc; }
+.sc-track {
+  --sc-w: min(72vw, 21rem);
+  position: relative;
+  display: flex;
+  gap: clamp(1rem, 2vw, 1.5rem);
+  margin: 0;
+  padding: 2.5rem calc(50% - var(--sc-w) / 2) 2rem;
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: calc(50% - var(--sc-w) / 2);
+  scrollbar-width: none;
+  perspective: 1400px;
+  scroll-timeline: --sc inline;
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+/* Always left to right (see service-showcase.tsx); each card keeps the page direction. */
+.sc-track { direction: ltr; }
+[dir="rtl"] .sc-slide { direction: rtl; }
+.sc-track::-webkit-scrollbar { display: none; }
+.sc-track:focus-visible { outline: 2px solid var(--lime); outline-offset: -6px; border-radius: 1rem; }
+.sc-slide { display: flex; flex: 0 0 var(--sc-w); width: var(--sc-w); min-width: 0; scroll-snap-align: center; transform-style: preserve-3d; }
+.sc-slide > * { flex: 1; min-width: 0; }
+.sc-bar { display: none; position: relative; height: 3px; border-radius: 3px; background: oklch(1 0 0 / 0.14); overflow: hidden; }
+.sc-bar-fill { position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(90deg, var(--lime), var(--clay)); transform-origin: left; }
+@media (prefers-reduced-motion: no-preference) {
+  .sc-track { scroll-behavior: smooth; }
+  @supports (animation-timeline: view()) {
+    .sc-slide { animation: sc-flow linear both; animation-timeline: view(inline); }
+    .sc-bar { display: block; }
+    .sc-bar-fill { animation: sc-bar linear both; animation-timeline: --sc; }
+  }
+}
+@keyframes sc-flow {
+  0% { rotate: y 42deg; scale: 0.78; opacity: 0.45; }
+  50% { rotate: y 0deg; scale: 1; opacity: 1; }
+  100% { rotate: y -42deg; scale: 0.78; opacity: 0.45; }
+}
+@keyframes sc-bar { from { transform: scaleX(0.06); } to { transform: scaleX(1); } }
+
+/* ---------- Home cities ribbon (city-ribbon.tsx) ----------
+   One straight lime ribbon of city links. It moves by one row of four identical rows, transform only; hover/focus stops
+   it; reduced motion = still and wrapped. */
+.ribbons { position: relative; margin-top: 1.5rem; overflow: hidden; }
+.ribbon { direction: ltr; overflow: hidden; }
+.ribbon-front { position: relative; background: var(--lime); color: var(--lime-foreground); box-shadow: var(--elevation-1); }
+.ribbon-move { display: flex; width: max-content; }
+.ribbon-row { display: flex; flex-shrink: 0; align-items: center; margin: 0; padding: 0; list-style: none; }
+.ribbon-item { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.5rem 1rem; font-size: clamp(1.125rem, 2vw, 1.75rem); font-weight: 800; line-height: 1; letter-spacing: -0.025em; white-space: nowrap; }
+.ribbon-item::after { content: ""; width: 0.35rem; height: 0.35rem; margin-inline-start: 1rem; border-radius: 9999px; background: currentColor; opacity: 0.45; }
+.ribbon-pin { width: 0.7em; height: 0.7em; flex-shrink: 0; }
+a.ribbon-item { border-radius: 0.5rem; transition: opacity var(--duration-fast) var(--ease-out); }
+a.ribbon-item:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; }
+a.ribbon-item:focus-visible { outline: 3px solid var(--ink); outline-offset: -4px; }
+@media (prefers-reduced-motion: no-preference) {
+  .ribbon-move { animation: ribbon-run 36s linear infinite; }
+  .ribbon:hover .ribbon-move, .ribbon:focus-within .ribbon-move { animation-play-state: paused; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ribbon-copy { display: none; }
+  .ribbon-move { width: auto; }
+  .ribbon-front .ribbon-row { flex-wrap: wrap; justify-content: center; }
+}
+@keyframes ribbon-run { to { transform: translateX(-25%); } }
 
 /* ---------- Dashboard & settings (dash-kit.tsx) ---------- */
 .dash-hero { position: relative; overflow: hidden; isolation: isolate; color: var(--ink-foreground); background: var(--gradient-ink); }

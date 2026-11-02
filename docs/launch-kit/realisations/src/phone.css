@@ -1,0 +1,22 @@
+html,body{width:1600px;height:1200px;overflow:hidden}
+body{font-family:Jakarta,Emoji,sans-serif;position:relative}
+.phone{position:absolute;width:372px;height:780px;border-radius:56px;background:#0b0c10;padding:12px;box-shadow:0 60px 120px -40px rgba(0,0,0,.55),0 0 0 2px rgba(255,255,255,.06) inset}
+.scr{position:relative;width:100%;height:100%;border-radius:45px;overflow:hidden;background:#fff}
+.notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:110px;height:30px;border-radius:20px;background:#0b0c10;z-index:5}
+.status{display:flex;justify-content:space-between;padding:16px 28px 0;font-size:14px;font-weight:700;height:48px}
+.label{position:absolute;left:90px;top:80px}
+.label small{display:block;font-size:18px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;opacity:.7}
+.label b{display:block;font-size:56px;letter-spacing:-.03em;font-weight:800;margin-top:8px}
+.label p{font-size:20px;margin-top:10px;opacity:.75;max-width:460px;line-height:1.45}
+/* video mode: one phone, screens slide */
+body.video .phone{left:50%!important;top:50%!important;transform:translate(-50%,-50%) scale(1.25)!important}
+body.video .label,body.video .extra{display:none}
+.deck{display:flex;width:300%;height:100%}
+.deck>.scr{flex:0 0 33.333%;border-radius:0}
+body.video .deck{animation:slide 12s cubic-bezier(.7,0,.3,1) infinite}
+@keyframes slide{0%,26%{transform:translateX(0)}33%,59%{transform:translateX(-33.333%)}66%,92%{transform:translateX(-66.666%)}100%{transform:translateX(0)}}
+.tap{position:absolute;width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.55);box-shadow:0 0 0 2px rgba(0,0,0,.15);opacity:0;z-index:9;pointer-events:none}
+body.video .tap{animation:tap 12s infinite}
+@keyframes tap{0%,22%{opacity:0;transform:scale(.6)}25%{opacity:1;transform:scale(1)}28%,55%{opacity:0}58%{opacity:1;transform:scale(1)}61%,100%{opacity:0}}
+body:not(.video) .deck>.scr{flex-basis:100%}
+.view{width:100%;height:100%;border-radius:45px;overflow:hidden}

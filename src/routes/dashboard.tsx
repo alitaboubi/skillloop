@@ -12,6 +12,7 @@ import { myRequestsQuery, type RequestRow } from "@/lib/requests-db";
 import { CATEGORIES } from "@/lib/data";
 import { profileQuery } from "@/lib/profiles-db";
 import { clientRequestSummary, profileChecklist, resolveDashboardMode } from "@/lib/request-timeline";
+import { REQUEST_PROGRESS_ENABLED } from "@/lib/request-progress";
 import { seo } from "@/lib/seo";
 import { BrandBackdrop, LoopProgress, PointerField } from "@/components/brand";
 import { clientNextStep } from "@/lib/conversations";
@@ -322,6 +323,7 @@ function RequestItem({ r, received, waited }: { r: RequestRow; received: boolean
   const { t } = useI18n();
   const next = received ? null : clientNextStep(r.status);
   const other = (received ? r.client?.display_name : r.provider?.display_name) || t("account_deleted_name");
+  const progress = REQUEST_PROGRESS_ENABLED ? { ...r, remote: !!r.services?.remote } : undefined;
   return (
     <li className="row-card p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -331,12 +333,12 @@ function RequestItem({ r, received, waited }: { r: RequestRow; received: boolean
         </div>
         <span className="relative z-[2] flex flex-wrap items-center gap-2">
           {waited && <span className="badge badge-warning"><Clock className="size-3.5" aria-hidden />{t("waiting_since", { d: waited })}</span>}
-          <StatusBadge status={r.status} />
+          <StatusBadge status={r.status} progress={progress} />
         </span>
       </div>
       <p dir="auto" className="mt-2 line-clamp-2 text-sm text-muted-foreground">{r.message}</p>
       <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
-        <RequestTimeline status={r.status} createdAt={r.created_at} />
+        <RequestTimeline status={r.status} createdAt={r.created_at} progress={progress} />
         <Link to="/messages" search={{ r: r.id }} className={`btn relative z-[2] min-h-10 ${(received && r.status === "pending") || (!received && next?.action === "chat") ? "btn-lime" : "btn-outline"}`}>{t(received && r.status === "pending" ? "db_reply" : "open_chat")}</Link>
       </div>
       {next?.action && (

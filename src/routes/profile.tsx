@@ -4,7 +4,7 @@ import { rememberCurrentPage } from "@/lib/return-to";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { Archive, ArchiveRestore, AtSign, Briefcase, ExternalLink, Handshake, Hourglass, Images as ImagesIcon, Inbox, LayoutDashboard, MapPin, NotebookPen, Palette, Pencil, PlusCircle, Search, ShieldCheck, UserRound } from "lucide-react";
+import { Archive, ArchiveRestore, AtSign, Briefcase, ExternalLink, Handshake, Hourglass, Images as ImagesIcon, Inbox, LayoutDashboard, MapPin, NotebookPen, Palette, PanelTop, Pencil, PlusCircle, Search, ShieldCheck, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { LANGS, savedLangChange, useI18n, type TKey } from "@/lib/i18n";
 import { CATEGORIES, CITIES } from "@/lib/data";
@@ -19,8 +19,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { myRequestsQuery } from "@/lib/requests-db";
 import { profileQuery } from "@/lib/profiles-db";
 import { PhotoPicker } from "@/components/photo-picker";
+import { AVATAR_PRESETS, AVATAR_SIZE } from "@/lib/presets";
 import { CarnetEditor, ContactsEditor, PortfolioEditor } from "@/components/profile-editors";
 import { ThemePicker } from "@/components/pro-tools";
+import { BannerPicker } from "@/components/banner-picker";
 import { PRO_TOOLS_ENABLED } from "@/lib/pro-tools";
 import { DeleteAccount } from "@/components/delete-account";
 import { RequestActions } from "@/components/request-actions";
@@ -175,6 +177,7 @@ function Settings({ userId }: { userId: string }) {
       <SettingsNav />
       <div className="min-w-0 space-y-8">
         <SettingsForm userId={userId} p={q.data} />
+        <BannerPicker userId={userId} details={q.data.professional_details} />
         <CarnetEditor userId={userId} details={q.data.professional_details} />
         {PRO_TOOLS_ENABLED && <ThemePicker userId={userId} details={q.data.professional_details} />}
         <PortfolioEditor userId={userId} items={q.data.portfolio} />
@@ -187,6 +190,7 @@ function Settings({ userId }: { userId: string }) {
 
 const SETTINGS_SECTIONS: { id: string; label: TKey; icon: typeof UserRound }[] = [
   { id: "profile-info", label: "set_profile", icon: UserRound },
+  { id: "banner", label: "bn_title", icon: PanelTop },
   { id: "carnet", label: "carnet_title", icon: NotebookPen },
   ...(PRO_TOOLS_ENABLED ? [{ id: "theme", label: "ct_title" as TKey, icon: Palette }] : []),
   { id: "portfolio", label: "sd_portfolio", icon: ImagesIcon },
@@ -281,7 +285,8 @@ function SettingsForm({ userId, p }: { userId: string; p: LoadedProfile }) {
       <div id="photo" className="scroll-mt-36">
         <p className="text-sm font-semibold">{t("f_photo")}</p>
         <p className="mb-2 text-xs text-muted-foreground">{t("f_photo_help")}</p>
-        <PhotoPicker round alt="f_photo" image={removed ? null : p.avatar ?? null} onPick={(fl) => { setFile(fl); setRemoved(!fl); }} />
+        <PhotoPicker round alt="f_photo" image={removed ? null : p.avatar ?? null} onPick={(fl) => { setFile(fl); setRemoved(!fl); }}
+          presets={{ groups: [{ items: AVATAR_PRESETS }], size: AVATAR_SIZE, pick: "preset_avatar_pick", title: "preset_avatar_title", description: "preset_avatar_desc" }} />
       </div>
 
       <div>
