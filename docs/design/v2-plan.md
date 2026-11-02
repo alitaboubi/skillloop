@@ -25,10 +25,13 @@ copy only (no fake ratings, counts or claims).
 
 ## Batches
 1. ✅ Service page + Explore (e420d1d).
-2. Pro profile: cover + identity block, meaningful facts (services, cities, languages, member since, Pro/founder),
-   services as a list that fills the space, portfolio first when present, sticky contact on mobile.
-3. Home: shorter path (search → categories → live services → how it works → for pros → FAQ), proof of activity only from
-   real counts, one CTA per section.
-4. How it works, Pour les pros, About, Pricing: one shared editorial template, consistent sections.
-5. Dashboard + messages (design slice 4), then auth/settings consistency pass (slice 5).
+2. ✅ Pro profile: « Zone d’intervention » (cities from services + En ligne) replaces « 1 Domaines » (kept only when > 1);
+   a single service shows as a wide card (photo + description) instead of half a row; odd stat fills the row on phones;
+   sticky « Demander un devis » bar on mobile.
+3. ✅ Home: 11 → 9 sections — « Exemples de besoins » removed (the hero already has examples), « À vérifier avant de
+   choisir un pro » moved to How it works (customer side, ChoosingChecklist in page-sections.tsx).
+4. ✅ Pour les pros: founders' offer band (ProOffer in plan-card.tsx, real places left, links to /offer and /pricing;
+   only with VITE_PRO_PLAN). About and Pricing reviewed: already consistent, unchanged.
+5. ✅ Messages with no conversation: one centred panel with both paths. Dashboard reviewed: unchanged.
+Not done yet: auth/settings consistency pass; dashboard with real data (only checked empty).
 Each batch: browser check FR + AR at 1366 and 390 px, tests, then commit.

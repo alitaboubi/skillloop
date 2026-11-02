@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { useI18n, type TKey } from "@/lib/i18n";
 import type { LucideIcon } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BrandBackdrop, PointerField } from "@/components/brand";
@@ -87,6 +88,24 @@ export function FinalCta({ title, sub, children }: { title: string; sub?: string
         </div>
         <div className="flex flex-wrap gap-3">{children}</div>
       </div>
+    </section>
+  );
+}
+
+/** « À vérifier avant de choisir un pro »: five things a client checks on any listing (how-it-works, customer side). */
+export function ChoosingChecklist() {
+  const { t } = useI18n();
+  return (
+    <section aria-labelledby="check" className="mt-14">
+      <SectionHeading id="check" title={t("hp_check_title")} sub={t("hp_check_sub")} />
+      <ol className="mt-8 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-5">
+        {([1, 2, 3, 4, 5] as const).map((i) => (
+          <li key={i} className="sd-rise border-s-2 border-lime ps-4" style={{ "--sd-i": i - 1 } as CSSProperties}>
+            <h3 className="font-bold">{t(`hp_check_${i}_t` as TKey)}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">{t(`hp_check_${i}_d` as TKey)}</p>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }

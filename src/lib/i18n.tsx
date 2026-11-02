@@ -1300,6 +1300,8 @@ const fr = {
   // SkillLoop Pro, phase 3a: manual payments (checkout + operator)
   ex_show_empty: "Voir les {n} catégories sans service pour l’instant",
   ex_hide_empty: "Masquer les catégories vides",
+  pp_stat_zone: "Zone d’intervention",
+  pr_offer_prices: "Plan gratuit pour toujours · SkillLoop Pro à {price} DT/mois ensuite, sans engagement.",
   sd_flow_t: "Comment ça se passe",
   sd_flow1_t: "Vous décrivez votre besoin",
   sd_flow1_d: "Une demande gratuite, sans engagement, envoyée au pro.",
@@ -2691,6 +2693,8 @@ const en: Dict = {
   // SkillLoop Pro, phase 3a: manual payments (checkout + operator)
   ex_show_empty: "Show the {n} categories with no service yet",
   ex_hide_empty: "Hide empty categories",
+  pp_stat_zone: "Where they work",
+  pr_offer_prices: "Free plan forever · SkillLoop Pro at {price} TND/month afterwards, no commitment.",
   sd_flow_t: "How it works",
   sd_flow1_t: "You describe what you need",
   sd_flow1_d: "A free, no-commitment request sent to the pro.",
@@ -4079,6 +4083,8 @@ const ar: Dict = {
   // SkillLoop Pro, phase 3a: manual payments (checkout + operator)
   ex_show_empty: "شوف الـ{n} أصناف اللي ما فيهمش خدمات للّحظة",
   ex_hide_empty: "خبّي الأصناف الفارغة",
+  pp_stat_zone: "منطقة الخدمة",
+  pr_offer_prices: "خطة مجانية ديما · SkillLoop Pro بـ{price} د/الشهر من بعد، بلا التزام.",
   sd_flow_t: "كيفاش تمشي",
   sd_flow1_t: "توصف شنوّة تحتاج",
   sd_flow1_d: "طلب بلاش وبلا التزام يوصل للمحترف.",

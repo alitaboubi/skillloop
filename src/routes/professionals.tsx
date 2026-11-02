@@ -5,6 +5,8 @@ import { useI18n } from "@/lib/i18n";
 import { seo } from "@/lib/seo";
 import { BenefitItem, FaqBlock, FinalCta, ProcessSteps, SectionHeading, type Step } from "@/components/page-sections";
 import { PointerField } from "@/components/brand";
+import { PRO_PLAN_ENABLED } from "@/lib/plan";
+import { ProOffer } from "@/components/plan-card";
 
 export const Route = createFileRoute("/professionals")({
   head: () => seo("Pour les professionnels", "Publiez un service clair sur SkillLoop, sur place ou à distance, et recevez des demandes de clients en Tunisie.", { path: "/professionals" }),
@@ -65,6 +67,7 @@ function Page() {
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <SectionHeading title={t("pr_steps_t")} />
         <div className="mt-8"><ProcessSteps steps={steps} /></div>
+        {PRO_PLAN_ENABLED && <div className="mt-14"><ProOffer /></div>}
       </section>
 
       <section className="bg-card">

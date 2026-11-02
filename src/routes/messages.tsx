@@ -68,6 +68,29 @@ function Page() {
   const last = lastByRequest(lastQ.data ?? []);
   const list = sortByActivity(reqs.data ?? [], last);
   const active = list.find((x) => x.id === r);
+  // No conversation yet: one centred panel with both paths, not a list column beside an empty thread pane.
+  if (!reqs.isLoading && !reqs.isError && !list.length)
+    return (
+      <>
+        <PageHero title={t("messages")} />
+        <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+          <section aria-labelledby="msgs-empty" className="panel p-6 text-center sm:p-10">
+            <span className="icon-well-clay mx-auto size-14"><MessageSquare className="size-6" aria-hidden /></span>
+            <h2 id="msgs-empty" className="mt-4 text-xl font-bold">{t("msgs_empty_t")}</h2>
+            <div className="mt-8 grid gap-4 text-start sm:grid-cols-2">
+              <div className="rounded-2xl border bg-surface-sunken p-5">
+                <p className="text-sm text-muted-foreground">{t("msgs_empty_client")}</p>
+                <Link to="/explore" className="btn btn-lime mt-4 w-full">{t("explore_services")}</Link>
+              </div>
+              <div className="rounded-2xl border bg-surface-sunken p-5">
+                <p className="text-sm text-muted-foreground">{t("msgs_empty_pro")}</p>
+                <Link to="/offer" className="btn btn-outline mt-4 w-full">{t("offer_service")}</Link>
+              </div>
+            </div>
+          </section>
+        </div>
+      </>
+    );
   return (
     <>
       <PageHero title={t("messages")} />
