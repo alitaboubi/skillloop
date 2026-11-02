@@ -9,25 +9,31 @@ import { BrandBackdrop, LoopProgress, PointerField } from "@/components/brand";
 import { PRO_TOOLS_ENABLED } from "@/lib/pro-tools";
 import { useProSteps } from "@/lib/pro-onboarding";
 import { useAuth } from "@/lib/auth";
+import { PAYMENTS_ENABLED, checkoutState, myPaymentsQuery } from "@/lib/payments";
 
-/** Dashboard « Mon abonnement » (only rendered when PRO_PLAN_ENABLED). Real data only; no payment exists yet. */
+/** Dashboard « Mon abonnement » (only rendered when PRO_PLAN_ENABLED). Real data only; payment (manual) only with PAYMENTS_ENABLED. */
 export function PlanCard({ userId, publishedServices }: { userId: string; publishedServices: number }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const q = useQuery(planQuery(userId));
+  const pays = useQuery(myPaymentsQuery(userId));
   const started = useProSteps(userId, !!q.data && isPro(q.data));
   if (q.isLoading || q.isError || !q.data) return null;
   const p = q.data;
   const pro = isPro(p);
+  const pending = !!checkoutState(pays.data ?? []).pending;
+  const canPay = PAYMENTS_ENABLED && (p.status !== "free" || publishedServices > 0);
+  const day = (iso: string) => new Intl.DateTimeFormat(lang === "ar" ? "ar-TN" : lang, { day: "numeric", month: "long", year: "numeric" }).format(new Date(iso));
   return (
     <section aria-labelledby="plan-t" className={pro ? "panel-action p-6 pt-7" : "panel p-6"}>
       <div className="flex flex-wrap items-center gap-2">
         <h2 id="plan-t" className="text-lg font-bold">{t(pro ? "plan_pro_name" : "plan_free_name")}</h2>
         {p.status === "trial" && <span className="badge badge-success"><Clock className="size-3.5" aria-hidden />{t("plan_trial_left", { n: trialDaysLeft(p) })}</span>}
         {p.founder && <span className="tag tag-new">{t("plan_founder")}</span>}
+        {PAYMENTS_ENABLED && pending && <span className="badge badge-warning">{t("plan_pay_pending")}</span>}
       </div>
       <p className="mt-2 max-w-prose text-sm text-muted-foreground">
-        {p.status === "trial" ? t("plan_trial_d", { price: PRO_PRICE_TND.month })
-          : p.status === "active" ? t("plan_active_d")
+        {p.status === "trial" ? t(PAYMENTS_ENABLED ? "plan_trial_pay_d" : "plan_trial_d", { price: PRO_PRICE_TND.month })
+          : p.status === "active" ? (PAYMENTS_ENABLED && p.periodEnd ? `${t("plan_active_d")} ${t("plan_active_until", { d: day(p.periodEnd) })}` : t("plan_active_d"))
           : p.status === "ended" ? t("plan_ended_d", { s: PLAN_LIMITS.free.services, p: PLAN_LIMITS.free.portfolio })
           : publishedServices === 0 ? t("plan_free_start_d") : t("plan_free_d", { s: PLAN_LIMITS.free.services, p: PLAN_LIMITS.free.portfolio })}
       </p>
@@ -39,6 +45,10 @@ export function PlanCard({ userId, publishedServices }: { userId: string; publis
             {t("plan_progress", { n: started.done, total: started.steps.length })}
           </span>
         )}
+        {canPay && !pending && (
+          <Link to="/checkout" className={pro ? "btn btn-outline min-h-10" : "btn btn-lime min-h-10"}>{t(pro ? "plan_extend" : "plan_pay_cta")}</Link>
+        )}
+        {canPay && pending && <Link to="/checkout" className="link-sea text-sm font-semibold">{t("plan_pay_pending")}</Link>}
         <Link to="/pricing" className="link-sea text-sm font-semibold">{t("plan_see")}</Link>
       </div>
     </section>
@@ -142,7 +152,10 @@ export function PricingPage() {
               <>
                 <Link to="/dashboard" search={{ mode: "provider", section: "pro" }} className="btn btn-lime relative mt-6 w-full"><Sparkles className="size-4" aria-hidden />{t("plan_open_space")}</Link>
                 {plan?.status === "trial" && <p className="relative mt-2 text-center text-sm text-ink-muted">{t("ph_trial", { n: trialDaysLeft(plan) })}</p>}
+                {PAYMENTS_ENABLED && <Link to="/checkout" search={{ period: yearly ? "year" : "month" }} className="relative mt-3 block text-center text-sm font-semibold text-lime underline-offset-4 hover:underline">{t(plan?.status === "trial" ? "pc_trial_pay" : "plan_extend")}</Link>}
               </>
+            ) : mine === "ended" && PAYMENTS_ENABLED ? (
+              <Link to="/checkout" search={{ period: yearly ? "year" : "month" }} className="btn btn-lime relative mt-6 w-full">{t("pc_ended_pay")}</Link>
             ) : mine === "ended" ? (
               <p className="relative mt-6 rounded-2xl border border-ink-foreground/20 px-4 py-3 text-sm text-ink-muted">{t("pc_ended_cta")}</p>
             ) : <Link to="/offer" className="btn btn-lime relative mt-6 w-full">{t("pc_cta_pro")}</Link>}
@@ -203,7 +216,8 @@ export function PricingPage() {
       </div>
       {mine === "pro" ? (
         <FinalCta title={t("pc_cta_t_pro")}><Link to="/dashboard" search={{ mode: "provider", section: "pro" }} className="btn btn-lime">{t("plan_open_space")}</Link></FinalCta>
-      ) : mine !== "ended" && <FinalCta title={t("pc_cta_t")}><Link to="/offer" className="btn btn-lime">{t("pc_cta_pro")}</Link></FinalCta>}
+      ) : mine === "ended" ? (PAYMENTS_ENABLED && <FinalCta title={t("pc_cta_t")}><Link to="/checkout" className="btn btn-lime">{t("pc_ended_pay")}</Link></FinalCta>)
+      : <FinalCta title={t("pc_cta_t")}><Link to="/offer" className="btn btn-lime">{t("pc_cta_pro")}</Link></FinalCta>}
     </>
   );
 }
