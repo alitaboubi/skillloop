@@ -113,3 +113,4 @@ with two accounts (founder trial → expiry → downgrade), and the ad text chec
     history is there when they upgrade. Indicative numbers, never a promise of clients.
   - **Thèmes de carnet:** sea / clay / olive / night (cover + carnet accent); choosing needs Pro, shown only while Pro.
   - After Pro ends: content stays (videos), tools stop (theme paused, stats hidden, card downloads locked).
+- Phase 3a (2026-11-03): manual payments built behind VITE_PAYMENTS (off) — /checkout (period → D17 / virement / Flouci with copyable number/RIB and the pro's code → reference), pending / refused states and history; operator validation on /admin extends Pro in the database. Migration 20261103120000_payments.sql PREPARED, not applied. Stays off until the auto-entrepreneur card + accountant answer (VAT, receipts). Next: expiry reminders (day 23/29), Konnect once ~30 paying pros.

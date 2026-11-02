@@ -22,6 +22,7 @@
 - [x] UX batch 4 "Provider workspace and motivation" — Today view (pending oldest first with wait, drafts, not-accepting banner, caught-up + share), drafts surfaced, teaching empty states (listing sketch, category shortcuts, two-path messages). Browser-unverified.
 - [x] UX batch 5 "Cross-cutting delight" + Turnstile — Explore facet counts + greyed zeros + New badge + results fade; 2 view transitions; auth context line, show-password, live rule; calmer homepage CTA; Turnstile widget (off without site key, token → Supabase captchaToken). Browser-unverified; Supabase CAPTCHA not enabled.
 - [x] Turnstile on /forgot-password (action "reset", token → resetPasswordForEmail captchaToken). All three Supabase-CAPTCHA-protected forms now covered; Supabase CAPTCHA still not enabled.
+- [x] Pro phase 3a — manual payments (D17 / virement / Flouci → reference → operator validation in /admin), behind VITE_PAYMENTS (off); migration 20261103120000_payments.sql prepared, not applied. Browser-checked with mocked data (fr/ar, 375 px).
 - [ ] Phase 2 backend: extra statuses, scoped request form, message lock (blocked: backend choice + migration approval)
 - [ ] Phase 3 actions: pause/duplicate/soft delete, availability editing
 - [ ] Phase 4 — AI Service Builder

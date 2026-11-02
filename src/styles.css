@@ -499,6 +499,10 @@
   background: var(--muted);
   color: var(--muted-foreground);
 }
+@utility badge-danger {
+  background: color-mix(in oklab, var(--destructive) 14%, var(--card));
+  color: var(--destructive);
+}
 
 /* Chips: pill filters/toggles. Selected (aria-pressed) = lime, like every selected state. */
 @utility chip {
