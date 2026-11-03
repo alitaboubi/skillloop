@@ -221,3 +221,34 @@ export function PricingPage() {
     </>
   );
 }
+
+/** « Pour les pros »: the founders' offer in one band (only rendered when PRO_PLAN_ENABLED). Real places left only. */
+export function ProOffer() {
+  const { t } = useI18n();
+  const placesLeft = useQuery(foundersLeftQuery()).data;
+  return (
+    <section aria-labelledby="pro-offer" className="relative overflow-hidden rounded-3xl bg-ink-hero p-6 text-ink-foreground shadow-lg sm:p-10">
+      <BrandBackdrop variant="intro" />
+      <div className="relative grid items-center gap-8 lg:grid-cols-[1fr_auto]">
+        <div>
+          <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-lime"><Sparkles className="size-4" aria-hidden />{t("plan_pro_name")}</p>
+          <h2 id="pro-offer" className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">{t("pc_founders_t", { n: FOUNDERS_CAP })}</h2>
+          <p className="mt-3 max-w-2xl text-ink-muted">{t("pc_founders_d")}</p>
+          <p className="mt-4 text-sm font-semibold">{t("pr_offer_prices", { price: PRO_PRICE_TND.month })}</p>
+        </div>
+        <div className="flex flex-col items-start gap-4 lg:items-center">
+          {typeof placesLeft === "number" && (
+            <div className="flex items-center gap-3">
+              <LoopProgress value={FOUNDERS_CAP - placesLeft} total={FOUNDERS_CAP} label={t("pc_founders_progress", { n: FOUNDERS_CAP - placesLeft, total: FOUNDERS_CAP })} className="w-16" />
+              <span className="font-bold text-lime">{t("pc_founders_left", { n: placesLeft })}</span>
+            </div>
+          )}
+          <div className="flex flex-wrap gap-3">
+            <Link to="/offer" className="btn btn-lime"><Crown className="size-4" aria-hidden />{t("pc_cta_pro")}</Link>
+            <Link to="/pricing" className="btn btn-ghost-dark">{t("plan_see")}</Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

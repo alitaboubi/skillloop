@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { z } from "zod";
 import { Info, SearchX, SlidersHorizontal, X } from "lucide-react";
 import { countKey, useI18n } from "@/lib/i18n";
@@ -49,17 +50,30 @@ function CategoryChip({ id, label, selected, n, onPick }: { id: CategoryId | und
   );
 }
 
+/** Categories with results first (stable order otherwise); empty ones are counted separately so they can fold away. */
+function orderedCategories(counts: FacetCounts | null, selected: string | undefined) {
+  const has = (id: CategoryId) => !counts || (counts.category[id] ?? 0) > 0 || id === selected;
+  return { full: CATEGORIES.filter((c) => has(c.id)), empty: CATEGORIES.filter((c) => !has(c.id)) };
+}
+
 function Filters({ s, set, counts, total }: { s: ExploreSearch; set: (p: Partial<ExploreSearch>) => void; counts: FacetCounts | null; total: number | null }) {
   const { t } = useI18n();
+  const [showEmpty, setShowEmpty] = useState(false);
+  const { full, empty } = orderedCategories(counts, s.category);
   return (
     <>
       <fieldset>
         <legend className="text-sm font-semibold text-muted-foreground">{t("category")}</legend>
         <div className="mt-2 flex flex-wrap gap-2">
-          {[{ id: undefined, key: "cat_all" as const }, ...CATEGORIES].map((c) => (
+          {[{ id: undefined, key: "cat_all" as const }, ...full, ...(showEmpty ? empty : [])].map((c) => (
             <CategoryChip key={c.id ?? "all"} id={c.id} label={t(c.key)} selected={s.category === c.id} n={c.id ? counts?.category[c.id] ?? null : total} onPick={() => set({ category: c.id })} />
           ))}
         </div>
+        {empty.length > 0 && (
+          <button type="button" onClick={() => setShowEmpty((v) => !v)} aria-expanded={showEmpty} className="link-sea mt-3 text-sm font-semibold">
+            {t(showEmpty ? "ex_hide_empty" : "ex_show_empty", { n: empty.length })}
+          </button>
+        )}
       </fieldset>
       <label className="mt-5 block text-sm font-semibold text-muted-foreground">
         {t("location")}
@@ -133,7 +147,7 @@ function Explore() {
           {/* Mobile/tablet: categories stay one tap away without opening the filter sheet. */}
           <div role="group" aria-label={t("category")} className="-mx-4 mb-4 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:hidden">
             <div className="flex w-max gap-2">
-              {[{ id: undefined, key: "cat_all" as const }, ...CATEGORIES].map((c) => (
+              {[{ id: undefined, key: "cat_all" as const }, ...Object.values(orderedCategories(counts, s.category)).flat()].map((c) => (
                 <CategoryChip key={c.id ?? "all"} id={c.id} label={t(c.key)} selected={s.category === c.id} n={c.id ? counts?.category[c.id] ?? null : totalAllCats} onPick={() => set({ category: c.id })} />
               ))}
             </div>

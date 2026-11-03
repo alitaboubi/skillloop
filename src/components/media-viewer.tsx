@@ -10,7 +10,12 @@ export type MediaItem = { src: string; alt: string; caption?: string | null | un
 export function FramedImage({ src, alt, className = "", eager = false }: { src: string; alt: string; className?: string; eager?: boolean }) {
   const { t } = useI18n();
   const [state, setState] = useState<"loading" | "ok" | "error">("loading");
-  useEffect(() => setState("loading"), [src]);
+  const img = useRef<HTMLImageElement>(null);
+  // A server-rendered image can finish loading before hydration, so React never sees onLoad: read it from the element.
+  useEffect(() => {
+    const el = img.current;
+    setState(el?.complete ? (el.naturalWidth > 0 ? "ok" : "error") : "loading");
+  }, [src]);
   return (
     <span className={`media-frame ${className}`}>
       {state === "loading" && <span className="skeleton-block absolute inset-0 rounded-none" aria-hidden />}
@@ -18,6 +23,7 @@ export function FramedImage({ src, alt, className = "", eager = false }: { src: 
         <span className="media-empty"><ImageOff className="size-7" aria-hidden /><span className="text-sm">{t("sd_photo_error")}</span></span>
       ) : (
         <img
+          ref={img}
           src={src}
           alt={alt}
           loading={eager ? "eager" : "lazy"}

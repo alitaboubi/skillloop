@@ -3,7 +3,7 @@ import { z } from "zod";
 import { FileText, Inbox, MessageCircle, PenLine, Search, Send, UserPlus, Eye } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { seo } from "@/lib/seo";
-import { FaqBlock, FinalCta, PageIntro, ProcessSteps, SectionHeading, type Step } from "@/components/page-sections";
+import { ChoosingChecklist, FaqBlock, FinalCta, PageIntro, ProcessSteps, SectionHeading, type Step } from "@/components/page-sections";
 
 export const Route = createFileRoute("/how-it-works")({
   validateSearch: z.object({ side: z.enum(["customer", "provider"]).optional().catch(undefined) }),
@@ -61,6 +61,7 @@ function Page() {
           <SectionHeading title={side === "customer" ? t("hw_c_title") : t("hw_p_title")} sub={side === "customer" ? t("hw_c_sub") : t("hw_p_sub")} />
           <div className="mt-8"><ProcessSteps steps={side === "customer" ? customer : provider} /></div>
         </div>
+        {side === "customer" && <ChoosingChecklist />}
 
         <div className="mt-10 flex gap-3 rounded-2xl border bg-surface-sunken p-5">
           <FileText className="mt-0.5 size-5 shrink-0 text-sea" aria-hidden />
