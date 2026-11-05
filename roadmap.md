@@ -27,4 +27,4 @@
 - [ ] Phase 2 backend: extra statuses, scoped request form, message lock (blocked: backend choice + migration approval)
 - [ ] Phase 3 actions: pause/duplicate/soft delete, availability editing
 - [ ] Phase 4 — AI Service Builder
-- [ ] Phase 5 — Trust and growth (propose first)
+- [ ] Phase 5 — Trust and growth: client reviews — schema APPLIED AND VERIFIED 2026-11-05 (request_progress + reviews; verify 4/4 + 10/10, db-test passed on your project; spec docs/product/reviews.md; app rules src/lib/reviews.ts). Screens built behind VITE_REVIEWS (off): conversation (client form / pro reply + report), dashboard (« À noter », pro « Avis » tab), public (profile section + badge, service page, cards). Checked with sample data on a temporary local page (deleted); real flow needs a signed-in check with the flag on.

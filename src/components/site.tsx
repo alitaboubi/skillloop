@@ -1,6 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { REVIEWS_ENABLED, formatRating, summaryDisplay } from "@/lib/reviews";
+import { reviewSummariesQuery } from "@/lib/reviews-db";
 import { ReelButton, SocialLinks } from "@/components/reel-video";
-import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Menu, X, MapPin, Wifi, Star, BadgeCheck, Sun, Moon, Monitor, Home, Search, MessageSquare, User, PlusCircle, ChevronDown, LayoutDashboard, Briefcase, Settings, LogOut, Sparkles, ImageIcon, ShieldCheck } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { profileQuery } from "@/lib/profiles-db";
@@ -28,7 +30,18 @@ const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayout
 /** `initial` = the list the server rendered with (Explore), so the first browser render matches the HTML. */
 export function useAllServices(initial?: Service[] | null) {
   const q = useQuery(initial ? { ...publishedServicesQuery, initialData: initial } : publishedServicesQuery);
-  return { services: q.data ?? [], isLoading: q.isLoading, isError: q.isError, refetch: q.refetch };
+  // Reviews (VITE_REVIEWS): each card shows its pro's database summary; services of pros without reviews are unchanged.
+  const owners = REVIEWS_ENABLED ? (q.data ?? []).flatMap((s) => (s.ownerId ? [s.ownerId] : [])) : [];
+  const sums = useQuery(reviewSummariesQuery(owners));
+  const services = useMemo(() => {
+    const list = q.data ?? [];
+    if (!sums.data) return list;
+    return list.map((s) => {
+      const d = s.ownerId ? summaryDisplay(sums.data.get(s.ownerId)) : null;
+      return d ? { ...s, rating: d } : s;
+    });
+  }, [q.data, sums.data]);
+  return { services, isLoading: q.isLoading, isError: q.isError, refetch: q.refetch };
 }
 
 /** Independent, directly selectable theme buttons (no dropdown). */
@@ -481,8 +494,8 @@ export function ServiceCard({ s, wide = false }: { s: Service; wide?: boolean })
         </div>
         {s.rating && s.rating.count > 0 && (
           <p className="flex items-center gap-1 text-sm">
-            <Star className="size-4 fill-current text-lime" aria-hidden />
-            <span>{t("rating_of", { r: s.rating.avg.toFixed(1), n: s.rating.count })}</span>
+            <Star className="size-4 fill-current text-star" aria-hidden />
+            <span>{t("rating_of", { r: formatRating(s.rating.avg, lang), n: s.rating.count })}</span>
           </p>
         )}
         <div className="mt-auto flex items-end justify-between gap-2 border-t pt-3">

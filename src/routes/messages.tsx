@@ -1,4 +1,5 @@
 import { ErrorState, RequestTimeline, StatusBadge } from "@/components/states";
+import { ClientReviewPanel, ProReviewInThread } from "@/components/review-kit";
 import { limitMessage } from "@/lib/limits";
 import { toast } from "sonner";
 import { RequestActions } from "@/components/request-actions";
@@ -264,6 +265,8 @@ export function Thread({ req, userId, onBack }: { req: RequestRow; userId: strin
         {req.status === "declined" && role === "client" && <Link to="/explore" className="shrink-0 font-semibold text-sea underline-offset-4 hover:underline">{t("explore_services")}</Link>}
       </div>
       <RequestProgress req={req} userId={userId} proName={role === "client" ? otherName : ""} remote={!!svc?.remote} />
+      <ClientReviewPanel req={req} userId={userId} proName={otherName} />
+      <ProReviewInThread req={req} userId={userId} proName={req.provider?.display_name || ""} clientName={otherName} />
       <details className="border-b px-4 py-3">
         <summary className="cursor-pointer text-sm font-semibold">{t("tl_title")}</summary>
         <div className="mt-3"><RequestTimeline status={req.status} createdAt={req.created_at} progress={progress} /></div>

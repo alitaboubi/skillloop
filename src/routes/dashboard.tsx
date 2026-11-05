@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ProReviews, ReviewTodo } from "@/components/review-kit";
+import { REVIEWS_ENABLED } from "@/lib/reviews";
 import { rememberCurrentPage } from "@/lib/return-to";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
@@ -26,11 +28,11 @@ import { ProHub } from "@/components/pro-tools";
 import { signImages } from "@/lib/services-db";
 import { DashHero, SegSlide, ServiceTile, StatTile } from "@/components/dash-kit";
 
-const SECTIONS = ["overview", "pro", "services", "requests", "portfolio", "preview"] as const;
+const SECTIONS = ["overview", "pro", "services", "requests", "reviews", "portfolio", "preview"] as const;
 type Section = (typeof SECTIONS)[number];
 type Mode = "client" | "provider";
 // "pro" (Pro tools: statistics, card & QR) exists only with the plan.
-const MODE_SECTIONS: Record<Mode, readonly Section[]> = { client: ["overview", "requests"], provider: SECTIONS.filter((x) => x !== "pro" || PRO_PLAN_ENABLED) };
+const MODE_SECTIONS: Record<Mode, readonly Section[]> = { client: ["overview", "requests"], provider: SECTIONS.filter((x) => (x !== "pro" || PRO_PLAN_ENABLED) && (x !== "reviews" || REVIEWS_ENABLED)) };
 
 export const Route = createFileRoute("/dashboard")({
   validateSearch: z.object({
@@ -54,7 +56,7 @@ const myServicesQuery = (userId: string) => ({
 /** Checklist items jump to the matching field in profile settings. */
 const CHECK_ANCHOR: Partial<Record<TKey, string>> = { db_check_photo: "photo", db_check_bio: "bio", db_check_availability: "availability", db_check_carnet: "carnet" };
 
-const SECTION_LABEL: Record<Section, TKey> = { overview: "db_overview", services: "my_services", requests: "received_requests", portfolio: "db_portfolio", preview: "db_preview", pro: "db_pro_tools" };
+const SECTION_LABEL: Record<Section, TKey> = { overview: "db_overview", services: "my_services", requests: "received_requests", reviews: "rv_tab", portfolio: "db_portfolio", preview: "db_preview", pro: "db_pro_tools" };
 
 function Page() {
   const { t } = useI18n();
@@ -123,6 +125,8 @@ function Page() {
             <Services userId={user.id} />
           ) : section === "requests" ? (
             <Requests userId={user.id} received />
+          ) : section === "reviews" ? (
+            <ProReviews userId={user.id} proName={name} />
           ) : section === "portfolio" ? (
             <Portfolio userId={user.id} />
           ) : section === "pro" ? (
@@ -147,6 +151,7 @@ function ClientOverview({ userId }: { userId: string }) {
   return (
     <div className="space-y-8">
       <p className="text-muted-foreground">{t("db_client_intro")}</p>
+      <ReviewTodo userId={userId} />
       {mine.length > 0 && (
         <dl className="grid gap-4 sm:grid-cols-3">
           {stats.map(([k, v, tone, Icon]) => <StatTile key={k} icon={Icon} value={v} label={t(k)} tone={tone} />)}
