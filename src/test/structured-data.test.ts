@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { homeLd, ldScript, profileLd, serviceLd } from "@/lib/structured-data";
-import { profileSeo, serviceSeo } from "@/lib/seo";
+import { homeSeo, profileSeo, serviceSeo } from "@/lib/seo";
 
 const O = "https://skillloop.example";
 const svc = { id: "s1", title: "Cours de maths", description: "Soutien lycée.", category: "tutoring" as const, city: "Sousse", remote: false,
@@ -48,6 +48,13 @@ describe("profile and home JSON-LD", () => {
 
   it("home: WebSite + Organization", () => {
     expect(homeLd(O).map((x) => x["@type"])).toEqual(["WebSite", "Organization"]);
+    for (const x of homeLd(O)) expect(x["alternateName"]).toContain("Skill Loop");
+  });
+
+  it("home title leads with the brand, without a duplicate suffix", () => {
+    const title = (homeSeo(O).meta[0] as { title: string }).title;
+    expect(title.startsWith("SkillLoop Tunisie")).toBe(true);
+    expect(title).not.toContain("| SkillLoop");
   });
 });
 

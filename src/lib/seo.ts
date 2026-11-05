@@ -26,16 +26,24 @@ export function snippet(text: string, max = 160): string {
 
 type LdBuilder = (origin: string) => Record<string, unknown> | Record<string, unknown>[];
 
-export const seo = (title: string, description: string, opts: { path?: string; origin?: string | null; noindex?: boolean; type?: string; ld?: LdBuilder } = {}) => {
+export const seo = (
+  title: string,
+  description: string,
+  opts: { path?: string; origin?: string | null; noindex?: boolean; type?: string; ld?: LdBuilder; brandFirst?: boolean } = {},
+) => {
   const origin = opts.origin === undefined ? siteUrl() : opts.origin;
   const canonical = opts.path && origin ? `${origin}${opts.path}` : null;
+  // The home page leads with the brand ("SkillLoop Tunisie — …") so brand searches match the title's first words.
+  const full = opts.brandFirst ? title : `${title} | SkillLoop`;
   return {
     meta: [
-      { title: `${title} | SkillLoop` },
+      { title: full },
       { name: "description", content: description },
-      { property: "og:title", content: `${title} | SkillLoop` },
+      { property: "og:title", content: full },
       { property: "og:description", content: description },
       { property: "og:type", content: opts.type ?? "website" },
+      { property: "og:site_name", content: "SkillLoop" },
+      { property: "og:locale", content: "fr_TN" },
       ...(opts.noindex ? [{ name: "robots", content: "noindex" }] : []),
       ...(canonical ? [{ property: "og:url", content: canonical }] : []),
       { name: "twitter:card", content: "summary_large_image" },
@@ -48,9 +56,11 @@ export const seo = (title: string, description: string, opts: { path?: string; o
 
 /** Home page head, with WebSite/Organization structured data. */
 export const homeSeo = (origin?: string | null) =>
-  seo("Services locaux et à distance en Tunisie", "Réparations, cours, digital, auto, événements : trouvez un prestataire près de chez vous ou à distance, ou publiez votre service.", {
-    path: "/", ld: homeLd, ...(origin === undefined ? {} : { origin }),
-  });
+  seo(
+    "SkillLoop Tunisie — Services locaux et à distance",
+    "SkillLoop (Skill Loop) Tunisie : réparations, cours, digital, auto, événements. Trouvez un prestataire près de chez vous ou à distance, ou publiez votre service.",
+    { path: "/", ld: homeLd, brandFirst: true, ...(origin === undefined ? {} : { origin }) },
+  );
 
 /** Head for a public service page: built only from the published listing's own text. */
 export function serviceSeo(s: Parameters<typeof serviceLd>[0] | undefined, origin?: string | null) {
