@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { REVIEWS_ENABLED, formatRating, summaryDisplay } from "@/lib/reviews";
 import { reviewSummariesQuery } from "@/lib/reviews-db";
-import { ReelButton, SocialLinks } from "@/components/reel-video";
+import { ReelButton, ReelDialog, SocialLinks } from "@/components/reel-video";
 import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Menu, X, MapPin, Wifi, Star, BadgeCheck, Sun, Moon, Monitor, Home, Search, MessageSquare, User, PlusCircle, ChevronDown, LayoutDashboard, Briefcase, Settings, LogOut, Sparkles, ImageIcon, ShieldCheck } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -341,6 +341,10 @@ export function SiteHeader() {
   const { user } = useAuth();
   useUnreadLive(user?.id); // one realtime listener for the unread badges
   const [open, setOpen] = useState(false);
+  const [reel, setReel] = useState(false);
+  const pathname = useRouterState({ select: (st) => st.location.pathname });
+  // Any navigation (logo, menu link, bottom nav) closes the mobile menu.
+  useEffect(() => setOpen(false), [pathname]);
   const [search, setSearch] = useState(false);
   const [searchLoaded, setSearchLoaded] = useState(false);
   const [mac, setMac] = useState(false);
@@ -392,7 +396,7 @@ export function SiteHeader() {
             {links.map((l) => (
               <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="py-3 text-base text-navy-foreground">{l.label}</Link>
             ))}
-            <ReelButton mobile onOpen={() => setOpen(false)} />
+            <ReelButton mobile onOpen={() => { setOpen(false); setReel(true); }} />
           </nav>
           <div className="mt-3 flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-3">
@@ -404,6 +408,8 @@ export function SiteHeader() {
           </div>
         </div>
       )}
+      {/* Outside the menu: the menu closes (unmounts) as the reel opens. */}
+      <ReelDialog open={reel} onOpenChange={setReel} />
       {searchLoaded && <Suspense fallback={null}><SearchPalette open={search} onOpenChange={openSearch} /></Suspense>}
     </header>
   );

@@ -35,7 +35,25 @@ export function ReelPlayer({ autoPlay = false, className = "" }: { autoPlay?: bo
   );
 }
 
-/** Header entry ("Vidéo"): opens the reel in a dialog from any page. */
+/** The reel dialog. Owned by a component that stays mounted while it is open (see ReelButton `onOpen`). */
+export function ReelDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const { t } = useI18n();
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[calc(100dvh-2rem)] w-auto max-w-[calc(100vw-2rem)] gap-3 overflow-y-auto p-4 pt-12 sm:p-5 sm:pt-12">
+        <DialogTitle className="text-base">{t("reel_title", { n: REEL_SECONDS })}</DialogTitle>
+        <DialogDescription className="sr-only">{t("reel_sub")}</DialogDescription>
+        {open && <ReelPlayer autoPlay className="reel-phone-dialog" />}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * Header entry ("Vidéo"): opens the reel in a dialog from any page. With `onOpen`, the caller owns the dialog
+ * (ReelDialog): the mobile menu unmounts this button when it closes, and a dialog unmounted while opening leaves the
+ * page locked (scroll lock + pointer-events: none on body), so nothing — not even the logo — could be tapped.
+ */
 export function ReelButton({ mobile = false, onOpen }: { mobile?: boolean; onOpen?: () => void }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
@@ -44,7 +62,7 @@ export function ReelButton({ mobile = false, onOpen }: { mobile?: boolean; onOpe
       <button
         type="button"
         aria-haspopup="dialog"
-        onClick={() => { onOpen?.(); setOpen(true); }}
+        onClick={() => (onOpen ? onOpen() : setOpen(true))}
         className={mobile ? "flex items-center gap-2 py-3 text-base text-navy-foreground" : "search-trigger"}
         title={t("reel_open")}
       >
@@ -54,13 +72,7 @@ export function ReelButton({ mobile = false, onOpen }: { mobile?: boolean; onOpe
         {mobile && <span>{t("reel_nav")}</span>}
         <span className="sr-only">{mobile ? " — " : ""}{t("reel_open")}</span>
       </button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[calc(100dvh-2rem)] w-auto max-w-[calc(100vw-2rem)] gap-3 overflow-y-auto p-4 pt-12 sm:p-5 sm:pt-12">
-          <DialogTitle className="text-base">{t("reel_title", { n: REEL_SECONDS })}</DialogTitle>
-          <DialogDescription className="sr-only">{t("reel_sub")}</DialogDescription>
-          {open && <ReelPlayer autoPlay className="reel-phone-dialog" />}
-        </DialogContent>
-      </Dialog>
+      {!onOpen && <ReelDialog open={open} onOpenChange={setOpen} />}
     </>
   );
 }

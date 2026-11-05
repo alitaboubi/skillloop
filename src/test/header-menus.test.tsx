@@ -77,3 +77,20 @@ describe("header: account menu", () => {
     expect(auth.signOut).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("header: mobile menu → video", () => {
+  it("opens the reel after the menu closes, and leaves the page usable once it is dismissed", async () => {
+    auth.user = null;
+    await renderHeader();
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Menu" })); });
+    // The menu entry is the one with the visible "Vidéo" label (the desktop one is icon-only).
+    const video = screen.getAllByRole("button", { name: /Voir la vidéo de présentation/ }).find((b) => b.textContent?.includes("Vidéo"))!;
+    await act(async () => { fireEvent.click(video); });
+    expect(screen.getByRole("button", { name: "Menu", hidden: true })).toHaveAttribute("aria-expanded", "false");
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent(/SkillLoop en \d+ secondes/);
+    await act(async () => { fireEvent.keyDown(dialog, { key: "Escape" }); });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.body.style.pointerEvents).not.toBe("none");
+  });
+});
