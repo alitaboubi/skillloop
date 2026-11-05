@@ -5,8 +5,9 @@
 - [x] Final design pass (states, RTL, 360 px, contrast, focus)
 - [x] Milestone 1 — service details + public provider profile (awaiting visual review)
 - [x] Design slice 1 — brand surface (contour + loop backdrop), motion system, homepage hero/sections, Explore alignment, card photo fallback (awaiting visual review; not yet built/browser-checked in a running app)
-- [ ] Design slice 2 — service details + public provider profile
-- [ ] Design slice 3 — offer wizard + customer request
+- [x] Design slice 2 — service details + public provider profile: provider line above the fold (photo, name, trade, declared availability → profile), "Réalisations de {pro}" (real portfolio, lightbox), "Autres services de {pro}" before similar (no duplicates), sticky mobile request bar on /pros. Desktop browser-checked (dark, fr); true 375 px not checked.
+- [x] Design slice 3 — offer wizard + customer request: live Explore-card preview + per-step tip beside the wizard (lg+), category icon tiles (radio) instead of a select, "Comment ça se passe" 3 steps in the request box before sending (also for signed-out visitors). Request box browser-checked (desktop); /offer not browser-checked (needs a signed-in account).
+- [x] Social + reel: Instagram/Facebook links (footer, mobile menu, home video band, Organization sameAs); presentation reel (marketing/reel-ep4, re-encoded 720×1280, 1.8 MB, public/media) in a header dialog (xl+, mobile menu) and a home "En vidéo" band after "Comment ça marche"; never autoplays on a page, preload none. Header fix: nav links no longer wrap at 1024–1279 px (pre-existing) — links nowrap, search + video are icon buttons (label = accessible name, Ctrl K in the tooltip); checked at 1024/1280/1366/1600 px with the pricing link on.
 - [ ] Design slice 4 — dashboard + messaging
 - [ ] Design slice 5 — auth/settings + final consistency pass
 - [x] Core integrity (client-side): one opening message per request, photo cleanup on failed publish, archive instead of hard delete (src/lib/marketplace-writes.ts, tested). Not yet verified against a backend.

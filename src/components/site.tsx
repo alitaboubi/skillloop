@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { ReelButton, SocialLinks } from "@/components/reel-video";
 import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Menu, X, MapPin, Wifi, Star, BadgeCheck, Sun, Moon, Monitor, Home, Search, MessageSquare, User, PlusCircle, ChevronDown, LayoutDashboard, Briefcase, Settings, LogOut, Sparkles, ImageIcon, ShieldCheck } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -103,15 +104,15 @@ function AccountActions({ mobile, close }: { mobile?: boolean; close?: () => voi
   if (user)
     return (
       <>
-        <Link to="/messages" onClick={close} className={mobile ? "btn btn-ghost-dark" : "text-sm font-semibold text-navy-foreground"}>{t("messages")}</Link>
-        <Link to="/dashboard" onClick={close} className="btn btn-lime">{t("dashboard")}</Link>
+        <Link to="/messages" onClick={close} className={mobile ? "btn btn-ghost-dark" : "whitespace-nowrap text-sm font-semibold text-navy-foreground"}>{t("messages")}</Link>
+        <Link to="/dashboard" onClick={close} className={mobile ? "btn btn-lime" : "btn btn-lime whitespace-nowrap"}>{t("dashboard")}</Link>
         <button onClick={() => { close?.(); void signOut(); }} className={mobile ? "btn btn-ghost-dark" : "text-sm text-navy-muted hover:text-navy-foreground"}>{t("logout")}</button>
       </>
     );
   return (
     <>
-      <Link to="/login" onClick={close} className={mobile ? "btn btn-ghost-dark" : "text-sm font-semibold text-navy-foreground"}>{t("login")}</Link>
-      <Link to="/signup" onClick={close} className="btn btn-lime">{t("signup")}</Link>
+      <Link to="/login" onClick={close} className={mobile ? "btn btn-ghost-dark" : "whitespace-nowrap text-sm font-semibold text-navy-foreground"}>{t("login")}</Link>
+      <Link to="/signup" onClick={close} className={mobile ? "btn btn-lime" : "btn btn-lime whitespace-nowrap"}>{t("signup")}</Link>
     </>
   );
 }
@@ -306,14 +307,14 @@ function DesktopNav({ links }: { links: readonly { to: string; label: string }[]
   return (
     <nav
       ref={nav}
-      className="relative hidden items-center gap-6 lg:flex"
+      className="relative hidden items-center gap-4 lg:flex xl:gap-6"
       onPointerOver={(e) => { const l = (e.target as Element).closest("a"); if (l && e.pointerType !== "touch") place(l); }}
       onPointerLeave={toActive}
       onFocus={(e) => place(e.target)}
       onBlur={toActive}
     >
       {links.map((l) => (
-        <Link key={l.to} to={l.to} className="text-sm text-navy-muted transition-colors hover:text-navy-foreground" activeProps={{ className: "text-navy-foreground font-semibold" }}>
+        <Link key={l.to} to={l.to} className="whitespace-nowrap text-sm text-navy-muted transition-colors hover:text-navy-foreground" activeProps={{ className: "text-navy-foreground font-semibold" }}>
           {l.label}
         </Link>
       ))}
@@ -352,10 +353,13 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Logo light />
         <DesktopNav links={links} />
-        <div className="hidden items-center gap-4 lg:flex">
-          <button type="button" onClick={() => openSearch(true)} aria-haspopup="dialog" aria-keyshortcuts={mac ? "Meta+K" : "Control+K"} className="search-trigger">
-            <Search className="size-4" aria-hidden />{t("sp_open")}
-            <kbd className="search-kbd" aria-hidden>{mac ? "⌘K" : "Ctrl K"}</kbd>
+        <div className="hidden shrink-0 items-center gap-2.5 lg:flex xl:gap-4">
+          <span className="hidden xl:contents"><ReelButton /></span>
+          <button type="button" onClick={() => openSearch(true)} aria-haspopup="dialog" aria-keyshortcuts={mac ? "Meta+K" : "Control+K"} title={`${t("sp_open")} (${mac ? "⌘K" : "Ctrl K"})`} className="search-trigger">
+            <Search className="size-4" aria-hidden />
+            {/* Icon only (label = accessible name, shortcut in the tooltip): the header content is capped at 1280 px, and with
+                every nav link + the video button a visible label would collide with the links. */}
+            <span className="sr-only">{t("sp_open")}</span>
           </button>
           <PreferencesMenu />
           <DesktopAccount />
@@ -375,6 +379,7 @@ export function SiteHeader() {
             {links.map((l) => (
               <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="py-3 text-base text-navy-foreground">{l.label}</Link>
             ))}
+            <ReelButton mobile onOpen={() => setOpen(false)} />
           </nav>
           <div className="mt-3 flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-3">
@@ -382,6 +387,7 @@ export function SiteHeader() {
               <ThemeSwitcher dark />
             </div>
             <AccountActions mobile close={() => setOpen(false)} />
+            <SocialLinks />
           </div>
         </div>
       )}
@@ -400,6 +406,8 @@ export function SiteFooter() {
         <div>
           <Logo light />
           <p className="mt-3 max-w-xs text-sm">{t("footer_tag")}</p>
+          <h2 className="mb-2 mt-6 text-sm font-bold text-navy-foreground">{t("ft_follow")}</h2>
+          <SocialLinks />
         </div>
         <nav aria-label={t("ft_explore")} className="flex flex-col text-sm">
           <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-navy-foreground">{t("ft_explore")}</h2>

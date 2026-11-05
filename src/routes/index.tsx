@@ -11,6 +11,7 @@ import forClients from "@/assets/home/for-clients.webp";
 import forPros from "@/assets/home/for-pros.webp";
 import { ServiceCardSkeleton, useAllServices } from "@/components/site";
 import { ServiceShowcase } from "@/components/service-showcase";
+import { HomeReel } from "@/components/reel-video";
 import { CityRibbon } from "@/components/city-ribbon";
 import { homeSeo } from "@/lib/seo";
 import { ErrorState, FirstVisitEmpty } from "@/components/states";
@@ -139,6 +140,9 @@ function Index() {
       />
 
       <HowItWorks />
+
+      <HomeReel />
+      <div aria-hidden className="h-16" />
 
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6" aria-label={`${t("hp_ben_cust")} / ${t("hp_ben_pro")}`}>
         <div className="grid gap-5 md:grid-cols-2">

@@ -3,9 +3,9 @@ import { limitMessage } from "@/lib/limits";
 import { setReturnTo } from "@/lib/return-to";
 import { useEffect, useId, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, ArrowUpRight, Check, MessageSquare, Handshake, Pencil, CheckCircle2, ChevronRight, Clock, ImageOff, Info, Languages, MapPin, Package, Send, Tag, User, Wifi } from "lucide-react";
-import { Avatar, EnlargeHint, FramedImage, MediaViewer } from "@/components/media-viewer";
-import { ErrorState } from "@/components/states";
+import { ArrowRight, ArrowUpRight, Check, MessageSquare, Handshake, Pencil, CheckCircle2, ChevronRight, Clock, ImageOff, Info, Languages, MapPin, Package, Play, Send, Tag, User, Wifi } from "lucide-react";
+import { Avatar, EnlargeHint, FramedImage, MediaViewer, type MediaItem } from "@/components/media-viewer";
+import { ErrorState, TrustBadge } from "@/components/states";
 import { profileQuery } from "@/lib/profiles-db";
 import { requestGuide, guideLine } from "@/lib/request-guides";
 import { useI18n, type TKey } from "@/lib/i18n";
@@ -75,6 +75,25 @@ function Page() {
   return <Detail s={q.data ?? service} />;
 }
 
+/** Before sending: the three moments of a request, so the client knows what a tap commits to (nothing yet). */
+function HowRequestWorks() {
+  const { t } = useI18n();
+  const steps: TKey[] = ["rq_how_1", "rq_how_2", "rq_how_3"];
+  return (
+    <section aria-labelledby="rq-how" className="rounded-2xl bg-surface-sunken p-3.5">
+      <h3 id="rq-how" className="text-sm font-bold">{t("rq_how_title")}</h3>
+      <ol className="req-how mt-2 space-y-2">
+        {steps.map((k, i) => (
+          <li key={k} className="relative flex items-start gap-2.5 text-sm">
+            <span aria-hidden className={`relative z-10 mt-px grid size-5 shrink-0 place-items-center rounded-full text-xs font-bold ${i === 0 ? "bg-lime text-lime-foreground" : "bg-card text-muted-foreground ring-1 ring-border"}`}>{i + 1}</span>
+            <span className={i === 0 ? "font-semibold" : "text-muted-foreground"}>{t(k)}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 /** What happens after sending — honest: a request is not a booking or a payment. */
 function NextSteps() {
   const { t } = useI18n();
@@ -126,6 +145,7 @@ export function RequestBox({ s }: { s: Service }) {
       <div className="space-y-3">
         <p className="text-sm text-muted-foreground">{t("login_to_request")}</p>
         <Link to="/login" onClick={() => setReturnTo(`/services/${s.id}#request`)} className="btn btn-lime w-full">{t("request_quote")}</Link>
+        <HowRequestWorks />
         {notice}
       </div>
     );
@@ -237,6 +257,7 @@ export function RequestBox({ s }: { s: Service }) {
         <p id="req-err" role="alert" className="mt-1 text-sm text-destructive empty:hidden">{err}</p>
       </div>
       <button className="btn btn-lime w-full">{t("rq_review_cta")}</button>
+      <HowRequestWorks />
       {notice}
     </form>
   );
@@ -359,6 +380,73 @@ function Gallery({ s }: { s: Service }) {
   );
 }
 
+/** Who you are dealing with, above the fold: photo, name, trade, availability (declared) → the public profile. */
+function ProviderLine({ s }: { s: Service }) {
+  const { t } = useI18n();
+  const q = useQuery({ ...profileQuery(s.ownerId ?? ""), enabled: !!s.ownerId });
+  const p = q.data;
+  const name = p?.display_name || s.provider;
+  const trade = p?.title || s.profession;
+  // The listing carries the provider's avatar and availability (server HTML); the profile query only refreshes them.
+  const fromProfile = ((p?.professional_details ?? {}) as Record<string, unknown>)["accepting"];
+  const accepting = typeof fromProfile === "boolean" ? fromProfile : s.accepting;
+  const body = (
+    <>
+      <Avatar src={p?.avatar ?? s.providerAvatar} name={name} size="sm" />
+      <span className="min-w-0">
+        <span className="block text-sm text-muted-foreground">{t("sd_by")}</span>
+        <span dir="auto" className="block truncate font-semibold text-foreground">{name}</span>
+        {trade && <span dir="auto" className="block truncate text-sm text-muted-foreground">{trade}</span>}
+      </span>
+      {s.ownerId && <ChevronRight className="ms-1 size-4 shrink-0 text-muted-foreground rtl:-scale-x-100" aria-hidden />}
+    </>
+  );
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
+      {s.ownerId
+        ? <Link to="/pros/$id" params={{ id: s.ownerId }} className="provider-line" aria-label={`${name} · ${t("sd_view_profile")}`}>{body}</Link>
+        : <div className="provider-line">{body}</div>}
+      {typeof accepting === "boolean" && (
+        <span className="flex flex-wrap items-center gap-2">
+          <span className={`avail-chip ${accepting ? "avail-open" : "avail-closed"}`}>{t(accepting ? "avail_open" : "avail_closed")}</span>
+          <TrustBadge level="declared" />
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** The provider's own past work (portfolio photos), so the client sees real results before asking. Hidden when none. */
+function ProviderWork({ s }: { s: Service }) {
+  const { t } = useI18n();
+  const q = useQuery({ ...profileQuery(s.ownerId!), enabled: !!s.ownerId });
+  const [viewer, setViewer] = useState<number | null>(null);
+  const shown = (q.data?.portfolio ?? []).filter((x) => x.image);
+  if (shown.length === 0) return null;
+  const items: MediaItem[] = shown.map((x) => ({ src: x.image!, alt: x.title, caption: x.title, description: x.description, video: x.video }));
+  const name = q.data?.display_name || s.provider;
+  return (
+    <section aria-labelledby="sd-work">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h2 id="sd-work" dir="auto" className="text-xl font-bold">{t("sd_work_of", { n: name })}</h2>
+        <Link to="/pros/$id" params={{ id: s.ownerId! }} hash="portfolio" className="link-sea line-link text-sm font-semibold">{t("sd_see_all_work", { n: shown.length })}</Link>
+      </div>
+      <ul className="sd-stagger mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {items.slice(0, 4).map((x, i) => (
+          <li key={x.src} className="min-w-0">
+            <button type="button" onClick={() => setViewer(i)} className="media-trigger relative w-full rounded-2xl" aria-label={t(x.video ? "pp_open_video" : "pp_open_project", { t: x.alt })}>
+              <FramedImage src={x.src} alt="" className="aspect-square" />
+              {x.video ? <span aria-hidden className="tag tag-ink absolute start-2 top-2"><Play className="size-3.5 fill-current" />{t("mo_badge")}</span> : <EnlargeHint />}
+            </button>
+            <p dir="auto" className="mt-2 line-clamp-1 text-sm font-semibold">{x.caption}</p>
+          </li>
+        ))}
+      </ul>
+      <MediaViewer items={items} index={viewer ?? 0} onIndex={setViewer} open={viewer !== null} onOpenChange={(o) => !o && setViewer(null)} />
+    </section>
+  );
+}
+
 function Detail({ s }: { s: Service }) {
   const { t } = useI18n();
   const { services } = useAllServices();
@@ -368,7 +456,9 @@ function Detail({ s }: { s: Service }) {
   const included = lines(d["deliverables"]);
   const packages = lines(d["packages"]);
   const duration = text(d["duration"]);
-  const similar = services.filter((x) => x.id !== s.id && x.category === s.category).slice(0, 3);
+  // Same provider first ("more from"), then the rest of the category — no card shown twice.
+  const more = s.ownerId ? services.filter((x) => x.id !== s.id && x.ownerId === s.ownerId).slice(0, 3) : [];
+  const similar = services.filter((x) => x.id !== s.id && x.category === s.category && !more.includes(x)).slice(0, 3);
   const note = priceNote(s);
   const rows = [
     { icon: s.remote ? Wifi : User, k: t("sd_format"), v: s.remote ? t("remote") : t("on_site") },
@@ -397,17 +487,7 @@ function Detail({ s }: { s: Service }) {
           {s.city && <span className="tag tag-sea"><MapPin className="size-3.5" aria-hidden /><span dir="auto">{s.city}</span></span>}
         </div>
         <h1 dir="auto" className="display-title break-words text-[2rem] leading-[1.08] md:text-[2.75rem]">{s.title}</h1>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
-          <span className="flex min-w-0 items-center gap-3">
-            <Avatar src={s.providerAvatar} name={s.provider} size="sm" />
-            <span className="min-w-0 text-sm leading-tight">
-              <span className="block text-muted-foreground">{t("sd_by")}</span>
-              {s.ownerId ? <Link to="/pros/$id" params={{ id: s.ownerId }} dir="auto" className="font-bold text-foreground underline-offset-4 hover:underline">{s.provider}</Link> : <span dir="auto" className="font-bold text-foreground">{s.provider}</span>}
-              {s.profession && <span dir="auto" className="text-muted-foreground"> · {s.profession}</span>}
-            </span>
-          </span>
-          {typeof s.accepting === "boolean" && <span className={`avail-chip ${s.accepting ? "avail-open" : "avail-closed"}`}>{t(s.accepting ? "avail_open" : "avail_closed")}</span>}
-        </div>
+        <ProviderLine s={s} />
       </header>
 
       <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1fr)_24rem]">
@@ -473,6 +553,8 @@ function Detail({ s }: { s: Service }) {
             </dl>
           </section>
 
+          {s.ownerId && <ProviderWork s={s} />}
+
           {s.real && <div className="lg:hidden"><TrustPanel s={s} /></div>}
           {s.ownerId && <div className="lg:hidden"><ProviderSummary s={s} /></div>}
         </div>
@@ -492,6 +574,15 @@ function Detail({ s }: { s: Service }) {
         </aside>
       </div>
 
+      {more.length > 0 && (
+        <section aria-labelledby="sd-from" className="mt-16 border-t pt-10">
+          <h2 id="sd-from" dir="auto" className="text-xl font-bold">{t("sd_more_from", { n: s.provider })}</h2>
+          <div className="sd-stagger mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {more.map((x) => <ServiceCard key={x.id} s={x} />)}
+          </div>
+        </section>
+      )}
+
       {similar.length === 0 && (
         <section aria-labelledby="sd-more" className="mt-16 flex flex-wrap items-center justify-between gap-4 rounded-3xl border bg-card p-6 sm:p-8">
           <div className="flex items-center gap-4">
@@ -505,7 +596,7 @@ function Detail({ s }: { s: Service }) {
         </section>
       )}
       {similar.length > 0 && (
-        <section aria-labelledby="sd-similar" className="mt-16 border-t pt-10">
+        <section aria-labelledby="sd-similar" className={more.length > 0 ? "mt-12" : "mt-16 border-t pt-10"}>
           <h2 id="sd-similar" className="text-xl font-bold">{t("similar")}</h2>
           <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {similar.map((x) => <ServiceCard key={x.id} s={x} />)}

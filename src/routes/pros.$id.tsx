@@ -426,7 +426,7 @@ function Page() {
       </div>
       {!isOwner && requestCta && (
         <>
-          <div className="request-bar fixed inset-x-0 z-30 border-t bg-card/95 px-3 pt-3 shadow-raised backdrop-blur lg:hidden">
+          <div data-request-bar className="request-bar fixed inset-x-0 z-30 border-t bg-card/95 px-3 pt-3 shadow-raised backdrop-blur lg:hidden">
             <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
               <span className="flex min-w-0 items-center gap-2.5">
                 <Avatar src={p.avatar} name={name} size="sm" />
@@ -435,7 +435,7 @@ function Page() {
               <div className="shrink-0 [&>*]:w-auto">{requestCta}</div>
             </div>
           </div>
-          <div className="h-20 lg:hidden" aria-hidden />
+          <div className="request-bar-spacer h-20 lg:hidden" aria-hidden />
         </>
       )}
     </div>
