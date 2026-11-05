@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useRef, useState, type CSSProperties } from "react";
-import { Search, Laptop, GraduationCap, ArrowRight, Send, Handshake, Rocket, Wrench, Car, Camera, LayoutGrid, Check, Wifi, User, MapPin } from "lucide-react";
+import { Search, ArrowRight, Send, Handshake, Rocket, LayoutGrid, Check, Wifi, User } from "lucide-react";
 import { BrandBackdrop, CATEGORY_ICONS, PointerField } from "@/components/brand";
 import { FaqBlock } from "@/components/page-sections";
 import { HomeHero, type HomeHeroHandle } from "@/components/home-hero";
@@ -30,13 +30,6 @@ const FEATURED: { id: CategoryId; ex: TKey }[] = [
   { id: "business", ex: "hp_ex_business" },
   { id: "events", ex: "hp_ex_events" },
   { id: "personal", ex: "hp_ex_personal" },
-];
-const NEEDS: { k: TKey; icon: typeof Laptop }[] = [
-  { k: "hp_need_home", icon: Wrench },
-  { k: "hp_need_tutoring", icon: GraduationCap },
-  { k: "hp_need_digital", icon: Laptop },
-  { k: "hp_need_auto", icon: Car },
-  { k: "hp_need_events", icon: Camera },
 ];
 
 /** Keyword + mode + city search. On /explore it keeps the active category and sort, so refining a search never drops them. */
@@ -132,22 +125,6 @@ function Index() {
         )}
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pt-16 sm:px-6" aria-labelledby="needs">
-        <div className="panel bg-surface-sunken p-6 sm:p-8">
-        <h2 id="needs" className="section-title">{t("hp_needs_title")}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{t("hp_needs_sub")}</p>
-        <ul className="mt-5 flex flex-wrap gap-2">
-          {NEEDS.map((n) => (
-            <li key={n.k}>
-              <button type="button" className="chip whitespace-normal text-start" onClick={() => hero.current?.prefill("find", t(n.k))}>
-                <n.icon className="size-4 text-clay-strong" aria-hidden />{t(n.k)}
-              </button>
-            </li>
-          ))}
-        </ul>
-        </div>
-      </section>
-
       {/* Every published service on one 3D stage (scroll-driven coverflow; flat without support or with reduced motion). */}
       <ServiceShowcase
         services={services}
@@ -165,21 +142,7 @@ function Index() {
       <HowItWorks />
 
       <HomeReel />
-
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6" aria-labelledby="check">
-        <div>
-        <h2 id="check" className="section-title">{t("hp_check_title")}</h2>
-        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t("hp_check_sub")}</p>
-        <ol className="mt-8 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-5">
-          {([1, 2, 3, 4, 5] as const).map((i) => (
-            <li key={i} className="sd-rise border-s-2 border-lime ps-4" style={{ "--sd-i": i - 1 } as CSSProperties}>
-              <h3 className="font-bold">{t(`hp_check_${i}_t` as TKey)}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{t(`hp_check_${i}_d` as TKey)}</p>
-            </li>
-          ))}
-        </ol>
-        </div>
-      </section>
+      <div aria-hidden className="h-16" />
 
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6" aria-label={`${t("hp_ben_cust")} / ${t("hp_ben_pro")}`}>
         <div className="grid gap-5 md:grid-cols-2">

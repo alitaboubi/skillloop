@@ -751,6 +751,12 @@
   transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out);
 }
 .card-peek > span { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+/* Wide card (a pro's only service): photo at the start side, details beside it from 640 px. */
+@media (min-width: 640px) {
+  .listing-card[data-wide] { flex-direction: row; }
+  .listing-card[data-wide] > :first-child { aspect-ratio: auto; width: 48%; min-height: 17rem; flex-shrink: 0; }
+  .listing-card[data-wide] > :last-child { min-width: 0; }
+}
 .listing-card:focus-visible .card-peek { opacity: 1; transform: none; }
 @media (hover: hover) and (pointer: fine) {
   .listing-card:hover .card-peek { opacity: 1; transform: none; }
@@ -1587,6 +1593,8 @@ input::-ms-clear {
 /* Honest numbers only (counts of what the page shows); hairline grid via a 1px gap on the border colour. */
 .pro-stats { display: grid; gap: 1px; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); border-top: 1px solid var(--border); background: var(--border); border-radius: 0 0 1.5rem 1.5rem; overflow: hidden; }
 .pro-stat { display: flex; flex-direction: column; padding: 1rem 1.25rem; background: var(--card); }
+/* Two columns on phones: an odd last stat takes the whole row instead of leaving an empty cell. */
+@media (max-width: 639px) { .pro-stats { grid-template-columns: 1fr 1fr; } .pro-stat:last-child:nth-child(odd) { grid-column: 1 / -1; } }
 .pro-stat-n { order: -1; }
 .pro-stat-n[data-small] { font-size: 1.25rem; padding-block: 0.25rem; }
 .pro-stat-n[data-small]::first-letter { text-transform: uppercase; }

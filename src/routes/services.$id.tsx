@@ -3,7 +3,7 @@ import { limitMessage } from "@/lib/limits";
 import { setReturnTo } from "@/lib/return-to";
 import { useEffect, useId, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowUpRight, Check, Pencil, CheckCircle2, ChevronRight, Clock, ImageOff, Info, Languages, MapPin, Package, Play, Send, Tag, User, Wifi } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Check, MessageSquare, Handshake, Pencil, CheckCircle2, ChevronRight, Clock, ImageOff, Info, Languages, MapPin, Package, Play, Send, Tag, User, Wifi } from "lucide-react";
 import { Avatar, EnlargeHint, FramedImage, MediaViewer, type MediaItem } from "@/components/media-viewer";
 import { ErrorState, TrustBadge } from "@/components/states";
 import { profileQuery } from "@/lib/profiles-db";
@@ -387,10 +387,12 @@ function ProviderLine({ s }: { s: Service }) {
   const p = q.data;
   const name = p?.display_name || s.provider;
   const trade = p?.title || s.profession;
-  const accepting = ((p?.professional_details ?? {}) as Record<string, unknown>)["accepting"];
+  // The listing carries the provider's avatar and availability (server HTML); the profile query only refreshes them.
+  const fromProfile = ((p?.professional_details ?? {}) as Record<string, unknown>)["accepting"];
+  const accepting = typeof fromProfile === "boolean" ? fromProfile : s.accepting;
   const body = (
     <>
-      <Avatar src={p?.avatar} name={name} size="sm" />
+      <Avatar src={p?.avatar ?? s.providerAvatar} name={name} size="sm" />
       <span className="min-w-0">
         <span className="block text-sm text-muted-foreground">{t("sd_by")}</span>
         <span dir="auto" className="block truncate font-semibold text-foreground">{name}</span>
@@ -484,7 +486,7 @@ function Detail({ s }: { s: Service }) {
           <span className="tag tag-sea">{s.remote ? <Wifi className="size-3.5" aria-hidden /> : <User className="size-3.5" aria-hidden />}{s.remote ? t("remote") : t("on_site")}</span>
           {s.city && <span className="tag tag-sea"><MapPin className="size-3.5" aria-hidden /><span dir="auto">{s.city}</span></span>}
         </div>
-        <h1 dir="auto" className="display-title break-words text-[2rem] md:text-5xl">{s.title}</h1>
+        <h1 dir="auto" className="display-title break-words text-[2rem] leading-[1.08] md:text-[2.75rem]">{s.title}</h1>
         <ProviderLine s={s} />
       </header>
 
@@ -519,6 +521,22 @@ function Detail({ s }: { s: Service }) {
               </ul>
             </section>
           )}
+
+          <section aria-labelledby="sd-flow">
+            <h2 id="sd-flow" className="text-xl font-bold">{t("sd_flow_t")}</h2>
+            <ol className="mt-4 grid gap-3 sm:grid-cols-3">
+              {([[Send, "sd_flow1_t", "sd_flow1_d"], [MessageSquare, "sd_flow2_t", "sd_flow2_d"], [Handshake, "sd_flow3_t", "sd_flow3_d"]] as const).map(([Icon, ti, de], i) => (
+                <li key={ti} className="rounded-2xl border bg-card p-4">
+                  <span className="flex items-center gap-2.5">
+                    <span className="icon-well-clay size-9"><Icon className="size-4 rtl:-scale-x-100" aria-hidden /></span>
+                    <span className="text-sm font-bold tabular-nums text-sea">0{i + 1}</span>
+                  </span>
+                  <p className="mt-3 font-bold">{t(ti)}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{t(de)}</p>
+                </li>
+              ))}
+            </ol>
+          </section>
 
           <section aria-labelledby="sd-practical">
             <h2 id="sd-practical" className="text-xl font-bold">{t("sd_practical")}</h2>
@@ -557,14 +575,26 @@ function Detail({ s }: { s: Service }) {
       </div>
 
       {more.length > 0 && (
-        <section aria-labelledby="sd-more" className="mt-16 border-t pt-10">
-          <h2 id="sd-more" dir="auto" className="text-xl font-bold">{t("sd_more_from", { n: s.provider })}</h2>
+        <section aria-labelledby="sd-from" className="mt-16 border-t pt-10">
+          <h2 id="sd-from" dir="auto" className="text-xl font-bold">{t("sd_more_from", { n: s.provider })}</h2>
           <div className="sd-stagger mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {more.map((x) => <ServiceCard key={x.id} s={x} />)}
           </div>
         </section>
       )}
 
+      {similar.length === 0 && (
+        <section aria-labelledby="sd-more" className="mt-16 flex flex-wrap items-center justify-between gap-4 rounded-3xl border bg-card p-6 sm:p-8">
+          <div className="flex items-center gap-4">
+            <span className="icon-well-clay size-12"><CatIcon className="size-5" aria-hidden /></span>
+            <div>
+              <h2 id="sd-more" className="text-lg font-bold">{t("sd_more_t", { cat: t(cat.key) })}</h2>
+              <p className="text-sm text-muted-foreground">{t("sd_more_d")}</p>
+            </div>
+          </div>
+          <Link to="/explore" className="btn btn-outline">{t("sd_more_cta")}<ArrowRight className="size-4 rtl:-scale-x-100" aria-hidden /></Link>
+        </section>
+      )}
       {similar.length > 0 && (
         <section aria-labelledby="sd-similar" className={more.length > 0 ? "mt-12" : "mt-16 border-t pt-10"}>
           <h2 id="sd-similar" className="text-xl font-bold">{t("similar")}</h2>

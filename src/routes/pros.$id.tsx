@@ -139,10 +139,13 @@ function Page() {
     portfolio.length > 0 ? { id: "portfolio", label: t("sd_portfolio") } : null,
     hasCarnet(carnet) ? { id: "carnet", label: t("carnet_method") } : null,
   ].filter((x): x is { id: string; label: string } => !!x);
+  // Where the pro works, from their published services: up to two cities, then « En ligne » when any is remote.
+  const zone = [...new Set(services.map((x) => x.city).filter(Boolean))].slice(0, 2).concat(services.some((x) => x.remote) ? [t("remote")] : []).join(" · ");
   // Counts of what this page shows — nothing estimated.
   const stats = [
     { n: String(services.length), l: t("pp_stat_services") },
-    fields.length > 0 ? { n: String(fields.length), l: t("pp_stat_fields") } : null,
+    fields.length > 1 ? { n: String(fields.length), l: t("pp_stat_fields") } : null,
+    zone ? { n: zone, l: t("pp_stat_zone"), small: true } : null,
     portfolio.length > 0 ? { n: String(portfolio.length), l: t("pp_stat_projects") } : null,
     since ? { n: since, l: t("pp_stat_since"), small: true } : null,
   ].filter((x): x is { n: string; l: string; small?: boolean } => !!x);
@@ -278,7 +281,9 @@ function Page() {
                 ) : services.length === 0 ? (
                   <EmptyState title={t("pp_no_services")} action={isOwner ? <Link to="/offer" className="btn btn-outline">{t("nav_offer")}</Link> : undefined} />
                 ) : (
-                  <div className="sd-stagger grid gap-5 sm:grid-cols-2">{services.map((s) => <ServiceCard key={s.id} s={s} />)}</div>
+                  services.length === 1
+                    ? <ServiceCard s={services[0]!} wide />
+                    : <div className="sd-stagger grid gap-5 sm:grid-cols-2">{services.map((s) => <ServiceCard key={s.id} s={s} />)}</div>
                 )}
               </div>
             </section>
@@ -419,23 +424,20 @@ function Page() {
           ) : null}
         </div>
       </div>
-
-      {/* Phones: the request action stays reachable while scrolling the page (same bar as a service page; hides the bottom nav). */}
       {!isOwner && requestCta && (
         <>
           <div data-request-bar className="request-bar fixed inset-x-0 z-30 border-t bg-card/95 px-3 pt-3 shadow-raised backdrop-blur lg:hidden">
             <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-2.5">
+              <span className="flex min-w-0 items-center gap-2.5">
                 <Avatar src={p.avatar} name={name} size="sm" />
-                <p dir="auto" className="truncate font-semibold">{name}</p>
-              </div>
+                <span dir="auto" className="truncate font-semibold">{name}</span>
+              </span>
               <div className="shrink-0 [&>*]:w-auto">{requestCta}</div>
             </div>
           </div>
-          <div className="request-bar-spacer h-24 lg:hidden" aria-hidden />
+          <div className="request-bar-spacer h-20 lg:hidden" aria-hidden />
         </>
       )}
     </div>
   );
 }
-

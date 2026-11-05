@@ -440,13 +440,13 @@ export function formatPrice(n: number, lang: string) {
   return new Intl.NumberFormat(lang === "ar" ? "ar-TN" : lang === "en" ? "en-TN" : "fr-TN", { maximumFractionDigits: 0 }).format(n) + (lang === "ar" ? " د.ت" : " TND");
 }
 
-export function ServiceCard({ s }: { s: Service }) {
+export function ServiceCard({ s, wide = false }: { s: Service; wide?: boolean }) {
   const { t, lang } = useI18n();
   const vt = useViewTransitions();
   const cat = CATEGORIES.find((c) => c.id === s.category);
   const CatIcon = CATEGORY_ICONS[s.category] ?? CATEGORY_ICONS.other;
   return (
-    <Link to="/services/$id" params={{ id: s.id }} viewTransition={vt} className="listing-card group" data-tilt>
+    <Link to="/services/$id" params={{ id: s.id }} viewTransition={vt} className="listing-card group" data-tilt data-wide={wide || undefined}>
       {/* The photo continues into the service page's photo (same view-transition name). */}
       <div className="relative aspect-[4/3] overflow-hidden bg-muted" style={s.hasPhoto && s.real ? { viewTransitionName: vtName("svc", s.id) } : undefined}>
         {s.hasPhoto ? (
@@ -468,7 +468,8 @@ export function ServiceCard({ s }: { s: Service }) {
       </div>
       <div className="flex flex-1 flex-col gap-2 p-4">
         {s.real && isNew(s) && <span className="tag tag-new w-fit">{t("badge_new")}</span>}
-        <h3 dir="auto" className="line-clamp-2 text-lg font-bold leading-snug">{s.title}</h3>
+        <h3 dir="auto" className={`line-clamp-2 font-bold leading-snug ${wide ? "text-xl" : "text-lg"}`}>{s.title}</h3>
+        {wide && s.description.trim() && <p dir="auto" className="line-clamp-3 text-sm text-muted-foreground">{s.description}</p>}
         {/* Expert mini-row: the person before the listing — face, name, trade, availability when the pro declared it. */}
         <div className="flex items-center gap-3">
           <Avatar src={s.providerAvatar} name={s.provider} size="sm" />
