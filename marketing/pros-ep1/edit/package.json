@@ -1,0 +1,24 @@
+{
+  "name": "skillloop-reel-ghodwa",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "bundle": "remotion bundle src/index.ts --out-dir=out/bundle",
+    "still": "LD_LIBRARY_PATH=$PWD/node_modules/.remotion/libs/root/usr/lib/x86_64-linux-gnu remotion still out/bundle Reel --scale=0.5",
+    "render": "LD_LIBRARY_PATH=$PWD/node_modules/.remotion/libs/root/usr/lib/x86_64-linux-gnu remotion render out/bundle Reel out/reel.mp4 --concurrency=2 --crf=17 --audio-codec=aac --audio-bitrate=256k",
+    "libs": "mkdir -p node_modules/.remotion/libs/deb && cd node_modules/.remotion/libs/deb && apt-get download libnspr4 libnss3 && for d in *.deb; do dpkg-deb -x $d ../root; done"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.536",
+    "@remotion/google-fonts": "4.0.536",
+    "@remotion/media-utils": "4.0.536",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.536"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "typescript": "5.6.3"
+  }
+}
