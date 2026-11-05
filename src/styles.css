@@ -67,6 +67,7 @@
   --color-clay-strong: var(--clay-strong);
   --color-clay-soft: var(--clay-soft);
   --color-warning: var(--warning);
+  --color-star: var(--star);
   --color-warning-foreground: var(--warning-foreground);
   --color-surface-sunken: var(--surface-sunken);
   /* Levels of proof (trust badge): declared by the pro · confirmed by a client · verified by SkillLoop. */
@@ -138,6 +139,8 @@
   --clay-strong: oklch(0.52 0.15 40);
   --clay-soft: oklch(0.955 0.03 55);
   --warning: oklch(0.78 0.15 80);
+  /* Review stars: amber, ≥ 3:1 against the card surface (graphic contrast). */
+  --star: oklch(0.7 0.16 70);
   --warning-foreground: oklch(0.25 0.06 70);
   --surface-sunken: oklch(0.955 0.01 85);
   /* Ink ground with a warm clay light low on the start side and a faint lime light up top — no violet. */
@@ -210,6 +213,7 @@
   --clay-strong: oklch(0.8 0.12 52);
   --clay-soft: oklch(0.29 0.055 45);
   --warning: oklch(0.8 0.14 80);
+  --star: oklch(0.82 0.15 80);
   --warning-foreground: oklch(0.22 0.05 70);
   --surface-sunken: oklch(0.19 0.03 255);
   --gradient-ink: radial-gradient(55% 75% at 0% 100%, oklch(0.74 0.13 48 / 0.16), transparent 70%),
@@ -395,6 +399,40 @@
   width: 2px;
   border-radius: 1px;
   background: var(--border);
+}
+/* Reviews: summary pill, one review, the review block in a conversation, star radio buttons. */
+@utility rating-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+@utility review-card {
+  border-radius: 1.5rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 1.25rem;
+}
+@utility review-panel {
+  border-bottom: 1px solid var(--border);
+  padding: 1rem;
+  background: color-mix(in oklab, var(--star) 7%, transparent);
+}
+@utility star-choice {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  cursor: pointer;
+  border-radius: 9999px;
+  &:has(:focus-visible) { outline: 2px solid var(--ring); outline-offset: 1px; }
+  @media (hover: hover) and (pointer: fine) { &:hover svg { transform: scale(1.12); } }
+  @media (prefers-reduced-motion: reduce) { & svg { transition: none; } &:hover svg { transform: none; } }
 }
 /* Panels: flat by default; the page's one primary panel is raised and carries the lime action edge. */
 @utility panel {
