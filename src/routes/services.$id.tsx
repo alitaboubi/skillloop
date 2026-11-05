@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound, useNavigate, useRouter } from "@tanstack/react-router";
+import { ProviderRating, ProviderReviewsSection } from "@/components/review-kit";
 import { limitMessage } from "@/lib/limits";
 import { setReturnTo } from "@/lib/return-to";
 import { useEffect, useId, useRef, useState } from "react";
@@ -406,6 +407,7 @@ function ProviderLine({ s }: { s: Service }) {
       {s.ownerId
         ? <Link to="/pros/$id" params={{ id: s.ownerId }} className="provider-line" aria-label={`${name} · ${t("sd_view_profile")}`}>{body}</Link>
         : <div className="provider-line">{body}</div>}
+      {s.ownerId && <ProviderRating providerId={s.ownerId} href />}
       {typeof accepting === "boolean" && (
         <span className="flex flex-wrap items-center gap-2">
           <span className={`avail-chip ${accepting ? "avail-open" : "avail-closed"}`}>{t(accepting ? "avail_open" : "avail_closed")}</span>
@@ -554,6 +556,7 @@ function Detail({ s }: { s: Service }) {
           </section>
 
           {s.ownerId && <ProviderWork s={s} />}
+          {s.ownerId && <ProviderReviewsSection providerId={s.ownerId} proName={s.provider} id="sd-reviews" limit={3} />}
 
           {s.real && <div className="lg:hidden"><TrustPanel s={s} /></div>}
           {s.ownerId && <div className="lg:hidden"><ProviderSummary s={s} /></div>}

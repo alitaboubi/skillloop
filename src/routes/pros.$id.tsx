@@ -1,4 +1,7 @@
 import { createFileRoute, Link, notFound, useNavigate, useRouter } from "@tanstack/react-router";
+import { ProviderReviewsSection, RatingBadge } from "@/components/review-kit";
+import { providerSummaryQuery } from "@/lib/reviews-db";
+import { REVIEWS_ENABLED, summaryDisplay } from "@/lib/reviews";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
@@ -95,7 +98,10 @@ function Page() {
   }, [id, via, navigate]);
   const all = useAllServices();
   const [viewer, setViewer] = useState<number | null>(null);
-  const active = useActiveSection(["about", "services", "portfolio", "carnet"]);
+  const active = useActiveSection(["about", "services", "portfolio", "reviews", "carnet"]);
+  // Reviews section (and its tab) only when this pro has visible reviews; nothing while VITE_REVIEWS is off.
+  const reviewSum = useQuery(providerSummaryQuery(id));
+  const hasReviews = REVIEWS_ENABLED && !!summaryDisplay(reviewSum.data);
 
   const p = q.data;
   if (!p) return <NotFound />;
@@ -137,6 +143,7 @@ function Page() {
     p.bio ? { id: "about", label: t("pp_about") } : null,
     { id: "services", label: t("pp_services") },
     portfolio.length > 0 ? { id: "portfolio", label: t("sd_portfolio") } : null,
+    hasReviews ? { id: "reviews", label: t("rv_tab") } : null,
     hasCarnet(carnet) ? { id: "carnet", label: t("carnet_method") } : null,
   ].filter((x): x is { id: string; label: string } => !!x);
   // Where the pro works, from their published services: up to two cities, then « En ligne » when any is remote.
@@ -202,6 +209,7 @@ function Page() {
                 {spoken && <span className="tag tag-sea"><Languages className="size-3.5" aria-hidden /><span dir="auto">{spoken}</span></span>}
                 {/* These facts come from the pro: labelled as declared (levels of proof). */}
                 {(place || spoken || typeof pd["accepting"] === "boolean") && <TrustBadge level="declared" />}
+                {hasReviews && <a href="#reviews" className="rounded-full"><RatingBadge summary={reviewSum.data} /></a>}
                 {/* A subscription fact, labelled as such — never a level of proof. */}
                 {PRO_TOOLS_ENABLED && proQ.data && (
                   <span className="tag bg-ink text-lime" title={t("pp_pro_member_note")}>
@@ -334,6 +342,8 @@ function Page() {
                 <div className="mt-5"><EmptyState icon={ImageIcon} title={t("db_no_portfolio")} sub={t("db_no_portfolio_sub")} action={<Link to="/profile" search={{ tab: "settings" }} hash="portfolio" className="btn btn-outline">{t("portfolio_add")}</Link>} /></div>
               </section>
             ) : null}
+
+            <ProviderReviewsSection providerId={p.id} proName={name} />
 
             {hasCarnet(carnet) ? (
               <section id="carnet" aria-labelledby="pp-carnet" className="scroll-mt-32 space-y-8">
