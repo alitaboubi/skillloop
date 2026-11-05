@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import type { CSSProperties } from "react";
 import { MapPin } from "lucide-react";
 import { CITIES } from "@/lib/data";
 import { useI18n } from "@/lib/i18n";
@@ -6,7 +7,7 @@ import { useI18n } from "@/lib/i18n";
 /**
  * Home "Où ?" cities on one straight lime ribbon with large names that slide sideways forever. Each city links to Explore;
  * the copies (for the seamless loop) are decorative and hidden from assistive tech. Moves with transform only, stops on hover/focus, and stands
- * still (wrapped, nothing cut) under reduced motion. City names are Latin, so the ribbons run left to right everywhere.
+ * still (wrapped, nothing cut) under reduced motion. The duration grows with the number of cities, so the speed stays the same. City names are Latin, so the ribbons run left to right everywhere.
  */
 export function CityRibbon() {
   const { t } = useI18n();
@@ -25,7 +26,7 @@ export function CityRibbon() {
     <div className="ribbons">
       <nav aria-label={t("hp_loc_title")} className="ribbon ribbon-front">
         {/* One real row + three copies, moved by a quarter: seamless even on very wide screens. */}
-        <div className="ribbon-move">{row(false)}{row(true)}{row(true)}{row(true)}</div>
+        <div className="ribbon-move" style={{ "--ribbon-n": CITIES.length } as CSSProperties}>{row(false)}{row(true)}{row(true)}{row(true)}</div>
       </nav>
     </div>
   );
