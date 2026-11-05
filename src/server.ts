@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { readClientId } from "./lib/google-signin";
 import { securityHeaders, withSecurityHeaders } from "./lib/security-headers";
 import { logServerError } from "./lib/server-log";
 
@@ -9,6 +10,7 @@ import { logServerError } from "./lib/server-log";
 const SECURITY_HEADERS = securityHeaders({
   supabaseUrl: import.meta.env["VITE_SUPABASE_URL"] || (typeof process !== "undefined" ? process.env["SUPABASE_URL"] : undefined),
   dev: !!import.meta.env.DEV,
+  googleSignIn: !!readClientId(import.meta.env["VITE_GOOGLE_CLIENT_ID"]),
 });
 
 type ServerEntry = {

@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, BadgeCheck, Check, Circle, Eye, EyeOff, MailCheck, MapPin, Repeat2, Search, Rocket } from "lucide-react";
 import { Turnstile, type TurnstileHandle } from "@/components/turnstile";
+import { GoogleButton } from "@/components/google-button";
 import { TURNSTILE_SITE_KEY, captchaOptions } from "@/lib/turnstile";
 import { basePostAuthPath, readOfferDraft, takePostAuthTarget } from "@/lib/offer-draft";
 import { authContext, markOAuthReturn, peekReturnTo, takeReturnTo } from "@/lib/return-to";
@@ -163,6 +164,16 @@ export function AuthCard({ mode }: { mode: "login" | "signup" }) {
     const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin + back } });
     if (error) setErrs({ form: t("err_generic") });
   };
+  // Popup flow (VITE_GOOGLE_CLIENT_ID): Google hands an ID token to this page; no redirect through supabase.co.
+  const googleToken = async (token: string, nonce: string) => {
+    setBusy(true);
+    const { error } = await supabase.auth.signInWithIdToken({ provider: "google", token, nonce });
+    setBusy(false);
+    if (error) return setErrs({ form: t("err_generic") });
+    const { path, resumed } = takePostAuthTarget();
+    navigate({ href: path });
+    if (resumed) toast.success(t("welcome_back_resume"));
+  };
 
   const clear = (k: keyof typeof errs) => setErrs((e) => { if (!e[k]) return e; const n = { ...e }; delete n[k]; return n; });
   const roles: { k: Role; icon: typeof Search; title: string; desc: string }[] = [
@@ -259,7 +270,7 @@ export function AuthCard({ mode }: { mode: "login" | "signup" }) {
         <button disabled={busy} aria-busy={busy} className="btn btn-lime min-h-12 w-full">{busy ? t("loading") : isLogin ? t("login") : t("signup")}</button>
       </form>
       <p className="my-5 flex items-center gap-3 text-sm font-semibold text-muted-foreground before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">{t("or_continue")}</p>
-      <button type="button" onClick={google} className="btn btn-outline min-h-12 w-full">{t("google")}</button>
+      <GoogleButton onToken={(tok, nonce) => void googleToken(tok, nonce)} onRedirect={() => void google()} />
       <p className="mt-6 text-center text-sm text-muted-foreground">
         {isLogin ? t("no_account") : t("have_account")}{" "}
         <Link to={isLogin ? "/signup" : "/login"} className="link-sea">{isLogin ? t("signup") : t("login")}</Link>

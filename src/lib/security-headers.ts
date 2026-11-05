@@ -6,17 +6,19 @@
  *     portfolio video URLs are media)
  *   - Cloudflare Turnstile (script + iframe on challenges.cloudflare.com)
  *   - Google Fonts (stylesheet on fonts.googleapis.com, files on fonts.gstatic.com)
- * Google sign-in is a full-page redirect to Supabase → Google → back (no popup, no Google script), so it needs
- * no CSP entry; form-action/navigation are not restricted by these sources.
+ *   - Google Identity Services, only when `googleSignIn` (VITE_GOOGLE_CLIENT_ID set): script, button iframe,
+ *     style and FedCM calls under accounts.google.com/gsi/, and a popup that must keep its opener.
+ * Without it Google sign-in is a full-page redirect to Supabase → Google → back, which needs no CSP entry.
  *
  * Known limitation (phase 1): scripts allow 'unsafe-inline' because the page has inline scripts (theme init,
  * TanStack hydration). External script origins are still locked down. Phase 2 = per-request nonces (router ssr.nonce).
  * Dev: CSP is Report-Only (violations show in the console, nothing breaks) and allows the Vite HMR websocket;
  * no HSTS / upgrade-insecure-requests on http://localhost.
  */
-export type HeaderOptions = { supabaseUrl?: string | undefined; dev: boolean };
+export type HeaderOptions = { supabaseUrl?: string | undefined; dev: boolean; googleSignIn?: boolean };
 
 const TURNSTILE = "https://challenges.cloudflare.com";
+const GIS = "https://accounts.google.com/gsi/";
 
 function supabaseOrigins(url: string | undefined): { https: string; wss: string } | null {
   if (!url) return null;
@@ -29,20 +31,21 @@ function supabaseOrigins(url: string | undefined): { https: string; wss: string 
   }
 }
 
-export function contentSecurityPolicy({ supabaseUrl, dev }: HeaderOptions): string {
+export function contentSecurityPolicy({ supabaseUrl, dev, googleSignIn = false }: HeaderOptions): string {
   const sb = supabaseOrigins(supabaseUrl);
+  const gis = googleSignIn ? [GIS] : [];
   const directives: Record<string, string[]> = {
     "default-src": ["'self'"],
-    "script-src": ["'self'", "'unsafe-inline'", TURNSTILE],
-    "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+    "script-src": ["'self'", "'unsafe-inline'", TURNSTILE, ...gis],
+    "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", ...gis],
     "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
     // blob: = local photo previews before upload; Supabase = signed photo URLs.
     "img-src": ["'self'", "data:", "blob:", ...(sb ? [sb.https] : [])],
     // Portfolio videos: blob: = the upload check reads the picked file (motion.ts probeVideo); Supabase = signed video URLs.
     // Without it media falls back to default-src and every video is refused ("cannot read this video").
     "media-src": ["'self'", "blob:", ...(sb ? [sb.https] : [])],
-    "connect-src": ["'self'", ...(sb ? [sb.https, sb.wss] : []), ...(dev ? ["ws:", "wss:"] : [])],
-    "frame-src": [TURNSTILE],
+    "connect-src": ["'self'", ...(sb ? [sb.https, sb.wss] : []), ...gis, ...(dev ? ["ws:", "wss:"] : [])],
+    "frame-src": [TURNSTILE, ...gis],
     "worker-src": ["'self'", "blob:"],
     "object-src": ["'none'"],
     "base-uri": ["'self'"],
@@ -62,8 +65,8 @@ export function securityHeaders(opts: HeaderOptions): Record<string, string> {
     "Referrer-Policy": "strict-origin-when-cross-origin",
     // Only what the app never uses. Clipboard and Web Share stay allowed (share kit).
     "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
-    // Google sign-in is a redirect, not a popup, so same-origin is safe.
-    "Cross-Origin-Opener-Policy": "same-origin",
+    // The Google popup (googleSignIn) posts its result back to this page, so it must keep its opener.
+    "Cross-Origin-Opener-Policy": opts.googleSignIn ? "same-origin-allow-popups" : "same-origin",
   };
   // HSTS only over https (production). No "preload": that is hard to undo and needs a separate decision.
   if (!opts.dev) h["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
