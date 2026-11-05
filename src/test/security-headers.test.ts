@@ -25,6 +25,12 @@ describe("content security policy", () => {
     expect(directive(dev, "connect-src")).toContain("ws:");
     expect(dev).not.toContain("upgrade-insecure-requests");
   });
+  it("allows Google Identity Services only when the Google popup sign-in is on", () => {
+    expect(csp).not.toContain("accounts.google.com");
+    const g = contentSecurityPolicy({ supabaseUrl: SB, dev: false, googleSignIn: true });
+    for (const d of ["script-src", "frame-src", "style-src", "connect-src"]) expect(directive(g, d)).toContain("https://accounts.google.com/gsi/");
+    expect(directive(g, "default-src")).toBe("default-src 'self'");
+  });
   it("ignores a malformed Supabase URL instead of emitting a broken source", () => {
     const bad = contentSecurityPolicy({ supabaseUrl: "javascript:alert(1)", dev: false });
     expect(directive(bad, "connect-src")).toBe("connect-src 'self'");
@@ -37,6 +43,10 @@ describe("security headers", () => {
     expect(h["Content-Security-Policy"]).toBeDefined();
     expect(h["Strict-Transport-Security"]).toBe("max-age=31536000; includeSubDomains");
     expect(h).toMatchObject({ "X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY", "Referrer-Policy": "strict-origin-when-cross-origin", "Cross-Origin-Opener-Policy": "same-origin" });
+  });
+  it("lets the Google popup keep its opener only when Google popup sign-in is on", () => {
+    expect(securityHeaders({ dev: false, googleSignIn: true })["Cross-Origin-Opener-Policy"]).toBe("same-origin-allow-popups");
+    expect(securityHeaders({ dev: false })["Cross-Origin-Opener-Policy"]).toBe("same-origin");
   });
   it("only reports CSP in dev and sends no HSTS over http", () => {
     const h = securityHeaders({ supabaseUrl: SB, dev: true });
