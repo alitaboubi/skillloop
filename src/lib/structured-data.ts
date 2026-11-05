@@ -18,10 +18,22 @@ const categoryLabel = (id: string) => {
   return c ? fr[c.key] : undefined;
 };
 
+/** Spellings people type for the brand; Google reads WebSite.alternateName for the site name shown in results. */
+export const BRAND_ALT_NAMES = ["Skill Loop", "SkillLoop Tunisie", "SkillLoop Tunisia", "Skill Loop Tunisia"];
+
 export function homeLd(origin: string): Json[] {
   return [
-    { "@context": "https://schema.org", "@type": "WebSite", name: "SkillLoop", url: `${origin}/`, inLanguage: "fr" },
-    { "@context": "https://schema.org", "@type": "Organization", name: "SkillLoop", url: `${origin}/`, sameAs: SOCIAL_LINKS.map((x) => x.url) },
+    { "@context": "https://schema.org", "@type": "WebSite", name: "SkillLoop", alternateName: BRAND_ALT_NAMES, url: `${origin}/`, inLanguage: "fr" },
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "SkillLoop",
+      alternateName: BRAND_ALT_NAMES,
+      url: `${origin}/`,
+      description: "Plateforme tunisienne pour trouver ou proposer des services locaux et à distance.",
+      areaServed: { "@type": "Country", name: "Tunisie" },
+      sameAs: SOCIAL_LINKS.map((x) => x.url),
+    },
   ];
 }
 
