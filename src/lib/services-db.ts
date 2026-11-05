@@ -31,6 +31,7 @@ export function rowToService(r: Row, signed?: string, avatar?: string): Service 
     delivery: "—",
     languages: "—",
     publishedDaysAgo: Math.floor((Date.now() - new Date(r.created_at).getTime()) / 864e5),
+    publishedAt: r.created_at,
     ownerId: r.owner_id,
     quoteOnly: r.price_model === "quote",
     real: true,
@@ -45,9 +46,12 @@ export function rowToService(r: Row, signed?: string, avatar?: string): Service 
 
 const SELECT = "id, owner_id, title, description, category, price_model, price, city, remote, created_at, image_url, details, profiles(display_name, title, avatar_url, accepting:professional_details->accepting)";
 
+/** Most published services loaded at once; a list this long may be cut. */
+export const PUBLISHED_LIMIT = 200;
+
 /** Published, non-archived listings (archived must be filtered here too: RLS lets owners read their own archived rows). */
 async function loadPublished(db: Db) {
-  const { data, error } = await db.from("services").select(SELECT).eq("status", "published").eq("archived", false).order("created_at", { ascending: false }).limit(200);
+  const { data, error } = await db.from("services").select(SELECT).eq("status", "published").eq("archived", false).order("created_at", { ascending: false }).limit(PUBLISHED_LIMIT);
   if (error) throw error;
   return withImages(data as unknown as Row[], db);
 }
