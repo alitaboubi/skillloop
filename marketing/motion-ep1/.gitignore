@@ -1,0 +1,8 @@
+# Heavy media stays local (Veo sources, renders, upscaled copies, emoji font).
+clips/*.mp4
+review/*.wav
+edit/out/
+edit/public/clips/
+edit/public/fonts/
+edit/public/audio/music.wav
+edit/public/audio/motion.wav
