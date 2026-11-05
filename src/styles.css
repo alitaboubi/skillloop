@@ -306,6 +306,96 @@
 }
 @utility avail-open { color: var(--success); background: color-mix(in oklab, var(--success) 12%, transparent); }
 @utility avail-closed { color: var(--muted-foreground); background: var(--surface-sunken); }
+/* Provider line (service page header): who you deal with, as one tappable row → public profile. */
+@utility provider-line {
+  display: inline-flex;
+  min-height: 2.75rem;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding-block: 0.375rem;
+  padding-inline: 0.375rem 0.875rem;
+  transition: border-color 150ms ease, transform 150ms ease;
+  @media (hover: hover) { &:is(a):hover { border-color: var(--sea); transform: translateY(-2px); } }
+  @media (prefers-reduced-motion: reduce) { transition: none; &:is(a):hover { transform: none; } }
+}
+/* Presentation reel: a phone frame around the 9:16 video (ink bezel, raised). */
+@utility reel-phone {
+  position: relative;
+  width: min(100%, 18rem);
+  aspect-ratio: 9 / 16;
+  border-radius: 2rem;
+  padding: 0.5rem;
+  background: var(--ink);
+  box-shadow: var(--shadow-raised), 0 0 0 1px color-mix(in oklab, var(--ink-foreground) 14%, transparent);
+}
+@utility reel-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 1.5rem;
+  object-fit: cover;
+  background: var(--surface-sunken);
+}
+/* In the dialog the phone is sized by the screen height, so the whole video is visible without scrolling. */
+@utility reel-phone-dialog { width: min(calc(100vw - 4rem), calc((100dvh - 9rem) * 9 / 16), 22rem); }
+/* SkillLoop's social accounts (round icon buttons, or pills with the handle). */
+@utility social-link {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+  &:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+}
+@utility social-link-dark {
+  color: var(--navy-foreground);
+  border-color: color-mix(in oklab, var(--navy-foreground) 18%, transparent);
+  background: color-mix(in oklab, var(--navy-foreground) 6%, transparent);
+  &:hover { background: color-mix(in oklab, var(--navy-foreground) 14%, transparent); }
+}
+@utility social-link-light {
+  color: var(--foreground);
+  border-color: var(--border);
+  background: var(--card);
+  &:hover { border-color: var(--sea); color: var(--sea); }
+}
+/* Offer wizard: a category as a tappable tile (radio inside; selected = lime icon + sea outline). */
+@utility cat-choice {
+  display: flex;
+  min-height: 3.25rem;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 0.5rem 0.75rem;
+  transition: border-color 150ms ease, background-color 150ms ease;
+  &:hover { background: var(--muted); }
+  &:has(:focus-visible) { outline: 2px solid var(--ring); outline-offset: 2px; }
+}
+@utility cat-choice-on {
+  border-color: var(--sea);
+  background: var(--sea-soft);
+  &:hover { background: var(--sea-soft); }
+}
+/* Request "how it works": a thin line links the three numbered dots (logical side, RTL-safe). */
+.req-how > li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(0.625rem - 1px);
+  top: 1.35rem;
+  bottom: -0.5rem;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--border);
+}
 /* Panels: flat by default; the page's one primary panel is raised and carries the lime action edge. */
 @utility panel {
   border-radius: 1.5rem;
@@ -1782,3 +1872,5 @@ a.ribbon-item:focus-visible { outline: 3px solid var(--ink); outline-offset: -4p
 .stretched-link:focus-visible::before { outline: 2px solid var(--ring); outline-offset: -2px; border-radius: 1.25rem; }
 .row-card:has(.stretched-link) { cursor: pointer; }
 .row-card .stretched-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+/* Header search + video: icon-only round buttons (labels are visually hidden). */
+@media (min-width: 1024px) { .search-trigger { padding-inline: 0.7rem; } }

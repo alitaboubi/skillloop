@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { CONTACT_META } from "@/components/contact-meta";
 import { CONTACT_KINDS, contactHref, contactLabel, isPublicContactValid, type ContactKind } from "@/lib/profile-contacts";
 import { ErrorState, EmptyState, TrustBadge } from "@/components/states";
-import { EnlargeHint, FramedImage, MediaViewer, ProfilePhoto, type MediaItem } from "@/components/media-viewer";
+import { Avatar, EnlargeHint, FramedImage, MediaViewer, ProfilePhoto, type MediaItem } from "@/components/media-viewer";
 import { ServiceCard, ServiceCardSkeleton, useAllServices } from "@/components/site";
 import { fetchPublicProfile, profileQuery } from "@/lib/profiles-db";
 import { profileSeo } from "@/lib/seo";
@@ -419,6 +419,22 @@ function Page() {
           ) : null}
         </div>
       </div>
+
+      {/* Phones: the request action stays reachable while scrolling the page (same bar as a service page; hides the bottom nav). */}
+      {!isOwner && requestCta && (
+        <>
+          <div data-request-bar className="request-bar fixed inset-x-0 z-30 border-t bg-card/95 px-3 pt-3 shadow-raised backdrop-blur lg:hidden">
+            <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <Avatar src={p.avatar} name={name} size="sm" />
+                <p dir="auto" className="truncate font-semibold">{name}</p>
+              </div>
+              <div className="shrink-0 [&>*]:w-auto">{requestCta}</div>
+            </div>
+          </div>
+          <div className="request-bar-spacer h-24 lg:hidden" aria-hidden />
+        </>
+      )}
     </div>
   );
 }

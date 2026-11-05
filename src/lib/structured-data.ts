@@ -1,3 +1,4 @@
+import { SOCIAL_LINKS } from "./social";
 import { CATEGORIES, type Service } from "./data";
 import { dictionaries } from "./i18n";
 
@@ -20,7 +21,7 @@ const categoryLabel = (id: string) => {
 export function homeLd(origin: string): Json[] {
   return [
     { "@context": "https://schema.org", "@type": "WebSite", name: "SkillLoop", url: `${origin}/`, inLanguage: "fr" },
-    { "@context": "https://schema.org", "@type": "Organization", name: "SkillLoop", url: `${origin}/` },
+    { "@context": "https://schema.org", "@type": "Organization", name: "SkillLoop", url: `${origin}/`, sameAs: SOCIAL_LINKS.map((x) => x.url) },
   ];
 }
 

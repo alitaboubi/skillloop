@@ -3,7 +3,8 @@ import { limitMessage } from "@/lib/limits";
 import { rememberCurrentPage } from "@/lib/return-to";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, CheckCircle2, Pencil, User, Wifi } from "lucide-react";
+import { Check, CheckCircle2, Lightbulb, Pencil, User, Wifi } from "lucide-react";
+import { CATEGORY_ICONS } from "@/components/brand";
 import { useI18n, type TKey } from "@/lib/i18n";
 import { CATEGORIES, CITIES, type CategoryId, type Service } from "@/lib/data";
 import { PageHero, ServiceCard, ServiceCardSkeleton } from "@/components/site";
@@ -252,8 +253,9 @@ function Wizard({ userId, titleParam, original }: { userId: string; titleParam: 
         </div>
       )}
 
+      <div className={step < 3 ? "mt-5 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_17rem]" : "mt-5"}>
       <form noValidate aria-busy={!!busy} onSubmit={(e) => { e.preventDefault(); if (step < 3) goTo(step + 1); else submit("published"); }}
-        className="panel-action mt-5 p-5 pt-6 sm:p-7 sm:pt-8">
+        className="panel-action min-w-0 p-5 pt-6 sm:p-7 sm:pt-8">
         <div key={step} className="swap-in space-y-6">
           <header>
             <h2 ref={heading} tabIndex={-1} className="text-xl font-bold outline-none">{t(step === 0 ? "st0_h" : step === 1 ? "st1_h" : step === 2 ? "st2_h" : original ? "st3_h_edit" : "st3_h")}</h2>
@@ -270,14 +272,25 @@ function Wizard({ userId, titleParam, original }: { userId: string; titleParam: 
                 {err("title")}
                 <AiAssist field="title" value={f.title} onApply={(v) => set("title", v)} context={aiContext} />
               </div>
-              <div>
-                <label htmlFor="of-category" className="block text-sm font-semibold">{t("f_category")} *</label>
-                <select {...field("category")} className="field mt-1.5" value={f.category} onChange={(e) => set("category", e.target.value)}>
-                  <option value="">{t("f_choose")}</option>
-                  {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{t(c.key)}</option>)}
-                </select>
+              <fieldset aria-invalid={!!errors.category} aria-describedby={errors.category ? "of-category-err" : undefined}>
+                <legend className="text-sm font-semibold">{t("f_category")} *</legend>
+                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {CATEGORIES.map((c, i) => {
+                    const Icon = CATEGORY_ICONS[c.id] ?? CATEGORY_ICONS.other;
+                    const on = f.category === c.id;
+                    return (
+                      <label key={c.id} className={`cat-choice ${on ? "cat-choice-on" : ""}`}>
+                        {/* The first tile carries the field id, so a "choose a category" error can move focus here. */}
+                        <input type="radio" name="category" value={c.id} checked={on} onChange={() => set("category", c.id)} className="sr-only" {...(i === 0 ? { id: "of-category" } : {})} />
+                        <span aria-hidden className={`grid size-8 shrink-0 place-items-center rounded-xl ${on ? "bg-lime text-lime-foreground" : "bg-clay/10 text-clay-strong"}`}><Icon className="size-4" /></span>
+                        <span className="min-w-0 text-sm font-semibold leading-snug">{t(c.key)}</span>
+                        {on && <Check className="ms-auto size-4 shrink-0 text-sea" aria-hidden />}
+                      </label>
+                    );
+                  })}
+                </div>
                 {err("category")}
-              </div>
+              </fieldset>
               {f.category === "healthcare" && (
                 <div className="rounded-2xl border border-sea/30 bg-sea-soft/40 p-4">
                   <p id="of-regulatedAck-help" className="text-sm text-muted-foreground">{t("regulated_note")}</p>
@@ -388,8 +401,41 @@ function Wizard({ userId, titleParam, original }: { userId: string; titleParam: 
           )}
         </div>
       </form>
+      {step < 3 && <LivePreview f={f} photoUrl={photoUrl} provider={profile.data?.display_name || "—"} profession={profile.data?.title ?? undefined} step={step} />}
+      </div>
     </div>
   );
+}
+
+const STEP_TIP: [TKey, TKey][] = [["pr_g1_t", "pr_g1_d"], ["pr_g2_t", "pr_g2_d"], ["pr_g3_t", "pr_g3_d"]];
+
+/** Wide screens: the Explore card as clients will see it, updated while typing, plus the tip for this step. */
+function LivePreview({ f, photoUrl, provider, profession, step }: { f: OfferForm; photoUrl: string | null; provider: string; profession: string | undefined; step: number }) {
+  const { t } = useI18n();
+  const tip = STEP_TIP[step];
+  return (
+    <aside aria-label={t("card_preview")} className="hidden space-y-4 lg:sticky lg:top-24 lg:block">
+      <p className="eyebrow">{t("card_preview")}</p>
+      <div inert className="pointer-events-none"><ServiceCard s={previewOf(f, photoUrl, provider, profession)} /></div>
+      {tip && (
+        <div key={step} className="swap-in rounded-2xl border bg-surface-sunken p-4">
+          <p className="flex items-center gap-2 text-sm font-bold"><Lightbulb className="size-4 text-clay-strong" aria-hidden />{t(tip[0])}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t(tip[1])}</p>
+        </div>
+      )}
+    </aside>
+  );
+}
+
+/** The listing as an Explore card, built only from what was typed (inert preview; never saved). */
+function previewOf(f: OfferForm, photoUrl: string | null, provider: string, profession: string | undefined): Service {
+  const price = parsePrice(f.price);
+  const quote = f.priceModel === "quote";
+  return {
+    id: "preview", title: f.title.trim() || "—", description: f.description, category: (f.category || "other") as CategoryId,
+    price: price ?? 0, unit: UNIT[f.priceModel ?? "fixed"] ?? "pm_fixed", city: f.city, remote: f.mode === "remote", image: photoUrl ?? "",
+    provider, profession, delivery: "—", languages: "—", publishedDaysAgo: 0, quoteOnly: quote, hasPhoto: !!photoUrl, priceMissing: !quote && !price,
+  };
 }
 
 /** Launch moment: the real Explore card of the service just published, plus its public link to share. Drafts get none (not public). */
@@ -459,11 +505,7 @@ function Review({ f, photoUrl, changes, provider, profession, lang, onEdit }: {
   const cat = CATEGORIES.find((c) => c.id === f.category);
   const price = parsePrice(f.price);
   const quote = f.priceModel === "quote";
-  const preview: Service = {
-    id: "preview", title: f.title.trim() || "—", description: f.description, category: (f.category || "other") as CategoryId,
-    price: price ?? 0, unit: UNIT[f.priceModel ?? "fixed"] ?? "pm_fixed", city: f.city, remote: f.mode === "remote", image: photoUrl ?? "",
-    provider, profession, delivery: "—", languages: "—", publishedDaysAgo: 0, quoteOnly: quote, hasPhoto: !!photoUrl, priceMissing: !quote && !price,
-  };
+  const preview = previewOf(f, photoUrl, provider, profession);
   const fmt = new Intl.NumberFormat(lang === "ar" ? "ar-TN" : lang, { maximumFractionDigits: 3 });
   const items = (f.deliverables ?? "").split("\n").map((x) => x.replace(/^[-*•\s]+/, "").trim()).filter(Boolean);
   const rows: { g: ReviewGroup; step: number; field: OfferField | null; label: TKey; value: ReactNode }[] = [

@@ -11,6 +11,7 @@ import forClients from "@/assets/home/for-clients.webp";
 import forPros from "@/assets/home/for-pros.webp";
 import { ServiceCardSkeleton, useAllServices } from "@/components/site";
 import { ServiceShowcase } from "@/components/service-showcase";
+import { HomeReel } from "@/components/reel-video";
 import { CityRibbon } from "@/components/city-ribbon";
 import { homeSeo } from "@/lib/seo";
 import { ErrorState, FirstVisitEmpty } from "@/components/states";
@@ -162,6 +163,8 @@ function Index() {
       />
 
       <HowItWorks />
+
+      <HomeReel />
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6" aria-labelledby="check">
         <div>
