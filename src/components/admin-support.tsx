@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, LifeBuoy, RotateCcw, SendHorizontal } from "lucide-react";
+import { CheckCircle2, LifeBuoy, RotateCcw, Search, SendHorizontal } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { relativeTime } from "@/lib/notifications";
 import { SUPPORT_MAX, checkBody } from "@/lib/support";
@@ -73,15 +73,23 @@ function Thread({ userId }: { userId: string }) {
   );
 }
 
-/** Operator inbox on /admin (VITE_SUPPORT + VITE_ADMIN): conversations list + the selected one. The database is the gate. */
-export function AdminSupport() {
+/**
+ * Operator inbox on /admin (VITE_SUPPORT + VITE_ADMIN): conversations list + the selected one. The database is the gate.
+ * In the console the open conversation lives in the URL (?c=), so « Écrire » on an account opens it here.
+ */
+export function AdminSupport({ selected: chosen, onSelect }: { selected?: string | null; onSelect?: (userId: string | null) => void } = {}) {
   const { t, lang } = useI18n();
   const locale = lang === "ar" ? "ar-TN" : lang;
   const [filter, setFilter] = useState<Filter>("open");
-  const [selected, setSelected] = useState<string | null>(null);
+  const [own, setOwn] = useState<string | null>(null);
+  const selected = chosen === undefined ? own : chosen;
+  const setSelected = (id: string | null) => (onSelect ? onSelect(id) : setOwn(id));
+  const [q, setQ] = useState("");
   const inbox = useQuery(supportInboxQuery(filter));
-  const rows = inbox.data ?? [];
-  const unread = rows.reduce((a, r) => a + r.unread, 0);
+  const all = inbox.data ?? [];
+  const needle = q.trim().toLowerCase();
+  const rows = needle ? all.filter((r) => r.name.toLowerCase().includes(needle) || r.lastBody.toLowerCase().includes(needle)) : all;
+  const unread = all.reduce((a, r) => a + r.unread, 0);
   // Never auto-open: opening marks the conversation read for the whole team.
   const current = selected;
   const filters: { id: Filter; label: string }[] = [
@@ -101,10 +109,18 @@ export function AdminSupport() {
         </div>
       </div>
       <div className="mt-5">
-        {inbox.isLoading ? <ListSkeleton rows={3} /> : inbox.isError ? <ErrorState onRetry={() => inbox.refetch()} /> : !rows.length ? (
+        {inbox.isLoading ? <ListSkeleton rows={3} /> : inbox.isError ? <ErrorState onRetry={() => inbox.refetch()} /> : !all.length && !current ? (
           <p className="text-sm text-muted-foreground">{t("sup_adm_empty")}</p>
         ) : (
           <div className="grid gap-6 lg:grid-cols-[18rem_1fr]">
+            <div className="space-y-2">
+            <label htmlFor="adm-support-q" className="sr-only">{t("ac_msg_search")}</label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+              <input id="adm-support-q" type="search" value={q} onChange={(e) => setQ(e.target.value)} dir="auto" autoComplete="off"
+                placeholder={t("ac_msg_search")} className="field ps-9 text-sm" />
+            </div>
+            {!rows.length && <p className="px-1 text-sm text-muted-foreground">{t("ac_none_found")}</p>}
             <ul className="space-y-1 lg:max-h-[36rem] lg:overflow-y-auto">
               {rows.map((r) => (
                 <li key={r.userId}>
@@ -122,6 +138,7 @@ export function AdminSupport() {
                 </li>
               ))}
             </ul>
+            </div>
             {current ? <Thread key={current} userId={current} /> : <p className="self-center text-center text-sm text-muted-foreground">{t("sup_adm_pick")}</p>}
           </div>
         )}
