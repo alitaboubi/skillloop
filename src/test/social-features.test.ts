@@ -131,14 +131,25 @@ describe("reading the database", () => {
 describe("feature notifications", () => {
   const feed = (kind: string, url: unknown) => parseFeed({ unread: 1, items: [{ id: "n1", kind, created_at: "2026-11-06T10:00:00Z", feature_title: "Plombier à Sfax", feature_url: url }] }).items[0]!;
 
-  it("open the dashboard (you) or the reel itself (everyone)", () => {
-    expect(targetOf(feed("feature_you", IG))).toEqual({ kind: "link", to: "/dashboard", search: {} });
-    expect(targetOf(feed("feature_new", IG))).toEqual({ kind: "external", href: IG });
+  it("open the video sheet, for the people in it (you) and for everyone (new)", () => {
+    expect(targetOf(feed("feature_you", IG))).toEqual({ kind: "feature", sheet: { mode: "you", title: "Plombier à Sfax", instagramUrl: IG, facebookUrl: null, publishedAt: null } });
+    expect(targetOf(feed("feature_new", IG))).toMatchObject({ kind: "feature", sheet: { mode: "new", instagramUrl: IG } });
   });
 
-  it("never open a link that is not SkillLoop's own post shape", () => {
+  it("carry both links and the date (20261107120000), else place the single link on its platform", () => {
+    const FB = "https://www.facebook.com/reel/1234567890";
+    const both = parseFeed({ items: [{ id: "n1", kind: "feature_new", created_at: "2026-11-06T10:00:00Z", feature_title: "T", feature_url: IG,
+      feature_instagram_url: IG, feature_facebook_url: FB, feature_published_at: "2026-11-06T09:00:00Z" }] }).items[0]!;
+    expect(targetOf(both)).toEqual({ kind: "feature", sheet: { mode: "new", title: "T", instagramUrl: IG, facebookUrl: FB, publishedAt: "2026-11-06T09:00:00Z" } });
+    const fbOnly = feed("feature_new", FB);
+    expect([fbOnly.featureInstagramUrl, fbOnly.featureFacebookUrl]).toEqual([null, FB]);
+  });
+
+  it("never open a link that is not SkillLoop's own post shape; a deleted post leads to the dashboard", () => {
     expect(feed("feature_new", "https://evil.example/").featureUrl).toBeNull();
-    expect(targetOf(feed("feature_new", "javascript:alert(1)"))).toMatchObject({ to: "/dashboard" });
+    const bad = parseFeed({ items: [{ id: "n1", kind: "feature_new", created_at: "2026-11-06T10:00:00Z", feature_instagram_url: "javascript:alert(1)", feature_facebook_url: "https://evil.example/x" }] }).items[0]!;
+    expect(targetOf(bad)).toMatchObject({ to: "/dashboard" });
+    expect(targetOf(feed("feature_you", null))).toMatchObject({ to: "/dashboard" });
   });
 
   it("put the post title in the sentence", () => {

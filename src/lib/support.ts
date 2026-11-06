@@ -74,7 +74,12 @@ export const HELP_TOPICS: HelpTopic[] = [
   { id: "safety", q: "sup_q_safety", a: "sup_a_safety" },
 ];
 
-/** Opens the support panel from anywhere (account menu, footer, a notification). */
-export function openSupport(topic?: "chat") {
-  window.dispatchEvent(new CustomEvent(OPEN_SUPPORT_EVENT, { detail: topic ?? null }));
+/** A message written for the user to send (they can still change it). `id` makes each opening a new draft. */
+export type SupportDraft = { id: number; text: string };
+export type SupportOpen = { topic: "chat" | null; draft: SupportDraft | null };
+
+/** Opens the support panel from anywhere (account menu, footer, a notification), optionally with a ready message. */
+export function openSupport(topic?: "chat", draft?: string) {
+  const detail: SupportOpen = { topic: topic ?? null, draft: draft ? { id: Date.now(), text: draft.slice(0, SUPPORT_MAX) } : null };
+  window.dispatchEvent(new CustomEvent(OPEN_SUPPORT_EVENT, { detail }));
 }

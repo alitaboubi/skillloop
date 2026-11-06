@@ -3,7 +3,7 @@ import { normalizeFacebook, normalizeInstagram } from "@/lib/social-features";
 
 /**
  * In-app notifications (the bell). Rows are written ONLY by the database (migration 20261106120000_notifications.sql —
- * APPLIED; kinds feature_you / feature_new come with 20261106140000_social_features.sql, PREPARED) from real events; a row holds ids + a kind, and the sentence is written here in the reader's
+ * APPLIED; kinds feature_you / feature_new come with 20261106140000_social_features.sql, APPLIED) from real events; a row holds ids + a kind, and the sentence is written here in the reader's
  * language. Off until VITE_NOTIFICATIONS=on: while off nothing calls the RPCs and no bell is shown.
  */
 export const NOTIFICATIONS_ENABLED = import.meta.env["VITE_NOTIFICATIONS"] === "on";
@@ -25,9 +25,12 @@ export type AppNotification = {
   serviceTitle: string | null;
   /** Live display name of who acted; "" = deleted account; null = no actor (welcome, service live). */
   actorName: string | null;
-  /** feature_*: the SkillLoop post (title + its Instagram / Facebook link); null once deleted. */
+  /** feature_*: the SkillLoop post (title + its Instagram / Facebook links + date); null once deleted. */
   featureTitle: string | null;
   featureUrl: string | null;
+  featureInstagramUrl: string | null;
+  featureFacebookUrl: string | null;
+  featurePublishedAt: string | null;
 };
 export type NotificationFeed = { unread: number; items: AppNotification[] };
 
@@ -38,6 +41,22 @@ const safeSocialUrl = (v: unknown) => {
   const s = str(v);
   return s && (normalizeInstagram(s) === s || normalizeFacebook(s) === s) ? s : null;
 };
+/**
+ * The post's links. Both come from 20261107120000_feature_links.sql; before it, only feature_url (Instagram first) — it is
+ * then placed on the platform its shape belongs to.
+ */
+function featureOf(d: Record<string, unknown>) {
+  const url = safeSocialUrl(d["feature_url"]);
+  const ig = str(d["feature_instagram_url"]), fb = str(d["feature_facebook_url"]);
+  const at = str(d["feature_published_at"]);
+  return {
+    featureTitle: str(d["feature_title"]),
+    featureUrl: url,
+    featureInstagramUrl: ig && normalizeInstagram(ig) === ig ? ig : url && normalizeInstagram(url) === url ? url : null,
+    featureFacebookUrl: fb && normalizeFacebook(fb) === fb ? fb : url && normalizeFacebook(url) === url ? url : null,
+    featurePublishedAt: at && !Number.isNaN(Date.parse(at)) ? at : null,
+  };
+}
 const isKind = (v: unknown): v is NotificationKind => typeof v === "string" && (NOTIFICATION_KINDS as readonly string[]).includes(v);
 
 /** Reads public.my_notifications()'s JSON defensively: unknown kinds and malformed rows are dropped. */
@@ -51,7 +70,7 @@ export function parseFeed(raw: unknown): NotificationFeed {
       id, kind: d["kind"], createdAt, read: !!str(d["read_at"]),
       requestId: str(d["request_id"]), serviceId: str(d["service_id"]),
       serviceTitle: str(d["service_title"]), actorName: d["actor_name"] === undefined ? null : str(d["actor_name"]),
-      featureTitle: str(d["feature_title"]), featureUrl: safeSocialUrl(d["feature_url"]),
+      ...featureOf(d),
     }];
   });
   const unread = typeof o["unread"] === "number" && Number.isFinite(o["unread"]) && o["unread"] > 0 ? Math.floor(o["unread"]) : 0;
@@ -88,13 +107,28 @@ export type Target =
   | { kind: "link"; to: "/dashboard"; search: { mode?: "provider"; section?: "reviews" } }
   | { kind: "link"; to: "/admin"; search: Record<string, never> }
   | { kind: "support" }
-  | { kind: "external"; href: string };
+  | { kind: "feature"; sheet: FeatureSheet };
 
-export function targetOf(n: Pick<AppNotification, "kind" | "requestId" | "serviceId"> & Partial<Pick<AppNotification, "featureUrl">>): Target {
+/** The video sheet the bell opens for feature_* (watch on Instagram / Facebook, then « je veux ma vidéo » or « mon profil »). */
+export type FeatureSheet = {
+  mode: "new" | "you";
+  title: string;
+  instagramUrl: string | null;
+  facebookUrl: string | null;
+  publishedAt: string | null;
+};
+type FeatureFields = "featureTitle" | "featureInstagramUrl" | "featureFacebookUrl" | "featurePublishedAt";
+
+export function targetOf(n: Pick<AppNotification, "kind" | "requestId" | "serviceId"> & Partial<Pick<AppNotification, FeatureFields>>): Target {
   switch (n.kind) {
-    // « On parle de toi » sits at the top of the dashboard overview (choose to show it on the profile, share it).
-    case "feature_you": return { kind: "link", to: "/dashboard", search: {} };
-    case "feature_new": return n.featureUrl ? { kind: "external", href: n.featureUrl } : { kind: "link", to: "/dashboard", search: {} };
+    // A deleted post has no link any more: feature_you then leads to « On parle de vous » on the dashboard.
+    case "feature_you":
+    case "feature_new":
+      return n.featureInstagramUrl || n.featureFacebookUrl
+        ? { kind: "feature", sheet: {
+            mode: n.kind === "feature_you" ? "you" : "new", title: n.featureTitle?.trim() || "SkillLoop",
+            instagramUrl: n.featureInstagramUrl ?? null, facebookUrl: n.featureFacebookUrl ?? null, publishedAt: n.featurePublishedAt ?? null } }
+        : { kind: "link", to: "/dashboard", search: {} };
     case "support_reply": return { kind: "support" };
     case "support_new": return { kind: "link", to: "/admin", search: {} };
     case "welcome": return { kind: "link", to: "/dashboard", search: {} };

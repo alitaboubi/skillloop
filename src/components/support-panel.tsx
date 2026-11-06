@@ -11,6 +11,7 @@ import { relativeTime } from "@/lib/notifications";
 import {
   HELP_TOPICS, SUPPORT_CHAT_ENABLED, SUPPORT_EMAIL, SUPPORT_MAX, SUPPORT_WHATSAPP, checkBody, mailtoUrl, pagePath,
   supportErrorKey, whatsappUrl,
+  type SupportDraft,
 } from "@/lib/support";
 import { markSupportRead, supportThreadQuery, useSendSupport, useSupportLive } from "@/lib/support-db";
 
@@ -71,15 +72,17 @@ function Help({ name, onChat, close }: { name: string; onChat: () => void; close
   );
 }
 
-function Chat({ userId, open }: { userId: string; open: boolean }) {
+function Chat({ userId, open, draft }: { userId: string; open: boolean; draft: SupportDraft | null }) {
   const { t, lang } = useI18n();
   const qc = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const thread = useQuery(supportThreadQuery(userId));
   const send = useSendSupport(userId);
-  const [body, setBody] = useState("");
+  const [body, setBody] = useState(draft?.text ?? "");
   const [err, setErr] = useState<string | null>(null);
   const list = useRef<HTMLOListElement>(null);
+  // A ready message (e.g. « je veux ma vidéo » from a notification) fills the box; the user still reads it and sends.
+  useEffect(() => { if (draft) setBody(draft.text); }, [draft]);
   useSupportLive(userId, open);
   const locale = lang === "ar" ? "ar-TN" : lang;
   const messages = thread.data?.messages ?? [];
@@ -170,7 +173,7 @@ function Chat({ userId, open }: { userId: string; open: boolean }) {
 }
 
 /** The support panel: a full screen sheet on phones, a floating card at the bottom end on larger screens. */
-export function SupportPanel({ open, onOpenChange, tab, onTab }: { open: boolean; onOpenChange: (v: boolean) => void; tab: Tab; onTab: (t: Tab) => void }) {
+export function SupportPanel({ open, onOpenChange, tab, onTab, draft = null }: { open: boolean; onOpenChange: (v: boolean) => void; tab: Tab; onTab: (t: Tab) => void; draft?: SupportDraft | null }) {
   const { t } = useI18n();
   const { user } = useAuth();
   const prof = useQuery({ ...profileQuery(user?.id ?? ""), enabled: !!user && open });
@@ -236,7 +239,7 @@ export function SupportPanel({ open, onOpenChange, tab, onTab }: { open: boolean
                 </div>
               </div>
             ) : (
-              <Chat userId={user.id} open={open} />
+              <Chat userId={user.id} open={open} draft={draft} />
             )}
           </div>
         </Dialog.Content>

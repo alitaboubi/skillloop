@@ -17,6 +17,13 @@ Rollback: turn the flag off, redeploy, then `supabase/checks/20261106140000_soci
 4. « Publier et prévenir ». Tick « Prévenir aussi tous les membres » only for the best reels — at most one every 12 h.
 5. In the list, follow who chose « Sur votre profil ». A gentle reminder after 3 days for those still « À vous de choisir ».
 
+## What members see
+- The bell: « Nouvelle vidéo SkillLoop » (everyone) or « Vous êtes à l'affiche » (people in the video).
+- A click opens the video sheet: « Voir sur Instagram », « Voir sur Facebook », then « Je veux ma vidéo » (the support chat
+  opens with a ready message — answer those in /admin → Support) or « Choisir si elle s'affiche sur mon profil ».
+- For both links in the sheet, apply `20261107120000_feature_links.sql` (dry run → apply → verify 2/2). Until then the sheet
+  shows the one link the notification carries.
+
 ## Rules (enforced by the database)
 - Nothing shows on a public profile until that person chooses it in the app; they can hide it at any time.
 - The public profile never shows who else is in a video. Operators never see email addresses.
