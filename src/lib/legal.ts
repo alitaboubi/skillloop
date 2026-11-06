@@ -12,7 +12,7 @@ export type LegalSection = { id: string; h: string; body: LegalBlock[] };
 export type LegalDoc = { intro: string; sections: LegalSection[] };
 export type LegalKind = "privacy" | "terms";
 
-export const LEGAL_UPDATED = "2026-10-25";
+export const LEGAL_UPDATED = "2026-11-05";
 export const PLACEHOLDER_RE = /\[PLACEHOLDER:[^\]]*\]/g;
 
 const PRIVACY: Record<Lang, LegalDoc> = {
@@ -20,8 +20,8 @@ const PRIVACY: Record<Lang, LegalDoc> = {
     intro: "Cette politique explique quelles données SkillLoop traite, pourquoi, avec qui elles sont partagées et quels sont vos droits.",
     sections: [
       { id: "operator", h: "Qui est responsable", body: [
-        "Responsable du traitement : [PLACEHOLDER: entité légale / exploitant — nom, forme juridique, numéro d'immatriculation, adresse].",
-        "Contact confidentialité : [PLACEHOLDER: email de contact confidentialité]. Support : [PLACEHOLDER: email du support].",
+        "Responsable du traitement : Ali Taboubi, personne physique établie en Tunisie (immatriculation au régime de l'auto-entrepreneur en cours).",
+        "Contact (confidentialité et support) : contact@skillloop.tn.",
       ] },
       { id: "data", h: "Données que nous traitons", body: [[
         "Compte : adresse email, mot de passe (stocké chiffré par notre hébergeur d'authentification), ou les nom et email fournis par Google si vous utilisez la connexion Google.",
@@ -52,7 +52,7 @@ const PRIVACY: Record<Lang, LegalDoc> = {
       ] },
       { id: "retention", h: "Durée de conservation", body: [[
         "Compte, profil, services, demandes et messages : tant que votre compte existe, puis selon la section « Suppression du compte ».",
-        "Comptes inactifs : [PLACEHOLDER: durée de conservation des comptes inactifs].",
+        "Comptes inactifs : un compte sans aucune connexion pendant 3 ans est supprimé comme décrit dans « Suppression du compte », après un email de rappel envoyé au moins 30 jours avant.",
         "Journaux techniques de l'hébergeur : courte durée, selon les réglages de Cloudflare.",
         "Compteurs d'usage : effacés à la suppression du compte.",
       ]] },
@@ -65,14 +65,14 @@ const PRIVACY: Record<Lang, LegalDoc> = {
         ],
       ] },
       { id: "rights", h: "Vos droits", body: [
-        "Conformément à la loi organique n° 2004-63 du 27 juillet 2004 relative à la protection des données personnelles, vous pouvez demander l'accès à vos données, leur rectification ou leur suppression, et vous opposer à certains traitements. La plupart des données se modifient directement dans vos paramètres. Pour toute demande : [PLACEHOLDER: email de contact confidentialité].",
-        "Déclaration auprès de l'INPDP (Instance nationale de protection des données personnelles) : [PLACEHOLDER: statut de la déclaration INPDP]. Vous pouvez aussi adresser une réclamation à l'INPDP.",
+        "Conformément à la loi organique n° 2004-63 du 27 juillet 2004 relative à la protection des données personnelles, vous pouvez demander l'accès à vos données, leur rectification ou leur suppression, et vous opposer à certains traitements. La plupart des données se modifient directement dans vos paramètres. Pour toute demande : contact@skillloop.tn.",
+        "Si vous estimez que vos droits ne sont pas respectés, vous pouvez adresser une réclamation à l'INPDP (Instance nationale de protection des données personnelles).",
       ] },
       { id: "device", h: "Stockage sur votre appareil", body: [
         "SkillLoop enregistre dans votre navigateur votre langue, votre thème (clair/sombre), votre session de connexion et vos brouillons de service. Nous n'utilisons ni cookies publicitaires ni outil de mesure d'audience.",
       ] },
       { id: "age", h: "Âge minimum", body: [
-        "SkillLoop est réservé aux personnes âgées d'au moins [PLACEHOLDER: âge minimum] ans.",
+        "SkillLoop est réservé aux personnes âgées d'au moins 18 ans.",
       ] },
       { id: "changes", h: "Modifications", body: [
         "Nous pouvons mettre à jour cette politique ; la date en haut de la page indique la dernière version. En cas de changement important, nous vous en informerons dans l'application.",
@@ -83,8 +83,8 @@ const PRIVACY: Record<Lang, LegalDoc> = {
     intro: "This policy explains what data SkillLoop processes, why, who it is shared with and what your rights are.",
     sections: [
       { id: "operator", h: "Who is responsible", body: [
-        "Data controller: [PLACEHOLDER: legal entity / operator — name, legal form, registration number, address].",
-        "Privacy contact: [PLACEHOLDER: privacy contact email]. Support: [PLACEHOLDER: support email].",
+        "Data controller: Ali Taboubi, an individual based in Tunisia (auto-entrepreneur registration in progress).",
+        "Contact (privacy and support): contact@skillloop.tn.",
       ] },
       { id: "data", h: "Data we process", body: [[
         "Account: email address, password (stored hashed by our authentication host), or the name and email provided by Google if you use Google sign-in.",
@@ -115,7 +115,7 @@ const PRIVACY: Record<Lang, LegalDoc> = {
       ] },
       { id: "retention", h: "How long we keep data", body: [[
         "Account, profile, services, requests and messages: while your account exists, then as described under “Account deletion”.",
-        "Inactive accounts: [PLACEHOLDER: retention period for inactive accounts].",
+        "Inactive accounts: an account with no sign-in for 3 years is deleted as described under “Account deletion”, after a reminder email sent at least 30 days before.",
         "Host technical logs: short period, per Cloudflare's settings.",
         "Usage counters: erased when the account is deleted.",
       ]] },
@@ -128,14 +128,14 @@ const PRIVACY: Record<Lang, LegalDoc> = {
         ],
       ] },
       { id: "rights", h: "Your rights", body: [
-        "Under Tunisian Organic Law No. 2004-63 of 27 July 2004 on the protection of personal data, you can request access to, correction or deletion of your data, and object to certain processing. Most data can be changed directly in your settings. For any request: [PLACEHOLDER: privacy contact email].",
-        "Declaration to the INPDP (National Authority for the Protection of Personal Data): [PLACEHOLDER: INPDP declaration status]. You may also lodge a complaint with the INPDP.",
+        "Under Tunisian Organic Law No. 2004-63 of 27 July 2004 on the protection of personal data, you can request access to, correction or deletion of your data, and object to certain processing. Most data can be changed directly in your settings. For any request: contact@skillloop.tn.",
+        "If you believe your rights are not respected, you may lodge a complaint with the INPDP (National Authority for the Protection of Personal Data).",
       ] },
       { id: "device", h: "Storage on your device", body: [
         "SkillLoop stores your language, theme (light/dark), sign-in session and service drafts in your browser. We use no advertising cookies and no analytics tools.",
       ] },
       { id: "age", h: "Minimum age", body: [
-        "SkillLoop is only for people aged at least [PLACEHOLDER: minimum age].",
+        "SkillLoop is only for people aged at least 18.",
       ] },
       { id: "changes", h: "Changes", body: [
         "We may update this policy; the date at the top shows the latest version. For important changes we will tell you in the app.",
@@ -146,8 +146,8 @@ const PRIVACY: Record<Lang, LegalDoc> = {
     intro: "توضّح هذه السياسة ما هي البيانات التي تعالجها SkillLoop، ولماذا، ومع من تُشارك، وما هي حقوقك.",
     sections: [
       { id: "operator", h: "من المسؤول", body: [
-        "المسؤول عن المعالجة: [PLACEHOLDER: الكيان القانوني / المشغّل — الاسم، الشكل القانوني، رقم التسجيل، العنوان].",
-        "التواصل بخصوص الخصوصية: [PLACEHOLDER: بريد التواصل للخصوصية]. الدعم: [PLACEHOLDER: بريد الدعم].",
+        "المسؤول عن المعالجة: علي الطبوبي (Ali Taboubi)، شخص طبيعي مقيم في تونس (التسجيل في نظام المبادر الذاتي بصدد الإنجاز).",
+        "للتواصل (الخصوصية والدعم): contact@skillloop.tn",
       ] },
       { id: "data", h: "البيانات التي نعالجها", body: [[
         "الحساب: البريد الإلكتروني وكلمة السر (مخزّنة مشفّرة لدى مزوّد المصادقة)، أو الاسم والبريد اللذين يرسلهما Google إذا استعملت الدخول عبر Google.",
@@ -178,7 +178,7 @@ const PRIVACY: Record<Lang, LegalDoc> = {
       ] },
       { id: "retention", h: "مدة الحفظ", body: [[
         "الحساب والبروفيل والخدمات والطلبات والرسائل: ما دام حسابك موجودًا، ثم حسب قسم «حذف الحساب».",
-        "الحسابات غير النشطة: [PLACEHOLDER: مدة حفظ الحسابات غير النشطة].",
+        "الحسابات غير النشطة: الحساب الذي لم يُستعمل للدخول مدة 3 سنوات يُحذف كما هو مبيّن في «حذف الحساب»، بعد رسالة تذكير بالبريد قبل 30 يومًا على الأقل.",
         "السجلات التقنية لدى المستضيف: مدة قصيرة حسب إعدادات Cloudflare.",
         "عدّادات الاستعمال: تُمحى عند حذف الحساب.",
       ]] },
@@ -191,14 +191,14 @@ const PRIVACY: Record<Lang, LegalDoc> = {
         ],
       ] },
       { id: "rights", h: "حقوقك", body: [
-        "طبقًا للقانون الأساسي عدد 63 لسنة 2004 المؤرخ في 27 جويلية 2004 المتعلق بحماية المعطيات الشخصية، يمكنك طلب النفاذ إلى بياناتك أو تصحيحها أو حذفها، والاعتراض على بعض المعالجات. أغلب البيانات تُعدَّل مباشرة من إعداداتك. لأي طلب: [PLACEHOLDER: بريد التواصل للخصوصية].",
-        "التصريح لدى الهيئة الوطنية لحماية المعطيات الشخصية (INPDP): [PLACEHOLDER: حالة التصريح لدى الهيئة]. ويمكنك أيضًا تقديم شكوى إلى الهيئة.",
+        "طبقًا للقانون الأساسي عدد 63 لسنة 2004 المؤرخ في 27 جويلية 2004 المتعلق بحماية المعطيات الشخصية، يمكنك طلب النفاذ إلى بياناتك أو تصحيحها أو حذفها، والاعتراض على بعض المعالجات. أغلب البيانات تُعدَّل مباشرة من إعداداتك. لأي طلب: contact@skillloop.tn",
+        "إذا رأيت أن حقوقك غير محترمة، يمكنك تقديم شكوى إلى الهيئة الوطنية لحماية المعطيات الشخصية (INPDP).",
       ] },
       { id: "device", h: "التخزين على جهازك", body: [
         "تحفظ SkillLoop في متصفحك لغتك والمظهر (فاتح/داكن) وجلسة الدخول ومسودات خدماتك. لا نستعمل ملفات تعريف إشهارية ولا أدوات قياس الجمهور.",
       ] },
       { id: "age", h: "السن الأدنى", body: [
-        "SkillLoop مخصّصة للأشخاص الذين لا يقلّ سنّهم عن [PLACEHOLDER: السن الأدنى] سنة.",
+        "SkillLoop مخصّصة للأشخاص الذين لا يقلّ سنّهم عن 18 سنة.",
       ] },
       { id: "changes", h: "التعديلات", body: [
         "قد نحدّث هذه السياسة؛ التاريخ في أعلى الصفحة يبيّن آخر نسخة. عند تغيير مهم سنُعلمك داخل التطبيق.",
@@ -212,13 +212,13 @@ const TERMS: Record<Lang, LegalDoc> = {
     intro: "Ces conditions encadrent l'utilisation de SkillLoop. En créant un compte, vous les acceptez.",
     sections: [
       { id: "operator", h: "Qui exploite SkillLoop", body: [
-        "SkillLoop est exploité par [PLACEHOLDER: entité légale / exploitant — nom, forme juridique, numéro d'immatriculation, adresse]. Contact : [PLACEHOLDER: email du support].",
+        "SkillLoop est exploité par Ali Taboubi, personne physique établie en Tunisie (immatriculation au régime de l'auto-entrepreneur en cours). Contact : contact@skillloop.tn.",
       ] },
       { id: "role", h: "Ce que fait SkillLoop", body: [
         "SkillLoop met en relation des clients et des prestataires de services en Tunisie. SkillLoop ne réserve pas, n'encaisse aucun paiement, ne garantit pas les prestations et n'est pas partie aux accords conclus entre utilisateurs. Le prix, le déroulement et la qualité d'une prestation relèvent du client et du prestataire.",
       ] },
       { id: "account", h: "Votre compte", body: [[
-        "Vous devez avoir au moins [PLACEHOLDER: âge minimum] ans.",
+        "Vous devez avoir au moins 18 ans.",
         "Les informations de votre compte et de votre profil doivent être exactes.",
         "Vous êtes responsable de la confidentialité de votre mot de passe et de l'activité de votre compte.",
         "Vous pouvez supprimer votre compte à tout moment depuis les paramètres (voir la politique de confidentialité).",
@@ -239,7 +239,7 @@ const TERMS: Record<Lang, LegalDoc> = {
         ],
       ] },
       { id: "report", h: "Signaler un problème", body: [
-        "Pour signaler un contenu ou un comportement : [PLACEHOLDER: email du support]. Nous pouvons retirer un contenu ou suspendre un compte qui ne respecte pas ces conditions.",
+        "Pour signaler un contenu ou un comportement : contact@skillloop.tn. Nous pouvons retirer un contenu ou suspendre un compte qui ne respecte pas ces conditions.",
       ] },
       { id: "limits", h: "Limites d'usage", body: [
         "Pour protéger le service, le nombre de services, demandes, messages et photos est limité par jour. Toute tentative de contourner ces limites ou d'automatiser l'utilisation est interdite.",
@@ -248,10 +248,10 @@ const TERMS: Record<Lang, LegalDoc> = {
         "Vous restez propriétaire de vos textes et photos. Vous autorisez SkillLoop à les afficher sur le site pour faire fonctionner le service, tant qu'ils sont publiés.",
       ] },
       { id: "liability", h: "Responsabilité", body: [
-        "SkillLoop est fourni « en l'état », en version de lancement. [PLACEHOLDER: clause de limitation de responsabilité — à faire relire par votre conseiller].",
+        "SkillLoop est fourni « en l'état », en version de lancement, sans garantie de disponibilité continue. Les informations publiées par les utilisateurs (profils, services, prix) relèvent de leur seule responsabilité : SkillLoop ne les vérifie pas, sauf mention contraire, et n'est pas responsable de l'exécution, de la qualité ou du paiement d'une prestation convenue entre utilisateurs. Dans les limites permises par la loi, SkillLoop ne répond pas des dommages indirects liés à l'utilisation du service. Rien dans ces conditions n'exclut une responsabilité qui ne peut pas l'être légalement.",
       ] },
       { id: "law", h: "Droit applicable", body: [
-        "[PLACEHOLDER: droit applicable et tribunaux compétents].",
+        "Ces conditions sont régies par le droit tunisien. En cas de litige, nous chercherons d'abord une solution amiable (écrivez-nous à contact@skillloop.tn) ; à défaut, les tribunaux tunisiens compétents seront saisis.",
       ] },
       { id: "changes", h: "Modifications", body: [
         "Nous pouvons modifier ces conditions ; la date en haut de la page indique la dernière version. En cas de changement important, nous vous en informerons dans l'application.",
@@ -262,13 +262,13 @@ const TERMS: Record<Lang, LegalDoc> = {
     intro: "These terms govern the use of SkillLoop. By creating an account you accept them.",
     sections: [
       { id: "operator", h: "Who runs SkillLoop", body: [
-        "SkillLoop is operated by [PLACEHOLDER: legal entity / operator — name, legal form, registration number, address]. Contact: [PLACEHOLDER: support email].",
+        "SkillLoop is operated by Ali Taboubi, an individual based in Tunisia (auto-entrepreneur registration in progress). Contact: contact@skillloop.tn.",
       ] },
       { id: "role", h: "What SkillLoop does", body: [
         "SkillLoop connects clients and service providers in Tunisia. SkillLoop does not book, takes no payments, does not guarantee services and is not a party to agreements between users. The price, delivery and quality of a service are between the client and the provider.",
       ] },
       { id: "account", h: "Your account", body: [[
-        "You must be at least [PLACEHOLDER: minimum age] years old.",
+        "You must be at least 18 years old.",
         "Your account and profile information must be accurate.",
         "You are responsible for keeping your password confidential and for activity on your account.",
         "You can delete your account at any time in settings (see the privacy policy).",
@@ -289,7 +289,7 @@ const TERMS: Record<Lang, LegalDoc> = {
         ],
       ] },
       { id: "report", h: "Reporting a problem", body: [
-        "To report content or behaviour: [PLACEHOLDER: support email]. We may remove content or suspend an account that breaks these terms.",
+        "To report content or behaviour: contact@skillloop.tn. We may remove content or suspend an account that breaks these terms.",
       ] },
       { id: "limits", h: "Usage limits", body: [
         "To protect the service, the number of services, requests, messages and photos per day is limited. Trying to get around these limits or automating use is prohibited.",
@@ -298,10 +298,10 @@ const TERMS: Record<Lang, LegalDoc> = {
         "You keep ownership of your texts and photos. You allow SkillLoop to display them on the site to run the service while they are published.",
       ] },
       { id: "liability", h: "Liability", body: [
-        "SkillLoop is provided “as is”, as a launch version. [PLACEHOLDER: limitation-of-liability clause — to be reviewed by your adviser].",
+        "SkillLoop is provided “as is”, as a launch version, with no guarantee of uninterrupted availability. Information published by users (profiles, services, prices) is their sole responsibility: SkillLoop does not check it unless stated otherwise, and is not responsible for the performance, quality or payment of a service agreed between users. To the extent permitted by law, SkillLoop is not liable for indirect damage arising from use of the service. Nothing in these terms excludes liability that cannot legally be excluded.",
       ] },
       { id: "law", h: "Governing law", body: [
-        "[PLACEHOLDER: governing law and competent courts].",
+        "These terms are governed by Tunisian law. In case of dispute, we will first seek an amicable solution (write to contact@skillloop.tn); failing that, the competent Tunisian courts will have jurisdiction.",
       ] },
       { id: "changes", h: "Changes", body: [
         "We may change these terms; the date at the top shows the latest version. For important changes we will tell you in the app.",
@@ -312,13 +312,13 @@ const TERMS: Record<Lang, LegalDoc> = {
     intro: "تنظّم هذه الشروط استعمال SkillLoop. بإنشاء حساب فإنك تقبلها.",
     sections: [
       { id: "operator", h: "من يشغّل SkillLoop", body: [
-        "يشغّل SkillLoop: [PLACEHOLDER: الكيان القانوني / المشغّل — الاسم، الشكل القانوني، رقم التسجيل، العنوان]. للتواصل: [PLACEHOLDER: بريد الدعم].",
+        "يشغّل SkillLoop: علي الطبوبي (Ali Taboubi)، شخص طبيعي مقيم في تونس (التسجيل في نظام المبادر الذاتي بصدد الإنجاز). للتواصل: contact@skillloop.tn",
       ] },
       { id: "role", h: "ماذا تفعل SkillLoop", body: [
         "تربط SkillLoop بين الحرفاء ومقدّمي الخدمات في تونس. لا تقوم SkillLoop بالحجز، ولا تقبض أي دفعات، ولا تضمن الخدمات، وليست طرفًا في الاتفاقات بين المستعملين. السعر وطريقة الإنجاز والجودة أمر بين الحريف ومقدّم الخدمة.",
       ] },
       { id: "account", h: "حسابك", body: [[
-        "يجب ألا يقلّ سنّك عن [PLACEHOLDER: السن الأدنى] سنة.",
+        "يجب ألا يقلّ سنّك عن 18 سنة.",
         "يجب أن تكون معلومات حسابك وبروفيلك صحيحة.",
         "أنت مسؤول عن سرّية كلمة السر وعن النشاط على حسابك.",
         "يمكنك حذف حسابك في أي وقت من الإعدادات (انظر سياسة الخصوصية).",
@@ -339,7 +339,7 @@ const TERMS: Record<Lang, LegalDoc> = {
         ],
       ] },
       { id: "report", h: "الإبلاغ عن مشكلة", body: [
-        "للإبلاغ عن محتوى أو سلوك: [PLACEHOLDER: بريد الدعم]. يمكننا حذف محتوى أو تعليق حساب لا يحترم هذه الشروط.",
+        "للإبلاغ عن محتوى أو سلوك: contact@skillloop.tn يمكننا حذف محتوى أو تعليق حساب لا يحترم هذه الشروط.",
       ] },
       { id: "limits", h: "حدود الاستعمال", body: [
         "لحماية الخدمة، عدد الخدمات والطلبات والرسائل والصور محدود يوميًا. يُمنع التحايل على هذه الحدود أو أتمتة الاستعمال.",
@@ -348,10 +348,10 @@ const TERMS: Record<Lang, LegalDoc> = {
         "تبقى مالكًا لنصوصك وصورك. وتسمح لـ SkillLoop بعرضها على الموقع لتشغيل الخدمة ما دامت منشورة.",
       ] },
       { id: "liability", h: "المسؤولية", body: [
-        "تُقدَّم SkillLoop «على حالها» كنسخة إطلاق. [PLACEHOLDER: بند تحديد المسؤولية — يُراجع من طرف مستشارك].",
+        "تُقدَّم SkillLoop «على حالها» كنسخة إطلاق، دون ضمان توفّر متواصل. المعلومات التي ينشرها المستعملون (البروفيلات، الخدمات، الأسعار) تحت مسؤوليتهم وحدهم: لا تتحقّق منها SkillLoop إلا إذا ذُكر خلاف ذلك، وليست مسؤولة عن إنجاز خدمة متّفق عليها بين المستعملين أو جودتها أو خلاصها. في حدود ما يسمح به القانون، لا تتحمّل SkillLoop الأضرار غير المباشرة الناتجة عن استعمال الخدمة. ولا شيء في هذه الشروط يستبعد مسؤولية لا يجوز قانونًا استبعادها.",
       ] },
       { id: "law", h: "القانون المنطبق", body: [
-        "[PLACEHOLDER: القانون المنطبق والمحاكم المختصة].",
+        "تخضع هذه الشروط للقانون التونسي. في حالة نزاع، نبحث أولًا عن حلّ بالتراضي (راسلنا على contact@skillloop.tn)، وإلا فالمحاكم التونسية المختصة هي التي تنظر فيه.",
       ] },
       { id: "changes", h: "التعديلات", body: [
         "قد نعدّل هذه الشروط؛ التاريخ في أعلى الصفحة يبيّن آخر نسخة. عند تغيير مهم سنُعلمك داخل التطبيق.",

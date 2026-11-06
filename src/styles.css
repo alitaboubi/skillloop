@@ -1788,7 +1788,8 @@ a.ribbon-item { border-radius: 0.5rem; transition: opacity var(--duration-fast) 
 a.ribbon-item:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; }
 a.ribbon-item:focus-visible { outline: 3px solid var(--ink); outline-offset: -4px; }
 @media (prefers-reduced-motion: no-preference) {
-  .ribbon-move { animation: ribbon-run 36s linear infinite; }
+  /* 6 s per city: the same speed whatever the length of the list. */
+  .ribbon-move { animation: ribbon-run calc(var(--ribbon-n, 6) * 6s) linear infinite; }
   .ribbon:hover .ribbon-move, .ribbon:focus-within .ribbon-move { animation-play-state: paused; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1797,6 +1798,49 @@ a.ribbon-item:focus-visible { outline: 3px solid var(--ink); outline-offset: -4p
   .ribbon-front .ribbon-row { flex-wrap: wrap; justify-content: center; }
 }
 @keyframes ribbon-run { to { transform: translateX(-25%); } }
+
+/* ---------- Founders loop (pro-spotlight.tsx) ----------
+ * Each avatar = .fl-x (moves across) > .fl-y (moves down) > .fl-dot. X alternates over half a lap and Y over a quarter, both
+ * eased like a sine, which traces the ∞ of loopLayout()/loopPath(). Transform/scale/opacity only; the sizes are container
+ * units of .fl-wrap, so the loop and the avatars keep their proportions at any width. */
+.fl-wrap { position: relative; container-type: inline-size; --fl-ease: cubic-bezier(0.37, 0, 0.63, 1); }
+.fl-box { position: relative; height: var(--fl-h); --fl-dot: clamp(2.5rem, 8.5cqi, 3.4rem); }
+.fl-box::before { content: ""; position: absolute; inset: 12% 22%; border-radius: 9999px; background: radial-gradient(closest-side, color-mix(in oklab, var(--lime) 16%, transparent), transparent); pointer-events: none; }
+.fl-path { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.fl-path path { fill: none; }
+/* Strokes are in loop units (1 = 1 % of its width). */
+.fl-track { stroke: color-mix(in oklab, var(--ink-foreground) 18%, transparent); stroke-width: 0.38; }
+.fl-spark { stroke: var(--lime); stroke-width: 0.6; stroke-linecap: round; stroke-dasharray: 0.07 0.93; opacity: 0.9; }
+.fl-box ul { margin: 0; padding: 0; list-style: none; }
+.fl-x { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform: translateX(calc(var(--fl-sx) * var(--fl-ax))); }
+.fl-x:hover, .fl-x:focus-within { z-index: 2; }
+.fl-y { transform: translateY(calc(var(--fl-sy) * var(--fl-ay))); }
+.fl-dot {
+  position: absolute; left: 0; top: 0; display: grid; place-items: center; width: var(--fl-dot); height: var(--fl-dot);
+  transform: translate(-50%, -50%); border-radius: 9999px; background: var(--clay-soft); color: var(--clay-strong);
+  font-weight: 800; font-size: calc(var(--fl-dot) * 0.4);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--ink-foreground) 35%, transparent), 0 6px 18px -6px oklch(0 0 0 / 0.6);
+  transition: scale 200ms var(--ease-out, ease-out);
+}
+.fl-dot img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
+.fl-dot[data-founder] { box-shadow: 0 0 0 2px var(--lime), 0 6px 18px -6px oklch(0 0 0 / 0.6); }
+.fl-dot:hover, .fl-dot:focus-visible { scale: 1.18; }
+.fl-dot:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; }
+.fl-crown { position: absolute; inset-inline-end: -0.2rem; bottom: -0.2rem; display: grid; place-items: center; width: 1.15rem; height: 1.15rem; border-radius: 9999px; background: var(--lime); color: var(--lime-foreground); box-shadow: 0 0 0 2px var(--ink); }
+.fl-crown svg { width: 0.7rem; height: 0.7rem; }
+/* This week's pro: a halo that breathes out. */
+.fl-dot[data-lead]::after { content: ""; position: absolute; inset: -0.4rem; border-radius: inherit; border: 2px solid var(--lime); opacity: 0.55; pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .fl-x { animation: fl-x var(--fl-d) var(--fl-ease) var(--fl-dx) infinite alternate; }
+  .fl-y { animation: fl-y calc(var(--fl-d) / 2) var(--fl-ease) var(--fl-dy) infinite alternate; }
+  .fl-spark { animation: fl-spark 7s linear infinite; }
+  .fl-dot[data-lead]::after { animation: fl-halo 2.4s var(--ease-out, ease-out) infinite; }
+  .fl-box:hover :is(.fl-x, .fl-y, .fl-spark), .fl-box:focus-within :is(.fl-x, .fl-y, .fl-spark) { animation-play-state: paused; }
+}
+@keyframes fl-x { from { transform: translateX(calc(var(--fl-ax) * -1)); } to { transform: translateX(var(--fl-ax)); } }
+@keyframes fl-y { from { transform: translateY(calc(var(--fl-ay) * -1)); } to { transform: translateY(var(--fl-ay)); } }
+@keyframes fl-spark { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes fl-halo { 0% { transform: scale(0.9); opacity: 0.7; } 100% { transform: scale(1.35); opacity: 0; } }
 
 /* ---------- Dashboard & settings (dash-kit.tsx) ---------- */
 .dash-hero { position: relative; overflow: hidden; isolation: isolate; color: var(--ink-foreground); background: var(--gradient-ink); }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { publicPaths, robotsTxt, sitemapXml, STATIC_PATHS } from "@/lib/sitemap";
+import { LEGAL_PATHS, publicPaths, robotsTxt, sitemapXml, STATIC_PATHS } from "@/lib/sitemap";
 import { seo } from "@/lib/seo";
 
 const O = "https://skillloop.example";
@@ -35,7 +35,7 @@ describe("sitemap.xml", () => {
     const { db, filters } = fakeDb([{ id: "s1", owner_id: "u1" }, { id: "s2", owner_id: "u1" }, { id: "s3", owner_id: "u2" }]);
     const paths = await publicPaths(db);
     expect(filters).toEqual(["status=published", "archived=false"]);
-    expect(paths).toEqual([...STATIC_PATHS, "/services/s1", "/services/s2", "/services/s3", "/pros/u1", "/pros/u2"]);
+    expect(paths).toEqual([...STATIC_PATHS, ...LEGAL_PATHS, "/services/s1", "/services/s2", "/services/s3", "/pros/u1", "/pros/u2"]);
     expect(paths.some((p) => /dashboard|messages|profile|offer|login|signup|password/.test(p))).toBe(false);
   });
 

@@ -17,7 +17,11 @@ export const CATEGORIES: { id: CategoryId; key: TKey }[] = [
   { id: "other", key: "cat_other" },
 
 ];
-export const CITIES = ["Tunis", "Sousse", "Sfax", "Nabeul", "Bizerte", "Monastir"];
+/** The 24 governorates (wilayas) of Tunisia, alphabetical (French). Stored as-is in services/profiles. */
+export const CITIES = [
+  "Ariana", "Béja", "Ben Arous", "Bizerte", "Gabès", "Gafsa", "Jendouba", "Kairouan", "Kasserine", "Kébili", "Le Kef", "Mahdia",
+  "Manouba", "Médenine", "Monastir", "Nabeul", "Sfax", "Sidi Bouzid", "Siliana", "Sousse", "Tataouine", "Tozeur", "Tunis", "Zaghouan",
+];
 
 export type Service = {
   id: string;
@@ -33,6 +37,8 @@ export type Service = {
   delivery: string;
   languages: string;
   publishedDaysAgo: number;
+  /** ISO time the service was created (real services only). */
+  publishedAt?: string;
   ownerId?: string;
   quoteOnly?: boolean;
   real?: boolean;

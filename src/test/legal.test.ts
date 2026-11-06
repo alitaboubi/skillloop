@@ -20,10 +20,14 @@ describe("privacy policy and terms", () => {
     expect(n("terms", lang)).toBe(n("terms", "fr"));
   });
 
-  it("privacy policy asks for the operator, both contact emails, retention, minimum age and the INPDP status", () => {
-    const fr = text("privacy", "fr");
-    for (const k of ["entité légale", "email de contact confidentialité", "email du support", "durée de conservation", "âge minimum", "INPDP"])
-      expect(fr).toMatch(new RegExp(`\\[PLACEHOLDER:[^\\]]*${k}`));
+  it.each(["fr", "en", "ar"] as const)("names the operator, the contact email, the minimum age and the INPDP complaint route (%s)", (lang) => {
+    for (const kind of ["privacy", "terms"] as const) {
+      const all = text(kind, lang);
+      expect(all).toMatch(/Ali Taboubi/);
+      expect(all).toMatch(/contact@skillloop\.tn/);
+      expect(all).toMatch(/18/);
+    }
+    expect(text("privacy", lang)).toMatch(/INPDP/);
   });
 
   it("states the account-deletion facts the app implements", () => {
@@ -32,10 +36,10 @@ describe("privacy policy and terms", () => {
     expect(en).toMatch(/Kept: requests and messages/);
   });
 
-  it("drafts stay out of search until filled in", () => {
-    expect(hasPlaceholders("privacy")).toBe(true);
-    expect(hasPlaceholders("terms")).toBe(true);
-    expect(LEGAL_PATHS).toEqual([]);
+  it("filled-in documents are indexed and listed in the sitemap", () => {
+    expect(hasPlaceholders("privacy")).toBe(false);
+    expect(hasPlaceholders("terms")).toBe(false);
+    expect(LEGAL_PATHS).toEqual(["/privacy", "/terms"]);
   });
 
   it("splits placeholders for highlighting", () => {

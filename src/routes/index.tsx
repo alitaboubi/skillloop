@@ -11,6 +11,7 @@ import forClients from "@/assets/home/for-clients.webp";
 import forPros from "@/assets/home/for-pros.webp";
 import { ServiceCardSkeleton, useAllServices } from "@/components/site";
 import { ServiceShowcase } from "@/components/service-showcase";
+import { ProSpotlight } from "@/components/pro-spotlight";
 import { HomeReel } from "@/components/reel-video";
 import { CityRibbon } from "@/components/city-ribbon";
 import { homeSeo } from "@/lib/seo";
@@ -138,6 +139,9 @@ function Index() {
           <div className="relative mx-auto mt-8 max-w-7xl px-4 text-foreground sm:px-6"><FirstVisitEmpty /></div>
         ) : undefined}
       />
+
+      {/* The pros behind those services, one card each; the lead rotates weekly, then the founding-member band. */}
+      {!isLoading && !isError && <ProSpotlight services={services} />}
 
       <HowItWorks />
 
