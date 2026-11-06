@@ -45,7 +45,7 @@ function Row({ n, onOpen }: { n: AppNotification; onOpen: (n: AppNotification) =
             <span className={`truncate text-sm ${n.read ? "font-semibold" : "font-bold"}`}>{t(spec.title, v)}</span>
             <time dateTime={n.createdAt} className="shrink-0 text-xs text-muted-foreground">{relativeTime(n.createdAt, locale)}</time>
           </span>
-          <span className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">{t(spec.body, v)}</span>
+          <span className={`mt-0.5 text-sm text-muted-foreground ${n.kind === "feature_new" ? "line-clamp-3" : "line-clamp-2"}`}>{t(spec.body, v)}</span>
         </span>
         {!n.read && <span aria-hidden className="mt-2 size-2.5 shrink-0 rounded-full bg-lime ring-2 ring-card" />}
         {!n.read && <span className="sr-only">{t("nt_unread_sr")}</span>}
