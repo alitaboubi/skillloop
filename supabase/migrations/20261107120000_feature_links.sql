@@ -1,4 +1,4 @@
--- PREPARED 2026-11-07 — NOT APPLIED. Needs your approval (dry run → apply → verify), like the earlier ones.
+-- APPLIED 2026-11-07 (Ali: dry run 276/277 — the 1 failure was the old social_features test, fixed in PR #18 — then applied). History below kept as written.
 --   Needs (applied): 20261106140000_social_features.sql.
 --   Dry run: node scripts/db-test.mjs --pending supabase/migrations/20261107120000_feature_links.sql
 --   Verify after applying: supabase/checks/20261107120000_feature_links_verify.sql

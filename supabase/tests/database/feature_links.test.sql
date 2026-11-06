@@ -1,4 +1,4 @@
--- Tests for 20261107120000_feature_links.sql (PREPARED, NOT APPLIED). Dry run:
+-- Tests for 20261107120000_feature_links.sql (APPLIED 2026-11-07). Dry run before it was applied:
 --   node scripts/db-test.mjs --pending supabase/migrations/20261107120000_feature_links.sql
 -- requires: public.social_posts
 begin;

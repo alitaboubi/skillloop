@@ -21,10 +21,19 @@ Rollback: turn the flag off, redeploy, then `supabase/checks/20261106140000_soci
 - The bell: « Nouvelle vidéo SkillLoop » (everyone) or « Vous êtes à l'affiche » (people in the video).
 - A click opens the video sheet: « Voir sur Instagram », « Voir sur Facebook », then « Je veux ma vidéo » (the support chat
   opens with a ready message — answer those in /admin → Support) or « Choisir si elle s'affiche sur mon profil ».
-- For both links in the sheet, apply `20261107120000_feature_links.sql` (dry run → apply → verify 2/2). Until then the sheet
-  shows the one link the notification carries.
+- Both links in the sheet come from `20261107120000_feature_links.sql` (applied 2026-11-07).
 
 ## Rules (enforced by the database)
 - Nothing shows on a public profile until that person chooses it in the app; they can hide it at any time.
 - The public profile never shows who else is in a video. Operators never see email addresses.
 - Deleting a post removes it from profiles and from everyone's notifications. Deleting an account removes the person.
+
+## Status (2026-11-07)
+- Live on skillloop.tn: migrations 20261106140000_social_features and 20261107120000_feature_links applied; flag
+  VITE_SOCIAL_FEATURES=on; PRs #15 (feature), #16 (« vous voulez votre vidéo ? » in the alert), #17 (video sheet),
+  #18 (test robust to real data) merged.
+- First real post: reel ep9 « 30 DT kol jem3a » (marketing/reel-ep9), announced to everyone, nobody tagged (Hamma is an
+  AI character).
+- Not checked yet in a browser: the video sheet with a real notification (second account), the prefilled support message.
+- Ideas not built: a « Je veux ma vidéo » request list in /admin (today they arrive as support messages), counting clicks
+  on Instagram / Facebook from the sheet, a reminder to people still « À vous de choisir » after 3 days.
