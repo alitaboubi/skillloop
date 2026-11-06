@@ -5,6 +5,7 @@ import type { Service } from "@/lib/data";
 import { useI18n } from "@/lib/i18n";
 import { BrandBackdrop } from "./brand";
 import { ServiceCard } from "./site";
+import { ShowcaseAd } from "./showcase-ad";
 
 /** Most services the showcase holds; the rest are one click away in Explore. */
 export const SHOWCASE_MAX = 24;
@@ -93,6 +94,8 @@ export function ServiceShowcase({ services, body }: { services: Service[]; body?
           </div>
         )}
       </div>
+
+      <ShowcaseAd />
 
       {body ?? (
         <>
