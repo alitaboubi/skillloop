@@ -13,6 +13,7 @@ import { Toaster } from "@/components/ui/sonner";
 import appCss from "../styles.css?url";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { SiteHeader, SiteFooter, BottomNav } from "@/components/site";
+import { SupportWidget } from "@/components/support-widget";
 import { MotionLayer, ScrollProgress } from "@/components/motion-kit";
 
 const GOOGLE_SITE_VERIFICATION = (import.meta.env["VITE_GOOGLE_SITE_VERIFICATION"] as string | undefined)?.trim() ?? "";
@@ -99,6 +100,7 @@ function RootComponent() {
           </main>
           <SiteFooter />
           <BottomNav />
+          <SupportWidget />
           {/* Top-center under the sticky header: never over the bottom nav, the service request bar or the support button. */}
           <Toaster position="top-center" offset={{ top: "5rem" }} mobileOffset={{ top: "calc(env(safe-area-inset-top, 0px) + 4.75rem)" }} />
         </div>

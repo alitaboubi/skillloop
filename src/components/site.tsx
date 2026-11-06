@@ -3,7 +3,7 @@ import { REVIEWS_ENABLED, formatRating, summaryDisplay } from "@/lib/reviews";
 import { reviewSummariesQuery } from "@/lib/reviews-db";
 import { ReelButton, ReelDialog, SocialLinks } from "@/components/reel-video";
 import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Menu, X, MapPin, Wifi, Star, BadgeCheck, Sun, Moon, Monitor, Home, Search, MessageSquare, User, PlusCircle, ChevronDown, LayoutDashboard, Briefcase, Settings, LogOut, Sparkles, ImageIcon, ShieldCheck } from "lucide-react";
+import { Menu, X, MapPin, Wifi, Star, BadgeCheck, Sun, Moon, Monitor, Home, Search, MessageSquare, User, PlusCircle, ChevronDown, LayoutDashboard, Briefcase, Settings, LogOut, Sparkles, ImageIcon, ShieldCheck, LifeBuoy } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { profileQuery } from "@/lib/profiles-db";
 import { useTheme, type ThemePref } from "@/lib/theme";
@@ -21,6 +21,8 @@ import { peek } from "@/lib/peek";
 import { Avatar } from "@/components/media-viewer";
 import { PRO_PLAN_ENABLED, useIsPro } from "@/lib/plan";
 import { useIsAdmin } from "@/lib/admin";
+import { openSupport } from "@/lib/support";
+import { NotificationBell, useNotificationAlerts } from "@/components/notification-bell";
 
 // Loaded on first open only, so cmdk stays out of every page's initial bundle.
 const SearchPalette = lazy(() => import("@/components/search-palette").then((m) => ({ default: m.SearchPalette })));
@@ -234,6 +236,7 @@ function DesktopAccount() {
   const label = count > 0 ? `${t("messages")} — ${t(countKey(lang, count, "unread"), { n: count })}` : t("messages");
   return (
     <>
+      <NotificationBell />
       <Link to="/messages" aria-label={label} title={label}
         className="relative grid size-10 place-items-center rounded-full text-navy-muted transition-colors hover:bg-navy-foreground/10 hover:text-navy-foreground"
         activeProps={{ className: "bg-navy-foreground/10 text-navy-foreground", "aria-current": "page" }}>
@@ -282,6 +285,7 @@ function AccountMenu() {
         <DropdownMenuItem asChild className="gap-2 rounded-xl py-2"><Link to="/profile" search={{ space: "pro", tab: "services" }}><Briefcase className="size-4" aria-hidden />{t("my_services")}</Link></DropdownMenuItem>
         <DropdownMenuItem asChild className="gap-2 rounded-xl py-2"><Link to="/profile" search={{ tab: "settings" }}><Settings className="size-4" aria-hidden />{t("settings")}</Link></DropdownMenuItem>
         {admin && <DropdownMenuItem asChild className="gap-2 rounded-xl py-2"><Link to="/admin"><ShieldCheck className="size-4 text-sea" aria-hidden />{t("adm_title")}</Link></DropdownMenuItem>}
+        <DropdownMenuItem onSelect={() => openSupport()} className="gap-2 rounded-xl py-2"><LifeBuoy className="size-4" aria-hidden />{t("sup_title")}</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => { void signOut(); }} className="gap-2 rounded-xl py-2 text-destructive focus:text-destructive"><LogOut className="size-4" aria-hidden />{t("logout")}</DropdownMenuItem>
       </DropdownMenuContent>
@@ -340,6 +344,7 @@ export function SiteHeader() {
   const { t } = useI18n();
   const { user } = useAuth();
   useUnreadLive(user?.id); // one realtime listener for the unread badges
+  useNotificationAlerts(); // one realtime listener for the bell (+ toast)
   const [open, setOpen] = useState(false);
   const [reel, setReel] = useState(false);
   const pathname = useRouterState({ select: (st) => st.location.pathname });
@@ -382,6 +387,7 @@ export function SiteHeader() {
           <DesktopAccount />
         </div>
         <div className="flex items-center gap-1 lg:hidden">
+          <NotificationBell />
           <button type="button" className="grid size-11 place-items-center rounded-full text-navy-foreground" aria-label={t("sp_open")} aria-haspopup="dialog" onClick={() => openSearch(true)}>
             <Search className="size-5" aria-hidden />
           </button>
@@ -397,6 +403,9 @@ export function SiteHeader() {
               <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="py-3 text-base text-navy-foreground">{l.label}</Link>
             ))}
             <ReelButton mobile onOpen={() => { setOpen(false); setReel(true); }} />
+            <button type="button" onClick={() => { setOpen(false); openSupport(); }} className="flex items-center gap-2 py-3 text-start text-base text-navy-foreground">
+              <LifeBuoy className="size-5" aria-hidden />{t("sup_title")}
+            </button>
           </nav>
           <div className="mt-3 flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-3">
@@ -446,6 +455,7 @@ export function SiteFooter() {
           <Link to="/how-it-works" className={link}>{t("nav_how")}</Link>
           <Link to="/about" className={link}>{t("nav_about")}</Link>
           <Link to="/messages" className={link}>{t("messages")}</Link>
+          <button type="button" onClick={() => openSupport()} className={`${link} text-start`}>{t("sup_title")}</button>
           <Link to="/privacy" className={link}>{t("privacy_title")}</Link>
           <Link to="/terms" className={link}>{t("terms_title")}</Link>
         </nav>
