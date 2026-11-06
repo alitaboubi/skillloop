@@ -16,6 +16,8 @@ import { PAYMENTS_ENABLED } from "@/lib/payments";
 import { AdminPayments } from "@/components/checkout";
 import { SUPPORT_ADMIN_ENABLED } from "@/lib/support-db";
 import { AdminSupport } from "@/components/admin-support";
+import { AdminSocialPosts } from "@/components/social-features";
+import { SOCIAL_ADMIN_ENABLED } from "@/lib/social-features-db";
 
 function Panel({ id, icon: Icon, title, sub, children }: { id: string; icon: LucideIcon; title: string; sub?: string; children: ReactNode }) {
   return (
@@ -227,6 +229,7 @@ export function AdminPage({ days }: { days: AdminPeriod }) {
       </DashHero>
       <div className="mx-auto max-w-6xl space-y-6 px-4 pb-12 pt-8 sm:px-6">
         {SUPPORT_ADMIN_ENABLED && <AdminSupport />}
+        {SOCIAL_ADMIN_ENABLED && <AdminSocialPosts />}
         {PAYMENTS_ENABLED && <AdminPayments />}
         {q.isLoading ? <ListSkeleton rows={4} /> : q.isError || !q.data ? <ErrorState onRetry={() => q.refetch()} /> : <Figures o={q.data} />}
       </div>

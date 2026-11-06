@@ -27,6 +27,7 @@ import { PlanCard } from "@/components/plan-card";
 import { ProHub } from "@/components/pro-tools";
 import { signImages } from "@/lib/services-db";
 import { DashHero, SegSlide, ServiceTile, StatTile } from "@/components/dash-kit";
+import { MyFeatures } from "@/components/social-features";
 
 const SECTIONS = ["overview", "pro", "services", "requests", "reviews", "portfolio", "preview"] as const;
 type Section = (typeof SECTIONS)[number];
@@ -151,6 +152,7 @@ function ClientOverview({ userId }: { userId: string }) {
   return (
     <div className="space-y-8">
       <p className="text-muted-foreground">{t("db_client_intro")}</p>
+      <MyFeatures userId={userId} />
       <ReviewTodo userId={userId} />
       {mine.length > 0 && (
         <dl className="grid gap-4 sm:grid-cols-3">
@@ -213,6 +215,8 @@ function Overview({ userId }: { userId: string }) {
         <StatTile icon={Handshake} value={(reqs.data ?? []).filter((r) => r.provider_id === userId && r.status === "accepted").length} label={t("stat_accepted")} tone="var(--success)" />
         <StatTile icon={Gauge} value={`${Math.round((done / Math.max(1, items.length)) * 100)}%`} label={t("dh_profile_done")} tone="var(--clay)" />
       </dl>
+
+      <MyFeatures userId={userId} />
 
       {PRO_PLAN_ENABLED && <PlanCard userId={userId} publishedServices={p?.serviceIds.length ?? 0} />}
 

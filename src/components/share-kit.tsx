@@ -6,9 +6,10 @@ import { absoluteUrl, whatsappShareUrl } from "@/lib/share";
 
 /**
  * Copy link · Share (only where the browser supports it) · WhatsApp. `full` also shows the public link itself,
- * which is the fallback when copying is not allowed.
+ * which is the fallback when copying is not allowed. `href` shares an absolute link (e.g. SkillLoop's own reel) instead
+ * of a page of this site.
  */
-export function ShareKit({ path, title, text, full = false, label, onShare }: { path: string; title: string; text: TKey; full?: boolean; label?: TKey; onShare?: () => void }) {
+export function ShareKit({ path = "/", href, title, text, full = false, label, onShare }: { path?: string; href?: string | undefined; title: string; text: TKey; full?: boolean; label?: TKey; onShare?: () => void }) {
   const { t } = useI18n();
   const id = useId();
   const input = useRef<HTMLInputElement>(null);
@@ -16,9 +17,9 @@ export function ShareKit({ path, title, text, full = false, label, onShare }: { 
   const [canShare, setCanShare] = useState(false);
   // Resolved after mount: the server doesn't know the origin, and navigator.share is browser-only.
   useEffect(() => {
-    setUrl(absoluteUrl(path));
+    setUrl(href ?? absoluteUrl(path));
     setCanShare(typeof navigator !== "undefined" && typeof navigator.share === "function");
-  }, [path]);
+  }, [path, href]);
 
   const copy = async () => {
     try {
