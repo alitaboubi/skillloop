@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Clapperboard, ExternalLink, Facebook, Instagram, Megaphone, MessageCircleHeart, type LucideIcon } from "lucide-react";
+import { ArrowRight, Clapperboard, ExternalLink, Facebook, Instagram, Megaphone, MessageCircle, MessageCircleHeart, type LucideIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useI18n, type TKey } from "@/lib/i18n";
 import type { FeatureSheet } from "@/lib/notifications";
-import { openSupport } from "@/lib/support";
+import { SUPPORT_WHATSAPP, openSupport, whatsappUrl } from "@/lib/support";
 import { OPEN_FEATURE_EVENT, platformsOf, type Platform } from "@/lib/social-features";
 
 /*
@@ -44,15 +44,11 @@ function Option({ icon: Icon, label, sub, href, onClick, tone }: {
     : <button type="button" onClick={onClick} className={cls}>{inner}</button>;
 }
 
-function FeatureSheetBody({ sheet, close }: { sheet: FeatureSheet; close: () => void }) {
+function FeatureSheetBody({ sheet, close, onWant }: { sheet: FeatureSheet; close: () => void; onWant: (draft: string) => void }) {
   const { t } = useI18n();
   const date = useDate();
   const platforms = platformsOf({ instagramUrl: sheet.instagramUrl, facebookUrl: sheet.facebookUrl });
-  const want = () => {
-    close();
-    // After the dialog has closed (focus returns first), the support panel opens with the message ready to send.
-    setTimeout(() => openSupport("chat", t("sf_sheet_draft", { title: sheet.title })), 0);
-  };
+  const draft = t("sf_sheet_draft", { title: sheet.title });
   return (
     <>
       <div className="relative overflow-hidden rounded-t-[inherit] bg-ink-hero px-5 pb-5 pt-10 text-ink-foreground sm:px-6">
@@ -86,7 +82,11 @@ function FeatureSheetBody({ sheet, close }: { sheet: FeatureSheet; close: () => 
           <section aria-labelledby="fs-want" className="space-y-2.5 rounded-2xl bg-clay-soft p-4">
             <h3 id="fs-want" className="font-bold text-clay-strong">{t("sf_sheet_want_t")}</h3>
             <p className="text-sm">{t("sf_sheet_want_d")}</p>
-            <button type="button" onClick={want} className="btn btn-lime w-full"><MessageCircleHeart className="size-4" aria-hidden />{t("sf_sheet_want_cta")}</button>
+            <button type="button" onClick={() => onWant(draft)} className="btn btn-lime w-full"><MessageCircleHeart className="size-4" aria-hidden />{t("sf_sheet_want_cta")}</button>
+            {SUPPORT_WHATSAPP && (
+              <a href={whatsappUrl(SUPPORT_WHATSAPP, draft)} target="_blank" rel="noopener noreferrer" onClick={close}
+                className="btn btn-outline w-full bg-card"><MessageCircle className="size-4" aria-hidden />{t("sf_sheet_want_wa")}</a>
+            )}
           </section>
         )}
       </div>
@@ -102,6 +102,9 @@ function FeatureSheetBody({ sheet, close }: { sheet: FeatureSheet; close: () => 
 export function FeatureSheetHost() {
   const [sheet, setSheet] = useState<FeatureSheet | null>(null);
   const [open, setOpen] = useState(false);
+  // « Je veux ma vidéo »: the support panel (another Radix dialog) may only open once this one has fully closed. Opened
+  // earlier, this dialog's focus return (after its exit animation) lands outside the panel, which then dismisses itself.
+  const pending = useRef<string | null>(null);
   useEffect(() => {
     const onOpen = (e: Event) => {
       const d = (e as CustomEvent<FeatureSheet>).detail;
@@ -116,8 +119,15 @@ export function FeatureSheetHost() {
   if (!sheet) return null;
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] w-[min(28rem,calc(100vw-2rem))] max-w-none gap-0 overflow-y-auto rounded-3xl p-0 [&>button]:text-ink-foreground">
-        <FeatureSheetBody sheet={sheet} close={() => setOpen(false)} />
+      <DialogContent className="max-h-[calc(100dvh-2rem)] w-[min(28rem,calc(100vw-2rem))] max-w-none gap-0 overflow-y-auto rounded-3xl p-0 [&>button]:text-ink-foreground"
+        onCloseAutoFocus={(e) => {
+          const draft = pending.current;
+          if (draft === null) return;
+          pending.current = null;
+          e.preventDefault(); // the support panel takes the focus instead
+          openSupport("chat", draft);
+        }}>
+        <FeatureSheetBody sheet={sheet} close={() => setOpen(false)} onWant={(d) => { pending.current = d; setOpen(false); }} />
       </DialogContent>
     </Dialog>
   );

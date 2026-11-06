@@ -40,14 +40,24 @@ describe("video sheet (from a notification)", () => {
     const opened: SupportOpen[] = [];
     const on = (e: Event) => opened.push((e as CustomEvent<SupportOpen>).detail);
     window.addEventListener(OPEN_SUPPORT_EVENT, on);
+    // The support panel opens only once this dialog has fully closed (else the focus return dismisses the panel).
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: /Je veux ma vidéo/ }));
-      await new Promise((r) => setTimeout(r, 0));
+      await new Promise((r) => setTimeout(r, 50));
     });
     window.removeEventListener(OPEN_SUPPORT_EVENT, on);
+    expect(screen.queryByRole("dialog")).toBeNull();
     expect(opened).toHaveLength(1);
     expect(opened[0]!.topic).toBe("chat");
     expect(opened[0]!.draft?.text).toContain("Hamma & Loopy");
+  });
+
+  it("offers WhatsApp too, with the same message", async () => {
+    await renderHost();
+    await open({ mode: "new", title: "Hamma & Loopy", instagramUrl: IG, facebookUrl: null, publishedAt: null });
+    const wa = screen.getByRole("link", { name: /WhatsApp/ });
+    expect(wa.getAttribute("href")).toMatch(/^https:\/\/wa\.me\/21621774202\?text=/);
+    expect(decodeURIComponent(wa.getAttribute("href")!.split("text=")[1]!)).toContain("Hamma & Loopy");
   });
 
   it("« Vous êtes à l'affiche »: one platform only, and the way to the profile choice", async () => {

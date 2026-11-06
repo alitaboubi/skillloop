@@ -10,7 +10,7 @@ import { rememberCurrentPage } from "@/lib/return-to";
 import { relativeTime } from "@/lib/notifications";
 import {
   HELP_TOPICS, SUPPORT_CHAT_ENABLED, SUPPORT_EMAIL, SUPPORT_MAX, SUPPORT_WHATSAPP, checkBody, mailtoUrl, pagePath,
-  supportErrorKey, whatsappUrl,
+  formatWhatsApp, supportErrorKey, whatsappUrl,
   type SupportDraft,
 } from "@/lib/support";
 import { markSupportRead, supportThreadQuery, useSendSupport, useSupportLive } from "@/lib/support-db";
@@ -24,7 +24,7 @@ function Contact() {
       <a href={mailtoUrl(t("sup_mail_subject"))} className="btn btn-outline min-h-10 gap-2 px-3 text-sm"><Mail className="size-4" aria-hidden /><span dir="ltr">{SUPPORT_EMAIL}</span></a>
       {SUPPORT_WHATSAPP && (
         <a href={whatsappUrl(SUPPORT_WHATSAPP, t("sup_wa_text"))} target="_blank" rel="noopener noreferrer" className="btn btn-outline min-h-10 gap-2 px-3 text-sm">
-          <MessageCircle className="size-4" aria-hidden />WhatsApp
+          <MessageCircle className="size-4" aria-hidden />WhatsApp <span dir="ltr">{formatWhatsApp(SUPPORT_WHATSAPP)}</span>
         </a>
       )}
     </div>
