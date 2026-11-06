@@ -1,8 +1,9 @@
 import type { TKey } from "@/lib/i18n";
+import { normalizeFacebook, normalizeInstagram } from "@/lib/social-features";
 
 /**
  * In-app notifications (the bell). Rows are written ONLY by the database (migration 20261106120000_notifications.sql —
- * PREPARED, not applied) from real events; a row holds ids + a kind, and the sentence is written here in the reader's
+ * APPLIED; kinds feature_you / feature_new come with 20261106140000_social_features.sql, PREPARED) from real events; a row holds ids + a kind, and the sentence is written here in the reader's
  * language. Off until VITE_NOTIFICATIONS=on: while off nothing calls the RPCs and no bell is shown.
  */
 export const NOTIFICATIONS_ENABLED = import.meta.env["VITE_NOTIFICATIONS"] === "on";
@@ -10,7 +11,7 @@ export const NOTIFICATIONS_ENABLED = import.meta.env["VITE_NOTIFICATIONS"] === "
 export const NOTIFICATION_KINDS = [
   "welcome", "service_live", "request_new", "request_accepted", "request_declined", "request_cancelled",
   "job_scheduled", "job_on_the_way", "job_started", "job_completed", "review_new", "review_reply",
-  "support_new", "support_reply",
+  "support_new", "support_reply", "feature_you", "feature_new",
 ] as const;
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
 
@@ -24,11 +25,19 @@ export type AppNotification = {
   serviceTitle: string | null;
   /** Live display name of who acted; "" = deleted account; null = no actor (welcome, service live). */
   actorName: string | null;
+  /** feature_*: the SkillLoop post (title + its Instagram / Facebook link); null once deleted. */
+  featureTitle: string | null;
+  featureUrl: string | null;
 };
 export type NotificationFeed = { unread: number; items: AppNotification[] };
 
 const obj = (v: unknown) => (v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {});
 const str = (v: unknown) => (typeof v === "string" ? v : null);
+/** Only SkillLoop's own Instagram / Facebook links are ever opened from the bell. */
+const safeSocialUrl = (v: unknown) => {
+  const s = str(v);
+  return s && (normalizeInstagram(s) === s || normalizeFacebook(s) === s) ? s : null;
+};
 const isKind = (v: unknown): v is NotificationKind => typeof v === "string" && (NOTIFICATION_KINDS as readonly string[]).includes(v);
 
 /** Reads public.my_notifications()'s JSON defensively: unknown kinds and malformed rows are dropped. */
@@ -42,6 +51,7 @@ export function parseFeed(raw: unknown): NotificationFeed {
       id, kind: d["kind"], createdAt, read: !!str(d["read_at"]),
       requestId: str(d["request_id"]), serviceId: str(d["service_id"]),
       serviceTitle: str(d["service_title"]), actorName: d["actor_name"] === undefined ? null : str(d["actor_name"]),
+      featureTitle: str(d["feature_title"]), featureUrl: safeSocialUrl(d["feature_url"]),
     }];
   });
   const unread = typeof o["unread"] === "number" && Number.isFinite(o["unread"]) && o["unread"] > 0 ? Math.floor(o["unread"]) : 0;
@@ -67,6 +77,8 @@ export const KIND_SPEC: Record<NotificationKind, Spec> = {
   review_reply: { title: "nt_review_reply_t", body: "nt_review_reply_b", tone: "clay" },
   support_new: { title: "nt_support_new_t", body: "nt_support_new_b", tone: "sea" },
   support_reply: { title: "nt_support_reply_t", body: "nt_support_reply_b", tone: "sea" },
+  feature_you: { title: "nt_feature_you_t", body: "nt_feature_you_b", tone: "clay" },
+  feature_new: { title: "nt_feature_new_t", body: "nt_feature_new_b", tone: "clay" },
 };
 
 /** Where a notification leads. `support` opens the support panel instead of navigating. */
@@ -75,10 +87,14 @@ export type Target =
   | { kind: "link"; to: "/services/$id"; params: { id: string } }
   | { kind: "link"; to: "/dashboard"; search: { mode?: "provider"; section?: "reviews" } }
   | { kind: "link"; to: "/admin"; search: Record<string, never> }
-  | { kind: "support" };
+  | { kind: "support" }
+  | { kind: "external"; href: string };
 
-export function targetOf(n: Pick<AppNotification, "kind" | "requestId" | "serviceId">): Target {
+export function targetOf(n: Pick<AppNotification, "kind" | "requestId" | "serviceId"> & Partial<Pick<AppNotification, "featureUrl">>): Target {
   switch (n.kind) {
+    // « On parle de toi » sits at the top of the dashboard overview (choose to show it on the profile, share it).
+    case "feature_you": return { kind: "link", to: "/dashboard", search: {} };
+    case "feature_new": return n.featureUrl ? { kind: "external", href: n.featureUrl } : { kind: "link", to: "/dashboard", search: {} };
     case "support_reply": return { kind: "support" };
     case "support_new": return { kind: "link", to: "/admin", search: {} };
     case "welcome": return { kind: "link", to: "/dashboard", search: {} };
@@ -93,10 +109,11 @@ export function targetOf(n: Pick<AppNotification, "kind" | "requestId" | "servic
 /** Unicode first-strong isolate: user text (a Latin name in an Arabic sentence, or the reverse) keeps its own direction. */
 export const isolate = (s: string) => `\u2068${s}\u2069`;
 
-/** Values for the sentence: {name} = who acted (deleted account → its fixed label), {service} = service title. */
-export function vars(n: Pick<AppNotification, "actorName" | "serviceTitle">, deletedLabel: string, someoneLabel: string) {
+/** Values for the sentence: {name} = who acted (deleted account → its fixed label), {service} = service title,
+ * {title} = the SkillLoop post's title. */
+export function vars(n: Pick<AppNotification, "actorName" | "serviceTitle"> & Partial<Pick<AppNotification, "featureTitle">>, deletedLabel: string, someoneLabel: string) {
   const name = n.actorName === null ? someoneLabel : n.actorName.trim() || deletedLabel;
-  return { name: isolate(name), service: isolate(n.serviceTitle?.trim() || "SkillLoop") };
+  return { name: isolate(name), service: isolate(n.serviceTitle?.trim() || "SkillLoop"), title: isolate(n.featureTitle?.trim() || "SkillLoop") };
 }
 
 export type Group = { key: "today" | "week" | "earlier"; items: AppNotification[] };

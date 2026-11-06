@@ -26,6 +26,8 @@ import { CATEGORIES, type CategoryId, type Service } from "@/lib/data";
 import { COMMITMENT_KEYS, hasCarnet, readCarnet, readTheme } from "@/lib/carnet";
 import { PRO_TOOLS_ENABLED, hasProQuery, recordPageEvent } from "@/lib/pro-tools";
 import { readBanner } from "@/lib/presets";
+import { ProfileFeatures } from "@/components/social-features";
+import { publicFeaturesQuery } from "@/lib/social-features-db";
 
 /** Pro state for the theme; any failure (function missing, network) is "no theme" — never a broken page. */
 const loadHasPro = (qc: import("@tanstack/react-query").QueryClient, id: string) =>
@@ -98,7 +100,9 @@ function Page() {
   }, [id, via, navigate]);
   const all = useAllServices();
   const [viewer, setViewer] = useState<number | null>(null);
-  const active = useActiveSection(["about", "services", "portfolio", "reviews", "carnet"]);
+  const active = useActiveSection(["about", "services", "portfolio", "media", "reviews", "carnet"]);
+  // « Vu sur les réseaux SkillLoop » (and its tab) only for posts this person chose to show; nothing while the flag is off.
+  const features = useQuery(publicFeaturesQuery(id));
   // Reviews section (and its tab) only when this pro has visible reviews; nothing while VITE_REVIEWS is off.
   const reviewSum = useQuery(providerSummaryQuery(id));
   const hasReviews = REVIEWS_ENABLED && !!summaryDisplay(reviewSum.data);
@@ -143,6 +147,7 @@ function Page() {
     p.bio ? { id: "about", label: t("pp_about") } : null,
     { id: "services", label: t("pp_services") },
     portfolio.length > 0 ? { id: "portfolio", label: t("sd_portfolio") } : null,
+    features.data?.length ? { id: "media", label: t("sf_public_t") } : null,
     hasReviews ? { id: "reviews", label: t("rv_tab") } : null,
     hasCarnet(carnet) ? { id: "carnet", label: t("carnet_method") } : null,
   ].filter((x): x is { id: string; label: string } => !!x);
@@ -342,6 +347,8 @@ function Page() {
                 <div className="mt-5"><EmptyState icon={ImageIcon} title={t("db_no_portfolio")} sub={t("db_no_portfolio_sub")} action={<Link to="/profile" search={{ tab: "settings" }} hash="portfolio" className="btn btn-outline">{t("portfolio_add")}</Link>} /></div>
               </section>
             ) : null}
+
+            <ProfileFeatures userId={p.id} name={name} />
 
             <ProviderReviewsSection providerId={p.id} proName={name} />
 

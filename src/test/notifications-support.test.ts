@@ -8,13 +8,13 @@ import { readFileSync } from "node:fs";
 const LANGS: Lang[] = ["fr", "en", "ar"];
 const note = (o: Partial<AppNotification>): AppNotification => ({
   id: "n1", kind: "request_new", createdAt: "2026-11-06T10:00:00Z", read: false,
-  requestId: "r1", serviceId: "s1", serviceTitle: "Plomberie", actorName: "Amira", ...o,
+  requestId: "r1", serviceId: "s1", serviceTitle: "Plomberie", actorName: "Amira", featureTitle: null, featureUrl: null, ...o,
 });
 
 describe("notification kinds", () => {
-  it("match the database check list exactly", () => {
-    const sql = readFileSync("supabase/migrations/20261106120000_notifications.sql", "utf8");
-    const list = sql.match(/kind in \(([\s\S]*?)\)\)/)![1]!.match(/'([a-z_]+)'/g)!.map((s) => s.slice(1, -1));
+  it("match the database check list exactly (the latest migration that redefines it)", () => {
+    const sql = readFileSync("supabase/migrations/20261106140000_social_features.sql", "utf8");
+    const list = sql.match(/notifications_kind_check check \(kind in \(([\s\S]*?)\)\)/)![1]!.match(/'([a-z_]+)'/g)!.map((s) => s.slice(1, -1));
     expect([...list].sort()).toEqual([...NOTIFICATION_KINDS].sort());
   });
 

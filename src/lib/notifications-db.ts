@@ -45,7 +45,7 @@ export function useMarkNotificationsRead(userId: string) {
  * One realtime listener (mounted ONCE, in SiteHeader via useNotificationAlerts — the bell itself renders twice): a new
  * row refreshes the feed and calls onNew with it, for the toast. RLS: a user only ever receives their own rows.
  */
-export type LiveRow = { kind?: unknown; request_id?: unknown; service_id?: unknown };
+export type LiveRow = { id?: unknown; kind?: unknown; request_id?: unknown; service_id?: unknown };
 export function useNotificationsLive(userId: string | undefined, onNew?: (row: LiveRow) => void) {
   const qc = useQueryClient();
   useEffect(() => {

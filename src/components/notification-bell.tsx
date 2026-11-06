@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  BadgeCheck, Ban, Bell, BellRing, CalendarClock, Car, CheckCheck, CircleCheck, CircleX, Hammer, Inbox, LifeBuoy,
-  MessageSquareQuote, Rocket, Sparkles, Star, type LucideIcon,
+  BadgeCheck, Ban, Bell, BellRing, CalendarClock, Car, CheckCheck, CircleCheck, CircleX, Clapperboard, Hammer, Inbox, LifeBuoy,
+  Megaphone, MessageSquareQuote, Rocket, Sparkles, Star, type LucideIcon,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useI18n } from "@/lib/i18n";
@@ -20,6 +20,7 @@ const ICON: Record<NotificationKind, LucideIcon> = {
   welcome: Sparkles, service_live: Rocket, request_new: Inbox, request_accepted: CircleCheck, request_declined: CircleX,
   request_cancelled: Ban, job_scheduled: CalendarClock, job_on_the_way: Car, job_started: Hammer, job_completed: BadgeCheck,
   review_new: Star, review_reply: MessageSquareQuote, support_new: LifeBuoy, support_reply: LifeBuoy,
+  feature_you: Clapperboard, feature_new: Megaphone,
 };
 const WELL: Record<Tone, string> = {
   lime: "bg-lime text-lime-foreground",
@@ -106,9 +107,10 @@ export function NotificationPanel({ feed, loading, error, onRetry, onOpen, onMar
 /** Shared navigation for a notification (row click or toast action). */
 function useGoTo() {
   const navigate = useNavigate();
-  return useCallback((n: Pick<AppNotification, "kind" | "requestId" | "serviceId">) => {
+  return useCallback((n: Pick<AppNotification, "kind" | "requestId" | "serviceId"> & Partial<Pick<AppNotification, "featureUrl">>) => {
     const target = targetOf(n);
     if (target.kind === "support") { openSupport("chat"); return; }
+    if (target.kind === "external") { window.open(target.href, "_blank", "noopener,noreferrer"); return; }
     if (target.to === "/services/$id") void navigate({ to: target.to, params: target.params });
     else void navigate({ to: target.to, search: target.search as never });
   }, [navigate]);
@@ -121,17 +123,20 @@ function useGoTo() {
 export function useNotificationAlerts() {
   const { t } = useI18n();
   const { user } = useAuth();
+  const qc = useQueryClient();
   const goTo = useGoTo();
   const onNew = useCallback((row: LiveRow) => {
     const kind = row.kind;
     if (document.visibilityState !== "visible" || typeof kind !== "string" || !(kind in KIND_SPEC)) return;
     const k = kind as NotificationKind;
     const id = (v: unknown) => (typeof v === "string" ? v : null);
+    // The realtime row holds ids only: the post's link (feature_new) comes from the refreshed feed.
+    const featureUrl = () => qc.getQueryData<NotificationFeed>(["notifications", user?.id ?? ""])?.items.find((n) => n.id === row.id)?.featureUrl ?? null;
     toast(t(KIND_SPEC[k].title), {
       icon: <BellRing className="size-4 text-sea" aria-hidden />,
-      action: { label: t("nt_view"), onClick: () => goTo({ kind: k, requestId: id(row.request_id), serviceId: id(row.service_id) }) },
+      action: { label: t("nt_view"), onClick: () => goTo({ kind: k, requestId: id(row.request_id), serviceId: id(row.service_id), featureUrl: featureUrl() }) },
     });
-  }, [t, goTo]);
+  }, [t, goTo, qc, user?.id]);
   useNotificationsLive(NOTIFICATIONS_ENABLED ? user?.id : undefined, onNew);
 }
 
