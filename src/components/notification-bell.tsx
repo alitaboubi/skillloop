@@ -15,6 +15,7 @@ import {
 } from "@/lib/notifications";
 import { notificationsQuery, useMarkNotificationsRead, useNotificationsLive, type LiveRow } from "@/lib/notifications-db";
 import { openSupport } from "@/lib/support";
+import { openFeatureSheet } from "@/lib/social-features";
 
 const ICON: Record<NotificationKind, LucideIcon> = {
   welcome: Sparkles, service_live: Rocket, request_new: Inbox, request_accepted: CircleCheck, request_declined: CircleX,
@@ -107,10 +108,10 @@ export function NotificationPanel({ feed, loading, error, onRetry, onOpen, onMar
 /** Shared navigation for a notification (row click or toast action). */
 function useGoTo() {
   const navigate = useNavigate();
-  return useCallback((n: Pick<AppNotification, "kind" | "requestId" | "serviceId"> & Partial<Pick<AppNotification, "featureUrl">>) => {
+  return useCallback((n: Pick<AppNotification, "kind" | "requestId" | "serviceId"> & Partial<AppNotification>) => {
     const target = targetOf(n);
     if (target.kind === "support") { openSupport("chat"); return; }
-    if (target.kind === "external") { window.open(target.href, "_blank", "noopener,noreferrer"); return; }
+    if (target.kind === "feature") { openFeatureSheet(target.sheet); return; }
     if (target.to === "/services/$id") void navigate({ to: target.to, params: target.params });
     else void navigate({ to: target.to, search: target.search as never });
   }, [navigate]);
@@ -130,11 +131,11 @@ export function useNotificationAlerts() {
     if (document.visibilityState !== "visible" || typeof kind !== "string" || !(kind in KIND_SPEC)) return;
     const k = kind as NotificationKind;
     const id = (v: unknown) => (typeof v === "string" ? v : null);
-    // The realtime row holds ids only: the post's link (feature_new) comes from the refreshed feed.
-    const featureUrl = () => qc.getQueryData<NotificationFeed>(["notifications", user?.id ?? ""])?.items.find((n) => n.id === row.id)?.featureUrl ?? null;
+    // The realtime row holds ids only: the post's title and links (feature_*) come from the refreshed feed.
+    const full = () => qc.getQueryData<NotificationFeed>(["notifications", user?.id ?? ""])?.items.find((n) => n.id === row.id);
     toast(t(KIND_SPEC[k].title), {
       icon: <BellRing className="size-4 text-sea" aria-hidden />,
-      action: { label: t("nt_view"), onClick: () => goTo({ kind: k, requestId: id(row.request_id), serviceId: id(row.service_id), featureUrl: featureUrl() }) },
+      action: { label: t("nt_view"), onClick: () => goTo({ ...full(), kind: k, requestId: id(row.request_id), serviceId: id(row.service_id) }) },
     });
   }, [t, goTo, qc, user?.id]);
   useNotificationsLive(NOTIFICATIONS_ENABLED ? user?.id : undefined, onNew);

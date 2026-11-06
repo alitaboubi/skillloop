@@ -30,6 +30,14 @@ export type MyFeature = Pick<SocialPost, "id" | "title" | "instagramUrl" | "face
 export type PublicFeature = Pick<SocialPost, "id" | "title" | "instagramUrl" | "facebookUrl"> & { publishedAt: string };
 export type PersonHit = Pick<FeaturePerson, "id" | "name" | "city" | "avatarPath" | "pro">;
 
+/** The bell opens the video sheet through this event (the sheet lives in the root, so it outlives the bell's popover). */
+export const OPEN_FEATURE_EVENT = "skillloop:feature-open";
+
+/** Opens the video sheet from anywhere (the bell, its toast). The detail is a FeatureSheet (lib/notifications). */
+export function openFeatureSheet(sheet: { mode: "new" | "you"; title: string; instagramUrl: string | null; facebookUrl: string | null; publishedAt: string | null }) {
+  window.dispatchEvent(new CustomEvent(OPEN_FEATURE_EVENT, { detail: sheet }));
+}
+
 /* ---------- Links ---------- */
 
 const IG_HOSTS = new Set(["instagram.com", "www.instagram.com", "m.instagram.com"]);

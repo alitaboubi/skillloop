@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { MessageCircleQuestion } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
-import { OPEN_SUPPORT_EVENT, launcherHiddenOnPhone } from "@/lib/support";
+import { OPEN_SUPPORT_EVENT, launcherHiddenOnPhone, type SupportDraft, type SupportOpen } from "@/lib/support";
 import { notificationsQuery } from "@/lib/notifications-db";
 
 const SupportPanel = lazy(() => import("@/components/support-panel").then((m) => ({ default: m.SupportPanel })));
@@ -20,12 +20,15 @@ export function SupportWidget() {
   const [open, setOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [tab, setTab] = useState<"help" | "chat">("help");
+  const [draft, setDraft] = useState<SupportDraft | null>(null);
   const feed = useQuery(notificationsQuery(user?.id ?? ""));
   const unread = !!feed.data?.items.some((n) => n.kind === "support_reply" && !n.read);
 
   useEffect(() => {
     const onOpen = (e: Event) => {
-      setTab((e as CustomEvent<"chat" | null>).detail === "chat" ? "chat" : "help");
+      const d = (e as CustomEvent<SupportOpen | null>).detail;
+      setTab(d?.topic === "chat" ? "chat" : "help");
+      if (d?.draft) setDraft(d.draft);
       setLoaded(true);
       setOpen(true);
     };
@@ -44,7 +47,7 @@ export function SupportWidget() {
       </button>
       {loaded && (
         <Suspense fallback={null}>
-          <SupportPanel open={open} onOpenChange={setOpen} tab={tab} onTab={setTab} />
+          <SupportPanel open={open} onOpenChange={setOpen} tab={tab} onTab={setTab} draft={draft} />
         </Suspense>
       )}
     </>

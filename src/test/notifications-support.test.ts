@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
 const LANGS: Lang[] = ["fr", "en", "ar"];
 const note = (o: Partial<AppNotification>): AppNotification => ({
   id: "n1", kind: "request_new", createdAt: "2026-11-06T10:00:00Z", read: false,
-  requestId: "r1", serviceId: "s1", serviceTitle: "Plomberie", actorName: "Amira", featureTitle: null, featureUrl: null, ...o,
+  requestId: "r1", serviceId: "s1", serviceTitle: "Plomberie", actorName: "Amira", featureTitle: null, featureUrl: null, featureInstagramUrl: null, featureFacebookUrl: null, featurePublishedAt: null, ...o,
 });
 
 describe("notification kinds", () => {

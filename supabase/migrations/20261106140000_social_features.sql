@@ -1,4 +1,4 @@
--- PREPARED 2026-11-06 — NOT APPLIED. Needs your approval (dry run → apply → verify), like the earlier ones.
+-- APPLIED 2026-11-06 (Ali: dry run + apply; live on skillloop.tn/admin). History below kept as written.
 --   Needs (applied): 20261102120000_admin.sql, 20261106120000_notifications.sql.
 --   Dry run: node scripts/db-test.mjs --pending supabase/migrations/20261106140000_social_features.sql
 --   Verify after applying: supabase/checks/20261106140000_social_features_verify.sql
