@@ -105,7 +105,7 @@ export type Target =
   | { kind: "link"; to: "/messages"; search: { r: string } }
   | { kind: "link"; to: "/services/$id"; params: { id: string } }
   | { kind: "link"; to: "/dashboard"; search: { mode?: "provider"; section?: "reviews" } }
-  | { kind: "link"; to: "/admin"; search: Record<string, never> }
+  | { kind: "link"; to: "/admin"; search: { section: "messages" } }
   | { kind: "support" }
   | { kind: "feature"; sheet: FeatureSheet };
 
@@ -130,7 +130,7 @@ export function targetOf(n: Pick<AppNotification, "kind" | "requestId" | "servic
             instagramUrl: n.featureInstagramUrl ?? null, facebookUrl: n.featureFacebookUrl ?? null, publishedAt: n.featurePublishedAt ?? null } }
         : { kind: "link", to: "/dashboard", search: {} };
     case "support_reply": return { kind: "support" };
-    case "support_new": return { kind: "link", to: "/admin", search: {} };
+    case "support_new": return { kind: "link", to: "/admin", search: { section: "messages" } };
     case "welcome": return { kind: "link", to: "/dashboard", search: {} };
     case "review_new": return { kind: "link", to: "/dashboard", search: { mode: "provider", section: "reviews" } };
     case "service_live":

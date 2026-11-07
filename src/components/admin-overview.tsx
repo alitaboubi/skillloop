@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Briefcase, Crown, FileText, Inbox, LogIn, MapPin, MessageSquare, RefreshCw, ShieldCheck, Shapes, Users, type LucideIcon } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
@@ -18,6 +18,8 @@ import { SUPPORT_ADMIN_ENABLED } from "@/lib/support-db";
 import { AdminSupport } from "@/components/admin-support";
 import { AdminSocialPosts } from "@/components/social-features";
 import { SOCIAL_ADMIN_ENABLED } from "@/lib/social-features-db";
+import { ConsoleNav, SubscriptionsSection, TodoBoard, UserSheet, UsersSection, type Role, type Sort } from "@/components/admin-console";
+import { visibleSections, type ConsoleSection } from "@/lib/admin-console";
 
 function Panel({ id, icon: Icon, title, sub, children }: { id: string; icon: LucideIcon; title: string; sub?: string; children: ReactNode }) {
   return (
@@ -183,9 +185,19 @@ function Figures({ o }: { o: AdminOverview }) {
   );
 }
 
-/** The operator space. The database is the gate (admin_overview refuses non-admins); the UI only mirrors it. */
-export function AdminPage({ days }: { days: AdminPeriod }) {
+export type ConsoleSearch = {
+  section?: ConsoleSection | undefined; u?: string | undefined; c?: string | undefined;
+  q?: string | undefined; role?: Role | undefined; sort?: Sort | undefined;
+};
+
+/**
+ * The operator console. Sections (?section=): overview (to-dos + figures), messages (support inbox), users (accounts +
+ * side panel ?u=), social (« Vu sur SkillLoop »), subscriptions (Pro access + log), payments. The database is the gate
+ * (every admin_* function refuses non-admins); the UI only mirrors it.
+ */
+export function AdminPage({ days, search = {} }: { days: AdminPeriod; search?: ConsoleSearch }) {
   const { t } = useI18n();
+  const navigate = useNavigate({ from: "/admin" });
   const f = useFormat();
   const { user, ready } = useAuth();
   const admin = useQuery({ ...amIAdminQuery(user?.id ?? ""), enabled: !!user });
@@ -214,25 +226,50 @@ export function AdminPage({ days }: { days: AdminPeriod }) {
     );
 
   const name = me.data?.display_name || user.email?.split("@")[0] || "";
+  const sections = visibleSections({ support: SUPPORT_ADMIN_ENABLED, social: SOCIAL_ADMIN_ENABLED, payments: PAYMENTS_ENABLED });
+  const section: ConsoleSection = search.section && sections.includes(search.section) ? search.section : "overview";
+  const set = (patch: Partial<ConsoleSearch>, replace = false) =>
+    void navigate({ search: (p) => ({ ...p, ...patch }), replace, resetScroll: false });
+  const openUser = (id: string) => set({ u: id });
+  const write = (id: string) => set({ u: undefined, section: "messages", c: id });
   return (
     <>
       <DashHero name={name} avatar={me.data?.avatar ?? undefined} eyebrow={t("adm_title")} sub={t("adm_sub")}>
-        <SegSlide index={ADMIN_PERIODS.indexOf(days)} count={ADMIN_PERIODS.length} label={t("adm_period")}>
-          {ADMIN_PERIODS.map((d) => (
-            <Link key={d} to="/admin" search={{ days: d }} aria-current={d === days ? "page" : undefined}>{t("adm_days", { n: d })}</Link>
-          ))}
-        </SegSlide>
-        <button type="button" onClick={() => q.refetch()} disabled={q.isFetching} className="dash-action">
-          <RefreshCw className={`size-4 ${q.isFetching ? "motion-safe:animate-spin" : ""}`} aria-hidden />{t("adm_refresh")}
-        </button>
-        {q.data?.generatedAt && <span aria-live="polite" className="text-sm text-navy-muted">{t("adm_updated", { t: f.time(q.data.generatedAt) })}</span>}
+        {section === "overview" && (
+          <>
+            <SegSlide index={ADMIN_PERIODS.indexOf(days)} count={ADMIN_PERIODS.length} label={t("adm_period")}>
+              {ADMIN_PERIODS.map((d) => (
+                <Link key={d} to="/admin" search={{ days: d }} aria-current={d === days ? "page" : undefined}>{t("adm_days", { n: d })}</Link>
+              ))}
+            </SegSlide>
+            <button type="button" onClick={() => q.refetch()} disabled={q.isFetching} className="dash-action">
+              <RefreshCw className={`size-4 ${q.isFetching ? "motion-safe:animate-spin" : ""}`} aria-hidden />{t("adm_refresh")}
+            </button>
+            {q.data?.generatedAt && <span aria-live="polite" className="text-sm text-navy-muted">{t("adm_updated", { t: f.time(q.data.generatedAt) })}</span>}
+          </>
+        )}
       </DashHero>
+      <ConsoleNav sections={sections} current={section} />
       <div className="mx-auto max-w-6xl space-y-6 px-4 pb-12 pt-8 sm:px-6">
-        {SUPPORT_ADMIN_ENABLED && <AdminSupport />}
-        {SOCIAL_ADMIN_ENABLED && <AdminSocialPosts />}
-        {PAYMENTS_ENABLED && <AdminPayments />}
-        {q.isLoading ? <ListSkeleton rows={4} /> : q.isError || !q.data ? <ErrorState onRetry={() => q.refetch()} /> : <Figures o={q.data} />}
+        {section === "overview" ? (
+          <>
+            <TodoBoard sections={sections} />
+            {q.isLoading ? <ListSkeleton rows={4} /> : q.isError || !q.data ? <ErrorState onRetry={() => q.refetch()} /> : <Figures o={q.data} />}
+          </>
+        ) : section === "messages" ? (
+          <AdminSupport selected={search.c ?? null} onSelect={(id) => set({ c: id ?? undefined })} />
+        ) : section === "users" ? (
+          <UsersSection q={search.q ?? ""} role={search.role ?? "all"} sort={search.sort ?? "new"} onOpen={openUser}
+            onFilter={(p) => set({ ...p, q: p.q === undefined ? search.q : p.q || undefined }, p.q !== undefined)} />
+        ) : section === "social" ? (
+          <AdminSocialPosts />
+        ) : section === "subscriptions" ? (
+          <SubscriptionsSection onOpenUser={openUser} />
+        ) : (
+          <AdminPayments />
+        )}
       </div>
+      <UserSheet id={search.u ?? null} onClose={() => set({ u: undefined })} onWrite={write} canWrite={SUPPORT_ADMIN_ENABLED} />
     </>
   );
 }

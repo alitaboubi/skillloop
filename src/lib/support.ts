@@ -5,7 +5,8 @@ import type { TKey } from "@/lib/i18n";
  *   1. Quick answers (always): short, true answers + a link to the right page.
  *   2. Chat with the team (VITE_SUPPORT=on, after migration 20261106130000_support.sql — PREPARED, not applied — and the
  *      admin migration, so someone can answer from /admin): one conversation per signed-in user.
- *   3. Direct contact (always): the contact address from the legal pages; WhatsApp only when VITE_SUPPORT_WHATSAPP is set.
+ *   3. Direct contact (always): the contact address from the legal pages and SkillLoop's WhatsApp (SUPPORT_WHATSAPP_DEFAULT,
+ *      or VITE_SUPPORT_WHATSAPP).
  * While the chat is off, nothing reads or writes the support tables.
  */
 export const SUPPORT_CHAT_ENABLED = import.meta.env["VITE_SUPPORT"] === "on";
@@ -20,7 +21,11 @@ export function normalizeWhatsApp(raw: string | undefined | null): string | null
   if (digits.length === 8) return `216${digits}`;
   return digits.length >= 10 && digits.length <= 15 ? digits : null;
 }
-export const SUPPORT_WHATSAPP = normalizeWhatsApp(import.meta.env["VITE_SUPPORT_WHATSAPP"] as string | undefined);
+/** SkillLoop's public WhatsApp (help panel « Nous contacter », video sheet). VITE_SUPPORT_WHATSAPP can replace it. */
+export const SUPPORT_WHATSAPP_DEFAULT = "+21621774202";
+export const SUPPORT_WHATSAPP = normalizeWhatsApp((import.meta.env["VITE_SUPPORT_WHATSAPP"] as string | undefined) || SUPPORT_WHATSAPP_DEFAULT);
+/** "21621774202" → "+216 21 774 202" (shown next to the button). */
+export const formatWhatsApp = (n: string) => (/^216\d{8}$/.test(n) ? `+216 ${n.slice(3, 5)} ${n.slice(5, 8)} ${n.slice(8)}` : `+${n}`);
 
 export const whatsappUrl = (number: string, text: string) => `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
 export const mailtoUrl = (subject: string) => `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}`;
