@@ -112,7 +112,7 @@ export function AdminSupport({ selected: chosen, onSelect }: { selected?: string
         {inbox.isLoading ? <ListSkeleton rows={3} /> : inbox.isError ? <ErrorState onRetry={() => inbox.refetch()} /> : !all.length && !current ? (
           <p className="text-sm text-muted-foreground">{t("sup_adm_empty")}</p>
         ) : (
-          <div className="grid gap-6 lg:grid-cols-[18rem_1fr]">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[18rem_1fr]">
             <div className="space-y-2">
             <label htmlFor="adm-support-q" className="sr-only">{t("ac_msg_search")}</label>
             <div className="relative">

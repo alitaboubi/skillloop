@@ -127,14 +127,14 @@ function Figures({ o }: { o: AdminOverview }) {
       </dl>
 
       <Panel id="adm-activity" icon={RefreshCw} title={t("adm_activity")} sub={t("adm_activity_sub", { n: o.days })}>
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           <DayBars series={o.series} field="users" label={t("adm_series_users")} />
           <DayBars series={o.series} field="services" label={t("adm_series_services")} />
           <DayBars series={o.series} field="requests" label={t("adm_series_requests")} />
         </div>
       </Panel>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Panel id="adm-requests" icon={Inbox} title={t("adm_req_t")}>
           <dl className="mb-5 grid grid-cols-2 gap-3">
             <Fact label={t("adm_accept_rate")} value={rate === null ? "—" : `${f.num(rate)} %`} />

@@ -155,7 +155,7 @@ function ClientOverview({ userId }: { userId: string }) {
       <MyFeatures userId={userId} />
       <ReviewTodo userId={userId} />
       {mine.length > 0 && (
-        <dl className="grid gap-4 sm:grid-cols-3">
+        <dl className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {stats.map(([k, v, tone, Icon]) => <StatTile key={k} icon={Icon} value={v} label={t(k)} tone={tone} />)}
         </dl>
       )}
@@ -229,7 +229,7 @@ function Overview({ userId }: { userId: string }) {
             <div className="mt-4"><ShareKit path={profilePath(userId)} title={p?.display_name ?? "SkillLoop"} text="share_profile_text" label="share_profile" /></div>
           </div>
         ) : (
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {pending.length > 0 && (
               <div>
                 <h3 className="mb-2 text-sm font-semibold text-muted-foreground">{t("db_new_requests")} ({pending.length})</h3>
@@ -315,7 +315,7 @@ function Services({ userId }: { userId: string }) {
     return <EmptyState icon={Briefcase} title={t("db_no_services")} sub={t("db_no_services_sub")}
       action={<div className="flex w-full flex-col items-center gap-4"><ListingSketch /><Link to="/offer" className="btn btn-lime"><PlusCircle className="size-4" aria-hidden />{t("offer_service")}</Link></div>} />;
   return (
-    <ul className="sd-stagger grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="sd-stagger grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {draftsFirst(q.data).map((x) => (
         <ServiceTile key={x.id} s={x} actions={
           <>
@@ -388,7 +388,7 @@ function Portfolio({ userId }: { userId: string }) {
   return (
     <div className="space-y-4">
     <div className="flex justify-end"><Link to="/profile" search={{ tab: "settings" }} hash="portfolio" className="btn btn-outline min-h-10">{t("db_manage")}</Link></div>
-    <ul className="sd-stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="sd-stagger grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((x) => (
         <li key={x.id} className="listing-card" data-tilt>
           {x.image ? <div className="overflow-hidden"><img src={x.image} alt="" loading="lazy" className="sd-parallax aspect-[4/3] w-full object-cover" /></div> : <div className="aspect-[4/3] bg-muted" />}

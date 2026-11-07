@@ -78,7 +78,7 @@ function Skeleton() {
       <div className="pro-cover h-48 md:h-60" />
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
         <div className="pro-id -mt-20 flex flex-col gap-4 p-6 sm:flex-row sm:items-end md:-mt-28 md:p-8"><span className="skeleton-block size-28 rounded-full" /><div className="flex-1 space-y-2 pb-2"><div className="skeleton-block h-8 w-1/2" /><div className="skeleton-block h-4 w-1/3" /></div></div>
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{[0, 1, 2].map((i) => <ServiceCardSkeleton key={i} />)}</div>
+        <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">{[0, 1, 2].map((i) => <ServiceCardSkeleton key={i} />)}</div>
       </div>
     </div>
   );
@@ -272,7 +272,7 @@ function Page() {
       )}
 
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-12">
+        <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-12">
           <div className="min-w-0 space-y-14">
             {p.bio && (
               <section id="about" aria-labelledby="pp-about" className="scroll-mt-32">
@@ -288,7 +288,7 @@ function Page() {
               </div>
               <div className="mt-5">
                 {all.isLoading && !ssrServices ? (
-                  <div className="grid gap-5 sm:grid-cols-2">{[0, 1].map((i) => <ServiceCardSkeleton key={i} />)}</div>
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">{[0, 1].map((i) => <ServiceCardSkeleton key={i} />)}</div>
                 ) : all.isError && !ssrServices ? (
                   <ErrorState onRetry={() => all.refetch()} />
                 ) : services.length === 0 ? (
@@ -296,7 +296,7 @@ function Page() {
                 ) : (
                   services.length === 1
                     ? <ServiceCard s={services[0]!} wide />
-                    : <div className="sd-stagger grid gap-5 sm:grid-cols-2">{services.map((s) => <ServiceCard key={s.id} s={s} />)}</div>
+                    : <div className="sd-stagger grid grid-cols-1 gap-5 sm:grid-cols-2">{services.map((s) => <ServiceCard key={s.id} s={s} />)}</div>
                 )}
               </div>
             </section>
@@ -310,7 +310,7 @@ function Page() {
                 <p className="mt-1 text-sm text-muted-foreground">{t("pp_portfolio_note")}</p>
                 {/* Bento from 3 projects (idea from VengeanceUI "Image Collage"/"Expandable Bento"; CSS grid only): the newest
                     leads — full width on tablets, and on wide screens a large tile beside the next two stacked. */}
-                <ul className={`sd-stagger mt-5 grid gap-5 sm:grid-cols-2 ${portfolio.length >= 3 ? "xl:grid-cols-3" : ""}`}>
+                <ul className={`sd-stagger mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 ${portfolio.length >= 3 ? "xl:grid-cols-3" : ""}`}>
                   {portfolio.map((x, i) => {
                     const featured = i === 0 && portfolio.length >= 3;
                     return (
@@ -357,7 +357,7 @@ function Page() {
                 {carnet.method.length > 0 && (
                   <div>
                     <div className="flex flex-wrap items-center gap-3"><h2 id="pp-carnet" className="section-title">{t("carnet_method")}</h2><TrustBadge level="declared" /></div>
-                    <ol className="mt-4 grid gap-3 sm:grid-cols-3">
+                    <ol className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
                       {carnet.method.map((step, i) => (
                         <li key={i} className="ct-step panel flex gap-3 p-4">
                           <span aria-hidden className="ct-num grid size-8 shrink-0 place-items-center rounded-full bg-clay/15 text-sm font-bold text-clay-strong">{i + 1}</span>
@@ -373,7 +373,7 @@ function Page() {
                       <h2 {...(carnet.method.length ? {} : { id: "pp-carnet" })} className="section-title">{t("carnet_commitments")}</h2>
                       <TrustBadge level="declared" />
                     </div>
-                    <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                    <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
                       {carnet.commitments.map((c) => (
                         <li key={c} className="flex items-center gap-3 text-sm">
                           <span aria-hidden className="ct-check grid size-7 shrink-0 place-items-center rounded-full bg-sea-soft text-sea"><Check className="size-4" /></span>
@@ -393,7 +393,7 @@ function Page() {
           </div>
 
           {(!isOwner && requestCta) || hasDetails || contacts.length > 0 ? (
-            <aside className="h-fit space-y-6 lg:sticky lg:top-32">
+            <aside className="h-fit min-w-0 space-y-6 lg:sticky lg:top-32">
               <section aria-labelledby="pp-details" className="panel-action relative p-5 sm:p-6" data-tilt>
                 <h2 id="pp-details" dir="auto" className="text-lg font-bold">{t("pp_work_with", { n: name })}</h2>
                 {!isOwner && requestCta && (
@@ -407,7 +407,7 @@ function Page() {
                     <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t pt-4"><h3 className="text-sm font-bold">{t("pp_details")}</h3><TrustBadge level="declared" /></div>
                     <dl className="mt-1 text-sm">
                       {availability && <div className="info-row"><div className="min-w-0"><dt className="text-sm text-muted-foreground">{t("availability")}</dt><dd dir="auto" className="break-words font-semibold">{availability}</dd></div></div>}
-                      {spoken && <div className="info-row"><div className="min-w-0"><dt className="text-sm text-muted-foreground">{t("languages")}</dt><dd dir="auto" className="font-semibold">{spoken}</dd></div></div>}
+                      {spoken && <div className="info-row"><div className="min-w-0"><dt className="text-sm text-muted-foreground">{t("languages")}</dt><dd dir="auto" className="break-words font-semibold">{spoken}</dd></div></div>}
                       {since && <div className="info-row"><dd className="text-muted-foreground">{t("sd_member_since", { d: since })}</dd></div>}
                     </dl>
                   </>

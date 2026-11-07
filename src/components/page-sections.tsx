@@ -33,7 +33,7 @@ export type Step = { icon: LucideIcon; title: string; desc: string };
 
 export function ProcessSteps({ steps, label }: { steps: Step[]; label?: string }) {
   return (
-    <ol aria-label={label} className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+    <ol aria-label={label} className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
       {steps.map((s, i) => (
         <li key={i} className="step-card p-6">
           <span className="flex items-center gap-3">

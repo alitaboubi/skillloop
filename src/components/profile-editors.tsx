@@ -87,7 +87,7 @@ export function CarnetEditor({ userId, details }: { userId: string; details: unk
       <fieldset aria-describedby="cn-cm-help">
         <legend className="text-sm font-semibold">{t("carnet_commitments")}</legend>
         <p id="cn-cm-help" className="text-sm text-muted-foreground">{t("carnet_commitments_help")}</p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {COMMITMENTS.map((c) => (
             <label key={c} className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring ${d.commitments.includes(c) ? "border-sea bg-sea-soft font-semibold text-sea" : "hover:bg-muted"}`}>
               <input type="checkbox" className="size-4 shrink-0 accent-sea" checked={d.commitments.includes(c)} onChange={() => toggle(c)} />
@@ -150,7 +150,7 @@ export function PortfolioEditor({ userId, items }: { userId: string; items: Port
             action={<button type="button" onClick={() => setEditing("new")} className="btn btn-lime"><Plus className="size-4" aria-hidden />{t("portfolio_add")}</button>} />
         </div>
       ) : (
-        <ul className="mt-5 grid gap-4 sm:grid-cols-2">
+        <ul className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {items.map((x) =>
             editing === x.id ? (
               <li key={x.id} className="sm:col-span-2"><PortfolioForm userId={userId} item={x} onDone={done} /></li>

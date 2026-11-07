@@ -315,7 +315,7 @@ function Wizard({ userId, titleParam, original }: { userId: string; titleParam: 
             <>
               <fieldset>
                 <legend className="text-sm font-semibold">{t("f_price_model")} *</legend>
-                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {PRICE_MODELS.map((m) => (
                     <Choice key={m.v} name="priceModel" checked={f.priceModel === m.v} onChange={() => set("priceModel", m.v)} title={t(m.label)} desc={t(m.desc)} />
                   ))}
@@ -353,7 +353,7 @@ function Wizard({ userId, titleParam, original }: { userId: string; titleParam: 
             <>
               <fieldset>
                 <legend className="text-sm font-semibold">{t("f_mode")} *</legend>
-                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
                   <Choice name="mode" checked={f.mode !== "remote"} onChange={() => set("mode", "inperson")} title={t("mode_inperson")} icon={<User className="size-4" aria-hidden />} />
                   <Choice name="mode" checked={f.mode === "remote"} onChange={() => set("mode", "remote")} title={t("mode_remote")} icon={<Wifi className="size-4" aria-hidden />} />
                 </div>
@@ -519,7 +519,7 @@ function Review({ f, photoUrl, changes, provider, profession, lang, onEdit }: {
     { g: "photo", step: 2, field: null, label: "f_image", value: photoUrl ? t("photo_current") : <span className="text-muted-foreground">{t("photo_hint_none")}</span> },
   ];
   return (
-    <div className="grid gap-6 md:grid-cols-[16rem_1fr]">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-[16rem_1fr]">
       <div>
         <p className="eyebrow mb-2">{t("card_preview")}</p>
         {/* Exactly the Explore card, made inert so it can't navigate to a service that doesn't exist yet. */}

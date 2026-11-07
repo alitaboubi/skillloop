@@ -254,6 +254,8 @@
 /* Flat listing card: hairline border; lifts + raises only for hover-capable pointers (no sticky hover on touch). */
 @utility listing-card {
   display: flex;
+  /* Never wider than its grid/flex track: long titles, names or trades wrap or truncate instead of pushing the page. */
+  min-width: 0;
   flex-direction: column;
   overflow: hidden;
   border-radius: 1rem;

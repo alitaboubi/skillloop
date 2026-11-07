@@ -116,7 +116,7 @@ export function TodoBoard({ sections }: { sections: ConsoleSection[] }) {
         <h2 id="ac-todo-t" className="text-lg font-bold">{t("ac_todo_t")}</h2>
         {calm && <p className="flex items-center gap-1.5 text-sm text-muted-foreground"><BadgeCheck className="size-4 text-success" aria-hidden />{t("ac_todo_calm")}</p>}
       </div>
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {shown.map((c) => (
           <li key={c.key}>
             <Link to="/admin" search={(p) => ({ days: p.days, section: c.to })}

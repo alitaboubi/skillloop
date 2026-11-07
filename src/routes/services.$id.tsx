@@ -269,7 +269,7 @@ function DetailSkeleton() {
   return (
     <div role="status" aria-label={t("loading")} className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       <div className="skeleton-block h-4 w-64" />
-      <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1fr)_24rem]">
+      <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="space-y-5"><div className="skeleton-block h-9 w-3/4" /><div className="skeleton-block h-5 w-1/3" /><div className="skeleton-block aspect-[16/10] w-full rounded-3xl" /><div className="skeleton-block h-24 w-full" /></div>
         <div className="skeleton-block h-96 w-full rounded-3xl" />
       </div>
@@ -492,7 +492,7 @@ function Detail({ s }: { s: Service }) {
         <ProviderLine s={s} />
       </header>
 
-      <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1fr)_24rem]">
+      <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="min-w-0 space-y-10">
           <Gallery s={s} />
 
@@ -526,7 +526,7 @@ function Detail({ s }: { s: Service }) {
 
           <section aria-labelledby="sd-flow">
             <h2 id="sd-flow" className="text-xl font-bold">{t("sd_flow_t")}</h2>
-            <ol className="mt-4 grid gap-3 sm:grid-cols-3">
+            <ol className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
               {([[Send, "sd_flow1_t", "sd_flow1_d"], [MessageSquare, "sd_flow2_t", "sd_flow2_d"], [Handshake, "sd_flow3_t", "sd_flow3_d"]] as const).map(([Icon, ti, de], i) => (
                 <li key={ti} className="rounded-2xl border bg-card p-4">
                   <span className="flex items-center gap-2.5">
@@ -580,7 +580,7 @@ function Detail({ s }: { s: Service }) {
       {more.length > 0 && (
         <section aria-labelledby="sd-from" className="mt-16 border-t pt-10">
           <h2 id="sd-from" dir="auto" className="text-xl font-bold">{t("sd_more_from", { n: s.provider })}</h2>
-          <div className="sd-stagger mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="sd-stagger mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {more.map((x) => <ServiceCard key={x.id} s={x} />)}
           </div>
         </section>
@@ -601,7 +601,7 @@ function Detail({ s }: { s: Service }) {
       {similar.length > 0 && (
         <section aria-labelledby="sd-similar" className={more.length > 0 ? "mt-12" : "mt-16 border-t pt-10"}>
           <h2 id="sd-similar" className="text-xl font-bold">{t("similar")}</h2>
-          <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {similar.map((x) => <ServiceCard key={x.id} s={x} />)}
           </div>
         </section>

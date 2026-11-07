@@ -164,7 +164,7 @@ export function CardStudio({ userId, pro }: { userId: string; pro: boolean }) {
   return (
     <ToolPanel id="card" icon={QrCode} title="qc_title" sub={t("qc_sub")}>
       {prof.isLoading ? <ListSkeleton rows={1} /> : prof.isError ? <ErrorState onRetry={() => prof.refetch()} /> : (
-        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_16rem]">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_16rem]">
           <div className="min-w-0">
             <div role="group" aria-label={t("qc_format")} className="mb-4 flex flex-wrap gap-2">
               {(["card", "sticker"] as const).map((v) => (
@@ -325,7 +325,7 @@ function ProSteps({ userId }: { userId: string }) {
           <p className="text-sm text-muted-foreground">{t("ph_progress", { n: done, total: steps.length })}</p>
         </div>
       </div>
-      <ol className="mt-5 grid gap-3 sm:grid-cols-2">
+      <ol className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {steps.map((x) => (
           <li key={x.id}>
             <a href={`#${STEP_ANCHOR[x.id]}`} className={`flex h-full gap-3 rounded-2xl border p-4 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${x.done ? "bg-surface-sunken" : ""}`}>
@@ -356,7 +356,7 @@ function VideoPanel({ userId, pro }: { userId: string; pro: boolean }) {
       {!pro ? <ProLock text="pro_lock_motion" /> : (
         <div className="space-y-5">
           {videos.length > 0 && (
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {videos.map((x) => (
                 <li key={x.id} className="min-w-0">
                   <video src={x.video} poster={x.image} controls playsInline preload="none" aria-label={x.title} className="aspect-[4/3] w-full rounded-2xl bg-ink object-cover" />

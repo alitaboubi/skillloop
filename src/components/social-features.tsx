@@ -137,7 +137,7 @@ export function ProfileFeatures({ userId, name }: { userId: string; name: string
         <span className="section-count">{q.data.length}</span>
       </div>
       <p dir="auto" className="mt-1 text-sm text-muted-foreground">{t("sf_public_d", { n: name })}</p>
-      <ul className="mt-5 grid gap-4 sm:grid-cols-2">
+      <ul className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {q.data.map((f) => (
           <li key={f.id} className="panel flex gap-4 p-4">
             <Poster platforms={platformsOf(f)} />
@@ -276,7 +276,7 @@ function PostEditor({ post, onDone }: { post: AdminPost | null; onDone: () => vo
           aria-describedby={fieldErr("title") ? `${id}-title-err` : undefined} className="field mt-1 text-sm" />
         {fieldErr("title") && <p id={`${id}-title-err`} className="mt-1 text-sm text-destructive">{t(fieldErr("title")!)}</p>}
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {input("instagram", "sf_adm_ig", "https://www.instagram.com/reel/…")}
         {input("facebook", "sf_adm_fb", "https://www.facebook.com/…")}
       </div>

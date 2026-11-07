@@ -176,7 +176,7 @@ function Checkout({ userId, initial }: { userId: string; initial: PayPeriod }) {
               <fieldset className="panel p-6">
                 <legend className="sr-only">{t("pay_step1")}</legend>
                 <p aria-hidden className="text-sm font-bold uppercase tracking-wider text-clay-strong">1 · {t("pay_step1")}</p>
-                <div role="radiogroup" aria-label={t("pay_step1")} className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div role="radiogroup" aria-label={t("pay_step1")} className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {PAY_PERIODS.map((x) => (
                     <button key={x} type="button" role="radio" aria-checked={period === x} onClick={() => setPeriod(x)}
                       className={`relative rounded-2xl border-2 p-4 text-start transition-colors ${period === x ? "border-lime bg-lime/10" : "border-border hover:border-foreground/30"}`}>
@@ -196,7 +196,7 @@ function Checkout({ userId, initial }: { userId: string; initial: PayPeriod }) {
                 <p aria-hidden className="text-sm font-bold uppercase tracking-wider text-clay-strong">2 · {t("pay_step2")}</p>
                 {PAY_METHODS.length === 0 ? <p className="mt-3 text-muted-foreground">{t("pay_no_method")}</p> : (
                   <>
-                    <div role="radiogroup" aria-label={t("pay_step2")} className="mt-4 grid gap-3 sm:grid-cols-3">
+                    <div role="radiogroup" aria-label={t("pay_step2")} className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
                       {PAY_METHODS.map((m) => {
                         const Icon = METHOD_ICON[m.id];
                         return (
