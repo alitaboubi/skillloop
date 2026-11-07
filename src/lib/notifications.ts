@@ -23,6 +23,8 @@ export type AppNotification = {
   requestId: string | null;
   serviceId: string | null;
   serviceTitle: string | null;
+  /** Who acted (only known from a live row or a lookup: my_notifications() does not return it). */
+  actorId?: string | null;
   /** Live display name of who acted; "" = deleted account; null = no actor (welcome, service live). */
   actorName: string | null;
   /** feature_*: the SkillLoop post (title + its Instagram / Facebook links + date); null once deleted. */
@@ -105,7 +107,7 @@ export type Target =
   | { kind: "link"; to: "/messages"; search: { r: string } }
   | { kind: "link"; to: "/services/$id"; params: { id: string } }
   | { kind: "link"; to: "/dashboard"; search: { mode?: "provider"; section?: "reviews" } }
-  | { kind: "link"; to: "/admin"; search: { section: "messages" } }
+  | { kind: "link"; to: "/admin"; search: { section: "messages"; c?: string } }
   | { kind: "support" }
   | { kind: "feature"; sheet: FeatureSheet };
 
@@ -119,7 +121,7 @@ export type FeatureSheet = {
 };
 type FeatureFields = "featureTitle" | "featureInstagramUrl" | "featureFacebookUrl" | "featurePublishedAt";
 
-export function targetOf(n: Pick<AppNotification, "kind" | "requestId" | "serviceId"> & Partial<Pick<AppNotification, FeatureFields>>): Target {
+export function targetOf(n: Pick<AppNotification, "kind" | "requestId" | "serviceId"> & Partial<Pick<AppNotification, FeatureFields | "actorId">>): Target {
   switch (n.kind) {
     // A deleted post has no link any more: feature_you then leads to « On parle de vous » on the dashboard.
     case "feature_you":
@@ -130,7 +132,8 @@ export function targetOf(n: Pick<AppNotification, "kind" | "requestId" | "servic
             instagramUrl: n.featureInstagramUrl ?? null, facebookUrl: n.featureFacebookUrl ?? null, publishedAt: n.featurePublishedAt ?? null } }
         : { kind: "link", to: "/dashboard", search: {} };
     case "support_reply": return { kind: "support" };
-    case "support_new": return { kind: "link", to: "/admin", search: { section: "messages" } };
+    // Straight to that person's conversation (the inbox alone did not say who wrote).
+    case "support_new": return { kind: "link", to: "/admin", search: n.actorId ? { section: "messages", c: n.actorId } : { section: "messages" } };
     case "welcome": return { kind: "link", to: "/dashboard", search: {} };
     case "review_new": return { kind: "link", to: "/dashboard", search: { mode: "provider", section: "reviews" } };
     case "service_live":

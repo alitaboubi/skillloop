@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, LifeBuoy, RotateCcw, Search, SendHorizontal } from "lucide-react";
+import { CheckCircle2, LifeBuoy, PenSquare, RotateCcw, Search, SendHorizontal, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { relativeTime } from "@/lib/notifications";
 import { SUPPORT_MAX, checkBody } from "@/lib/support";
 import { adminSupportThreadQuery, supportInboxQuery, useAdminSupportActions } from "@/lib/support-db";
+import { usersQuery } from "@/lib/admin-console-db";
 import { ErrorState, ListSkeleton } from "@/components/states";
 
 type Filter = "open" | "closed" | "all";
@@ -44,6 +45,7 @@ function Thread({ userId }: { userId: string }) {
           ? <button type="button" onClick={() => setStatus.mutate("closed")} disabled={setStatus.isPending} className="btn btn-outline min-h-10 gap-2 text-sm"><CheckCircle2 className="size-4" aria-hidden />{t("sup_adm_close")}</button>
           : <button type="button" onClick={() => setStatus.mutate("open")} disabled={setStatus.isPending} className="btn btn-outline min-h-10 gap-2 text-sm"><RotateCcw className="size-4" aria-hidden />{t("sup_adm_reopen")}</button>}
       </div>
+      {!d.messages.length && <p className="py-6 text-sm text-muted-foreground">{t("ac_msg_thread_empty")}</p>}
       <ol className="max-h-[28rem] space-y-3 overflow-y-auto py-4">
         {d.messages.map((m) => (
           <li key={m.id} className={m.fromTeam ? "flex justify-end" : "flex"}>
@@ -69,6 +71,53 @@ function Thread({ userId }: { userId: string }) {
         </div>
         <p className="mt-2 text-sm text-muted-foreground">{t("sup_adm_reply_note")}</p>
       </form>
+    </div>
+  );
+}
+
+/** « Nouveau message »: find any account by name or city and open (or start) its conversation. */
+function NewMessage({ onPick }: { onPick: (userId: string) => void }) {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [q, setQ] = useState("");
+  useEffect(() => { const id = window.setTimeout(() => setQ(text), 250); return () => window.clearTimeout(id); }, [text]);
+  const ready = q.trim().length >= 2;
+  const users = useQuery({ ...usersQuery(q, "all", "name", 0), enabled: open && ready });
+  if (!open) {
+    return <button type="button" onClick={() => setOpen(true)} className="btn btn-lime min-h-10 gap-2 text-sm"><PenSquare className="size-4" aria-hidden />{t("ac_msg_new")}</button>;
+  }
+  const close = () => { setOpen(false); setText(""); setQ(""); };
+  return (
+    <div className="w-full rounded-2xl border p-3">
+      <div className="flex items-center gap-2">
+        <label htmlFor="adm-new-msg" className="sr-only">{t("ac_msg_new_search")}</label>
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          <input id="adm-new-msg" type="search" autoFocus value={text} onChange={(e) => setText(e.target.value)} dir="auto" autoComplete="off"
+            placeholder={t("ac_msg_new_search")} className="field ps-9 text-sm" onKeyDown={(e) => { if (e.key === "Escape") close(); }} />
+        </div>
+        <button type="button" onClick={close} aria-label={t("cancel")} className="btn btn-outline grid size-10 place-items-center p-0"><X className="size-4" aria-hidden /></button>
+      </div>
+      {!ready ? <p className="mt-2 px-1 text-sm text-muted-foreground">{t("ac_msg_new_hint")}</p>
+        : users.isLoading ? <div className="mt-2"><ListSkeleton rows={2} /></div>
+        : users.isError ? <ErrorState onRetry={() => users.refetch()} />
+        : !users.data?.items.length ? <p className="mt-2 px-1 text-sm text-muted-foreground">{t("ac_none_found")}</p>
+        : (
+          <ul className="mt-2 max-h-72 space-y-1 overflow-y-auto">
+            {users.data.items.map((u) => (
+              <li key={u.id}>
+                <button type="button" onClick={() => { onPick(u.id); close(); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-start hover:bg-muted">
+                  {u.avatar ? <img src={u.avatar} alt="" className="size-8 rounded-full object-cover" /> : <span aria-hidden className="grid size-8 place-items-center rounded-full bg-muted text-sm font-bold">{u.name.slice(0, 1).toUpperCase()}</span>}
+                  <span className="min-w-0 flex-1">
+                    <span dir="auto" className="block truncate text-sm font-semibold">{u.name}</span>
+                    <span className="block truncate text-xs text-muted-foreground">{[u.city, u.pro ? "Pro" : null].filter(Boolean).join(" · ")}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
     </div>
   );
 }
@@ -102,7 +151,8 @@ export function AdminSupport({ selected: chosen, onSelect }: { selected?: string
           <LifeBuoy className="size-5 text-clay-strong" aria-hidden />{t("sup_adm_title")}
           {unread > 0 && <span className="rounded-full bg-lime px-2 py-0.5 text-sm font-bold text-lime-foreground">{unread}</span>}
         </h2>
-        <div className="flex gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <NewMessage onPick={(id) => { setFilter("all"); setSelected(id); }} />
           {filters.map((f) => (
             <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => { setFilter(f.id); setSelected(null); }} className="chip">{f.label}</button>
           ))}

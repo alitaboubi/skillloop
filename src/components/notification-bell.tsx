@@ -13,7 +13,7 @@ import {
   KIND_SPEC, NOTIFICATIONS_ENABLED, badgeText, groupByAge, relativeTime, targetOf, vars,
   type AppNotification, type NotificationFeed, type NotificationKind, type Tone,
 } from "@/lib/notifications";
-import { notificationsQuery, useMarkNotificationsRead, useNotificationsLive, type LiveRow } from "@/lib/notifications-db";
+import { notificationActor, notificationsQuery, useMarkNotificationsRead, useNotificationsLive, type LiveRow } from "@/lib/notifications-db";
 import { openSupport } from "@/lib/support";
 import { openFeatureSheet } from "@/lib/social-features";
 
@@ -108,7 +108,9 @@ export function NotificationPanel({ feed, loading, error, onRetry, onOpen, onMar
 /** Shared navigation for a notification (row click or toast action). */
 function useGoTo() {
   const navigate = useNavigate();
-  return useCallback((n: Pick<AppNotification, "kind" | "requestId" | "serviceId"> & Partial<AppNotification>) => {
+  return useCallback(async (n: Pick<AppNotification, "kind" | "requestId" | "serviceId"> & Partial<AppNotification>) => {
+    // A support message opens that person's conversation: look up who wrote when the feed row does not carry it.
+    if (n.kind === "support_new" && !n.actorId && n.id) n = { ...n, actorId: await notificationActor(n.id).catch(() => null) };
     const target = targetOf(n);
     if (target.kind === "support") { openSupport("chat"); return; }
     if (target.kind === "feature") { openFeatureSheet(target.sheet); return; }
@@ -135,7 +137,7 @@ export function useNotificationAlerts() {
     const full = () => qc.getQueryData<NotificationFeed>(["notifications", user?.id ?? ""])?.items.find((n) => n.id === row.id);
     toast(t(KIND_SPEC[k].title), {
       icon: <BellRing className="size-4 text-sea" aria-hidden />,
-      action: { label: t("nt_view"), onClick: () => goTo({ ...full(), kind: k, requestId: id(row.request_id), serviceId: id(row.service_id) }) },
+      action: { label: t("nt_view"), onClick: () => void goTo({ ...full(), ...(typeof row.id === "string" ? { id: row.id } : {}), kind: k, requestId: id(row.request_id), serviceId: id(row.service_id), actorId: id(row.actor_id) }) },
     });
   }, [t, goTo, qc, user?.id]);
   useNotificationsLive(NOTIFICATIONS_ENABLED ? user?.id : undefined, onNew);
@@ -153,7 +155,7 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const feed = useQuery(notificationsQuery(userId));
   const mark = useMarkNotificationsRead(userId);
-  const go = (n: AppNotification) => { setOpen(false); goTo(n); };
+  const go = (n: AppNotification) => { setOpen(false); void goTo(n); };
 
   // Close on navigation by the browser (back/forward).
   useEffect(() => {

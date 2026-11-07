@@ -81,24 +81,24 @@ export function ServiceShowcase({ services, body }: { services: Service[]; body?
           <h2 id={titleId} className="display-title mt-2 text-3xl md:text-5xl">{t("sc_title")}</h2>
           <p className="mt-2 text-ink-muted">{services.length > 0 ? t(services.length === 1 ? "sc_sub_one" : "sc_sub", { n: services.length }) : t("hp_live_sub")}</p>
         </div>
-        {shown.length > 0 && (
-          // Same direction as the stage: previous on the left, next on the right, in every language.
-          <div dir="ltr" className="flex items-center gap-2">
-            <button type="button" className="btn btn-ghost-dark size-11 rounded-full p-0" aria-label={t("sc_prev")} onClick={() => step(-1)}><ChevronLeft className="size-5" aria-hidden /></button>
-            {canPlay && (
-              <button type="button" className="btn btn-ghost-dark size-11 rounded-full p-0" aria-pressed={paused} aria-label={t(paused ? "sc_play" : "sc_pause")} onClick={() => setPaused((p) => !p)}>
-                {paused ? <Play className="size-4" aria-hidden /> : <Pause className="size-4" aria-hidden />}
-              </button>
-            )}
-            <button type="button" className="btn btn-ghost-dark size-11 rounded-full p-0" aria-label={t("sc_next")} onClick={() => step(1)}><ChevronRight className="size-5" aria-hidden /></button>
-          </div>
-        )}
       </div>
 
       <ShowcaseAd />
 
       {body ?? (
         <>
+          {shown.length > 0 && (
+            // Same direction as the stage: previous on the left, next on the right, in every language.
+            <div dir="ltr" className="relative mx-auto flex max-w-7xl items-center justify-center gap-2 px-4 sm:px-6">
+              <button type="button" className="btn btn-ghost-dark size-11 rounded-full p-0" aria-label={t("sc_prev")} onClick={() => step(-1)}><ChevronLeft className="size-5" aria-hidden /></button>
+              {canPlay && (
+                <button type="button" className="btn btn-ghost-dark size-11 rounded-full p-0" aria-pressed={paused} aria-label={t(paused ? "sc_play" : "sc_pause")} onClick={() => setPaused((p) => !p)}>
+                  {paused ? <Play className="size-4" aria-hidden /> : <Pause className="size-4" aria-hidden />}
+                </button>
+              )}
+              <button type="button" className="btn btn-ghost-dark size-11 rounded-full p-0" aria-label={t("sc_next")} onClick={() => step(1)}><ChevronRight className="size-5" aria-hidden /></button>
+            </div>
+          )}
           <ul ref={track} tabIndex={0} aria-label={t("sc_list", { n: shown.length })} className="sc-track"
             onPointerDown={() => { hold.current = Date.now(); }} onWheel={() => { hold.current = Date.now(); }}>
             {shown.map((s) => <li key={s.id} className="sc-slide"><ServiceCard s={s} /></li>)}
