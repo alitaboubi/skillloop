@@ -70,6 +70,7 @@ describe("targets and wording", () => {
     expect(targetOf(note({ kind: "review_new" }))).toEqual({ kind: "link", to: "/dashboard", search: { mode: "provider", section: "reviews" } });
     expect(targetOf(note({ kind: "support_reply" }))).toEqual({ kind: "support" });
     expect(targetOf(note({ kind: "support_new" }))).toEqual({ kind: "link", to: "/admin", search: { section: "messages" } });
+    expect(targetOf({ ...note({ kind: "support_new" }), actorId: "u-1" })).toEqual({ kind: "link", to: "/admin", search: { section: "messages", c: "u-1" } });
     expect(targetOf(note({ kind: "request_accepted", requestId: null }))).toMatchObject({ to: "/dashboard" });
   });
   it("names a deleted account by its fixed label", () => {

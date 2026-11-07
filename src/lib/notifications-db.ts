@@ -17,6 +17,13 @@ export const notificationsQuery = (userId: string) => queryOptions({
   },
 });
 
+/** Who triggered one notification (RLS: own rows only). Used to open the right support conversation from the bell. */
+export async function notificationActor(id: string): Promise<string | null> {
+  const { data } = await supabase.from("notifications" as never).select("actor_id").eq("id", id).maybeSingle();
+  const actor = (data as { actor_id?: unknown } | null)?.actor_id;
+  return typeof actor === "string" ? actor : null;
+}
+
 /** Marks some (ids) or all (null) as read; the bell updates at once and settles with the server. */
 export function useMarkNotificationsRead(userId: string) {
   const qc = useQueryClient();
@@ -45,7 +52,7 @@ export function useMarkNotificationsRead(userId: string) {
  * One realtime listener (mounted ONCE, in SiteHeader via useNotificationAlerts — the bell itself renders twice): a new
  * row refreshes the feed and calls onNew with it, for the toast. RLS: a user only ever receives their own rows.
  */
-export type LiveRow = { id?: unknown; kind?: unknown; request_id?: unknown; service_id?: unknown };
+export type LiveRow = { id?: unknown; kind?: unknown; request_id?: unknown; service_id?: unknown; actor_id?: unknown };
 export function useNotificationsLive(userId: string | undefined, onNew?: (row: LiveRow) => void) {
   const qc = useQueryClient();
   useEffect(() => {
