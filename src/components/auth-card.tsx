@@ -199,7 +199,7 @@ export function AuthCard({ mode }: { mode: "login" | "signup" }) {
         {!isLogin && (
           <fieldset>
             <legend className="text-sm font-semibold">{t("au_role_label")}</legend>
-            <div className="mt-2 grid gap-3 sm:grid-cols-2">
+            <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {roles.map((r) => (
                 <label key={r.k} className={`flex min-h-12 cursor-pointer flex-col gap-1 rounded-2xl border p-4 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring ${role === r.k ? "border-ink bg-surface-sunken dark:border-lime" : "hover:bg-surface-sunken"}`}>
                   <span className="flex items-center gap-2 font-semibold">

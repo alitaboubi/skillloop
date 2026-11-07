@@ -497,7 +497,7 @@ export function ServiceCard({ s, wide = false }: { s: Service; wide?: boolean })
       </div>
       <div className="flex flex-1 flex-col gap-2 p-4">
         {s.real && isNew(s) && <span className="tag tag-new w-fit">{t("badge_new")}</span>}
-        <h3 dir="auto" className={`line-clamp-2 font-bold leading-snug ${wide ? "text-xl" : "text-lg"}`}>{s.title}</h3>
+        <h3 dir="auto" className={`line-clamp-2 break-words font-bold leading-snug ${wide ? "text-xl" : "text-lg"}`}>{s.title}</h3>
         {wide && s.description.trim() && <p dir="auto" className="line-clamp-3 text-sm text-muted-foreground">{s.description}</p>}
         {/* Expert mini-row: the person before the listing — face, name, trade, availability when the pro declared it. */}
         <div className="flex items-center gap-3">

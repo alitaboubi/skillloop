@@ -149,7 +149,7 @@ function MyServices({ userId }: { userId: string }) {
     <div>
       <Link to="/offer" className="btn btn-lime" data-magnetic><PlusCircle className="size-4" aria-hidden />{t("offer_service")}</Link>
       {!q.data?.length ? <div className="mt-4"><EmptyState icon={Briefcase} title={t("db_no_services")} sub={t("db_no_services_sub")} action={<ListingSketch />} /></div> : (
-        <ul className="sd-stagger mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="sd-stagger mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {q.data.map((s) => (
             <ServiceTile key={s.id} s={s} actions={
               <>
@@ -173,7 +173,7 @@ function Settings({ userId }: { userId: string }) {
   if (q.isError || !q.data) return <ErrorState onRetry={() => q.refetch()} />;
   // The form only mounts with loaded data, so it can never save blanks over the real profile or overwrite typing.
   return (
-    <div className="grid gap-8 lg:grid-cols-[14rem_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[14rem_minmax(0,1fr)]">
       <SettingsNav />
       <div className="min-w-0 space-y-8">
         <SettingsForm userId={userId} p={q.data} />
@@ -308,7 +308,7 @@ function SettingsForm({ userId, p }: { userId: string; p: LoadedProfile }) {
         </div>
         {err("bio")}
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <label className="block text-sm font-semibold">{t("f_city")}
           <select className="field mt-1.5" value={f.city} onChange={up("city")}><option value="">—</option>{CITIES.map((c) => <option key={c}>{c}</option>)}</select>
         </label>
@@ -320,7 +320,7 @@ function SettingsForm({ userId, p }: { userId: string; p: LoadedProfile }) {
       <fieldset id="availability" className="scroll-mt-36" aria-describedby="pf-avail-help">
         <legend className="text-sm font-semibold">{t("f_availability")}</legend>
         <p id="pf-avail-help" className="text-xs text-muted-foreground">{t("f_availability_help")}</p>
-        <div className="mt-2 grid gap-2 sm:grid-cols-3">
+        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
           {avail.map((o) => (
             <label key={String(o.v)} className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring ${f.accepting === o.v ? "border-sea bg-sea-soft font-semibold text-sea" : "hover:bg-muted"}`}>
               <input type="radio" name="accepting" className="accent-sea" checked={f.accepting === o.v} onChange={() => setF((cur) => ({ ...cur, accepting: o.v }))} />
@@ -374,7 +374,7 @@ function ProStats({ userId }: { userId: string }) {
   });
   const received = (req.data ?? []).filter((r) => r.provider_id === userId);
   return (
-    <dl className="mt-8 grid gap-4 sm:grid-cols-3">
+    <dl className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
       <StatTile icon={Briefcase} value={svc.isError ? "—" : svc.data ?? 0} label={t("stat_services")} tone="var(--sea)" />
       <StatTile icon={Hourglass} value={received.filter((r) => r.status === "pending").length} label={t("stat_pending")} tone="var(--warning)" />
       <StatTile icon={Handshake} value={received.filter((r) => r.status === "accepted").length} label={t("stat_accepted")} tone="var(--success)" />

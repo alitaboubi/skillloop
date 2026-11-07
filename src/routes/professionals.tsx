@@ -44,7 +44,7 @@ function Page() {
 
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <SectionHeading title={t("pr_why_t")} />
-        <div className="mt-8 grid gap-8 sm:grid-cols-2">
+        <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2">
           <BenefitItem icon={MapPin} title={t("pr_local_t")} desc={t("pr_local_d")} />
           <BenefitItem icon={Wifi} title={t("pr_remote_t")} desc={t("pr_remote_d")} />
           <BenefitItem icon={Tag} title={t("pr_price_t")} desc={t("pr_price_d")} />
@@ -55,7 +55,7 @@ function Page() {
       <section className="bg-card">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
           <SectionHeading title={t("pr_guide_t")} sub={t("pr_guide_sub")} />
-          <div className="mt-8 grid gap-8 sm:grid-cols-2">
+          <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2">
             <BenefitItem icon={Type} title={t("pr_g1_t")} desc={t("pr_g1_d")} />
             <BenefitItem icon={Tag} title={t("pr_g2_t")} desc={t("pr_g2_d")} />
             <BenefitItem icon={Camera} title={t("pr_g3_t")} desc={t("pr_g3_d")} />

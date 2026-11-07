@@ -39,7 +39,7 @@ function Page() {
       <section className="bg-card">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
           <SectionHeading title={t("ab_who_t")} />
-          <div className="mt-8 grid gap-8 sm:grid-cols-2">
+          <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2">
             <BenefitItem icon={Users} title={t("ab_who1_t")} desc={t("ab_who1_d")} />
             <BenefitItem icon={Briefcase} title={t("ab_who2_t")} desc={t("ab_who2_d")} />
             <BenefitItem icon={GraduationCap} title={t("ab_who3_t")} desc={t("ab_who3_d")} />
@@ -50,7 +50,7 @@ function Page() {
 
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <SectionHeading title={t("ab_ex_t")} />
-        <div className="mt-8 grid gap-6 md:grid-cols-2">
+        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
           <Link to="/explore" search={{ mode: "inperson" }} className="step-card block p-6">
             <span className="flex items-center gap-2 font-bold"><MapPin className="size-5 text-sea" aria-hidden />{t("ab_ex_local")}</span>
             <p className="mt-2 text-muted-foreground">{t("ab_ex_l")}</p>
@@ -65,7 +65,7 @@ function Page() {
       <section className="bg-card">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
           <SectionHeading title={t("ab_pr_t")} />
-          <div className="mt-8 grid gap-8 sm:grid-cols-2">
+          <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2">
             <BenefitItem icon={Eye} title={t("ab_pr1_t")} desc={t("ab_pr1_d")} />
             <BenefitItem icon={Tag} title={t("ab_pr2_t")} desc={t("ab_pr2_d")} />
             <BenefitItem icon={Hand} title={t("ab_pr3_t")} desc={t("ab_pr3_d")} />

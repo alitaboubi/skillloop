@@ -162,7 +162,7 @@ function Explore() {
                 ) : t(countKey(lang, n, countBase), { n })}
               </span>
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Sheet>
                 <SheetTrigger className="btn btn-outline lg:hidden">
                   <SlidersHorizontal className="size-4" aria-hidden />
@@ -186,7 +186,7 @@ function Explore() {
                 ))}
               </div>
               <label className="sr-only" htmlFor="sort">{t("sort_by")}</label>
-              <select id="sort" value={s.sort ?? "recent"} onChange={(e) => set({ sort: e.target.value as "recent" | "price" })} className="field w-auto">
+              <select id="sort" value={s.sort ?? "recent"} onChange={(e) => set({ sort: e.target.value as "recent" | "price" })} className="field w-auto max-w-full">
                 <option value="recent">{t("sort_recent")}</option>
                 <option value="price">{t("sort_price")}</option>
               </select>
@@ -211,7 +211,7 @@ function Explore() {
           )}
 
           {isLoading ? (
-            <div className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {[0, 1, 2].map((i) => <ServiceCardSkeleton key={i} />)}
             </div>
           ) : isError ? (
@@ -222,17 +222,17 @@ function Explore() {
                 <section aria-labelledby="ex-new" className="mt-6 rounded-2xl border bg-surface-sunken p-4 sm:p-5">
                   <h2 id="ex-new" className="font-bold">{t("new_talents")}</h2>
                   <p className="mt-0.5 text-sm text-muted-foreground">{t("new_talents_d")}</p>
-                  <ul className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                    {talents.map((p) => <li key={p.ownerId} className="flex"><ProCard p={p} compact /></li>)}
+                  <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {talents.map((p) => <li key={p.ownerId} className="flex min-w-0"><ProCard p={p} compact /></li>)}
                   </ul>
                 </section>
               )}
               {s.view === "pros" ? (
-                <ul className="results-fade mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                  {pros.map((p) => <li key={p.ownerId} className="flex"><ProCard p={p} /></li>)}
+                <ul className="results-fade mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                  {pros.map((p) => <li key={p.ownerId} className="flex min-w-0"><ProCard p={p} /></li>)}
                 </ul>
               ) : (
-                <div className="results-fade mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="results-fade mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
                   {filtered.map((x) => <ServiceCard key={x.id} s={x} />)}
                 </div>
               )}

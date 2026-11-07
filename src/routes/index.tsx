@@ -149,7 +149,7 @@ function Index() {
       <div aria-hidden className="h-16" />
 
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6" aria-label={`${t("hp_ben_cust")} / ${t("hp_ben_pro")}`}>
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           {([["hp_ben_cust", Search, "find", forClients], ["hp_ben_pro", Rocket, "offer", forPros]] as const).map(([k, Icon, mode, img]) => (
             <div key={k} className="panel sd-rise relative overflow-hidden" data-tilt>
               <div className="ben-photo">
@@ -223,7 +223,7 @@ export function HowItWorks() {
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <div>
         <h2 className="section-title">{t("how_title")}</h2>
-        <ol className="steps-line mt-8 grid gap-8 md:grid-cols-3 md:gap-6">
+        <ol className="steps-line mt-8 grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-6">
           {steps.map((s, i) => (
             <li key={i} className="sd-rise relative" style={{ "--sd-i": i } as CSSProperties}>
               <span className="flex items-center gap-3">

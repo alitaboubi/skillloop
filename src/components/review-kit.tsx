@@ -150,7 +150,7 @@ export function ProviderReviewsSection({ providerId, proName, id = "reviews", li
       </div>
       {list.isLoading ? <div className="mt-5"><ListSkeleton rows={2} /></div> : list.isError ? <div className="mt-5"><ErrorState onRetry={() => list.refetch()} /></div> : (
         <>
-          <ul className="sd-stagger mt-5 grid gap-4 md:grid-cols-2">
+          <ul className="sd-stagger mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
             {shown.map((r) => (
               <li key={r.id} className="min-w-0">
                 <ReviewCard rating={r.rating} author={r.author} createdAt={r.created_at} edited={!!r.updated_at} serviceTitle={r.service_title}
@@ -342,7 +342,7 @@ export function ProReviews({ userId, proName }: { userId: string; proName: strin
         <h2 className="text-lg font-bold">{t("rv_pro_t")}</h2>
         {avg !== null && <RatingBadge summary={{ review_count: visible.length, rating_avg: Math.round(avg * 10) / 10 }} />}
       </div>
-      <ul className="grid gap-4 md:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {received.map((r) => {
           const q = byReq.get(r.request_id);
           return (
