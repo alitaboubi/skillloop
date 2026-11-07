@@ -1,10 +1,20 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { RouterProvider, createMemoryHistory, createRootRoute, createRouter } from "@tanstack/react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { I18nProvider } from "@/lib/i18n";
 import { OPEN_SUPPORT_EVENT, type SupportOpen } from "@/lib/support";
 import { openFeatureSheet } from "@/lib/social-features";
 import { FeatureSheetHost } from "@/components/feature-sheet";
+
+const sent = vi.hoisted(() => ({ calls: [] as { body: string; page: string | null }[], fail: false }));
+vi.mock("@/lib/support-db", () => ({
+  sendSupportMessage: async (body: string, page: string | null) => {
+    if (sent.fail) throw new Error("rate_limited");
+    sent.calls.push({ body, page });
+  },
+}));
+beforeEach(() => { sent.calls = []; sent.fail = false; });
 
 const IG = "https://www.instagram.com/reel/DQx1AbC_9-z/";
 const FB = "https://www.facebook.com/reel/1234567890";
@@ -17,7 +27,7 @@ beforeAll(() => {
 async function renderHost() {
   const root = createRootRoute({ component: () => <FeatureSheetHost /> });
   const router = createRouter({ routeTree: root, history: createMemoryHistory({ initialEntries: ["/"] }) });
-  render(<I18nProvider><RouterProvider router={router} /></I18nProvider>);
+  render(<QueryClientProvider client={new QueryClient()}><I18nProvider><RouterProvider router={router} /></I18nProvider></QueryClientProvider>);
   await screen.findByText((_, el) => el === document.body);
 }
 const open = async (sheet: Parameters<typeof openFeatureSheet>[0]) => {
@@ -28,6 +38,21 @@ const open = async (sheet: Parameters<typeof openFeatureSheet>[0]) => {
   return screen.findByRole("dialog");
 };
 
+// The support panel opens only once this dialog has fully closed (else the focus return dismisses the panel).
+async function clickWant() {
+  const opened: SupportOpen[] = [];
+  const on = (e: Event) => opened.push((e as CustomEvent<SupportOpen>).detail);
+  window.addEventListener(OPEN_SUPPORT_EVENT, on);
+  await act(async () => {
+    fireEvent.click(screen.getByRole("button", { name: /Je veux ma vidéo/ }));
+    await new Promise((r) => setTimeout(r, 50));
+  });
+  // Sending is async: the dialog closes when it settles, then the chat opens.
+  await act(async () => { await new Promise((r) => setTimeout(r, 300)); });
+  window.removeEventListener(OPEN_SUPPORT_EVENT, on);
+  return opened;
+}
+
 describe("video sheet (from a notification)", () => {
   it("« Nouvelle vidéo »: watch on Instagram or Facebook, or ask for your own video (message ready)", async () => {
     await renderHost();
@@ -37,18 +62,24 @@ describe("video sheet (from a notification)", () => {
     expect(screen.getByRole("link", { name: /Voir sur Facebook/ })).toHaveAttribute("href", FB);
     expect(screen.getByRole("link", { name: /Voir sur Instagram/ })).toHaveAttribute("rel", "noopener noreferrer");
 
-    const opened: SupportOpen[] = [];
-    const on = (e: Event) => opened.push((e as CustomEvent<SupportOpen>).detail);
-    window.addEventListener(OPEN_SUPPORT_EVENT, on);
-    // The support panel opens only once this dialog has fully closed (else the focus return dismisses the panel).
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /Je veux ma vidéo/ }));
-      await new Promise((r) => setTimeout(r, 50));
-    });
-    window.removeEventListener(OPEN_SUPPORT_EVENT, on);
+    // One click sends the request to the team, then the chat opens to add the trade / story.
+    const opened = await clickWant();
     expect(screen.queryByRole("dialog")).toBeNull();
+    expect(sent.calls).toHaveLength(1);
+    expect(sent.calls[0]!.body).toContain("Je veux ma vidéo");
+    expect(sent.calls[0]!.body).toContain("Hamma & Loopy");
     expect(opened).toHaveLength(1);
     expect(opened[0]!.topic).toBe("chat");
+    expect(opened[0]!.draft?.text).toBe("Mon métier / mon histoire : ");
+  });
+
+  it("if sending fails, the chat opens with the message ready instead", async () => {
+    sent.fail = true;
+    await renderHost();
+    await open({ mode: "new", title: "Hamma & Loopy", instagramUrl: IG, facebookUrl: null, publishedAt: null });
+    const opened = await clickWant();
+    expect(sent.calls).toHaveLength(0);
+    expect(opened).toHaveLength(1);
     expect(opened[0]!.draft?.text).toContain("Hamma & Loopy");
   });
 

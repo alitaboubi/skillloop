@@ -4,7 +4,10 @@ import { ArrowRight, Clapperboard, ExternalLink, Facebook, Instagram, Megaphone,
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useI18n, type TKey } from "@/lib/i18n";
 import type { FeatureSheet } from "@/lib/notifications";
-import { SUPPORT_WHATSAPP, openSupport, whatsappUrl } from "@/lib/support";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { SUPPORT_WHATSAPP, openSupport, pagePath, whatsappUrl } from "@/lib/support";
+import { sendSupportMessage } from "@/lib/support-db";
 import { OPEN_FEATURE_EVENT, platformsOf, type Platform } from "@/lib/social-features";
 
 /*
@@ -44,11 +47,12 @@ function Option({ icon: Icon, label, sub, href, onClick, tone }: {
     : <button type="button" onClick={onClick} className={cls}>{inner}</button>;
 }
 
-function FeatureSheetBody({ sheet, close, onWant }: { sheet: FeatureSheet; close: () => void; onWant: (draft: string) => void }) {
+function FeatureSheetBody({ sheet, close, onWant, sending }: { sheet: FeatureSheet; close: () => void; onWant: (draft: string, sent: string) => void; sending: boolean }) {
   const { t } = useI18n();
   const date = useDate();
   const platforms = platformsOf({ instagramUrl: sheet.instagramUrl, facebookUrl: sheet.facebookUrl });
   const draft = t("sf_sheet_draft", { title: sheet.title });
+  const sent = t("sf_want_msg", { title: sheet.title });
   return (
     <>
       <div className="relative overflow-hidden rounded-t-[inherit] bg-ink-hero px-5 pb-5 pt-10 text-ink-foreground sm:px-6">
@@ -82,7 +86,7 @@ function FeatureSheetBody({ sheet, close, onWant }: { sheet: FeatureSheet; close
           <section aria-labelledby="fs-want" className="space-y-2.5 rounded-2xl bg-clay-soft p-4">
             <h3 id="fs-want" className="font-bold text-clay-strong">{t("sf_sheet_want_t")}</h3>
             <p className="text-sm">{t("sf_sheet_want_d")}</p>
-            <button type="button" onClick={() => onWant(draft)} className="btn btn-lime w-full"><MessageCircleHeart className="size-4" aria-hidden />{t("sf_sheet_want_cta")}</button>
+            <button type="button" onClick={() => onWant(draft, sent)} disabled={sending} aria-busy={sending} className="btn btn-lime w-full disabled:opacity-60"><MessageCircleHeart className="size-4" aria-hidden />{t("sf_sheet_want_cta")}</button>
             {SUPPORT_WHATSAPP && (
               <a href={whatsappUrl(SUPPORT_WHATSAPP, draft)} target="_blank" rel="noopener noreferrer" onClick={close}
                 className="btn btn-outline w-full bg-card"><MessageCircle className="size-4" aria-hidden />{t("sf_sheet_want_wa")}</a>
@@ -105,6 +109,9 @@ export function FeatureSheetHost() {
   // « Je veux ma vidéo »: the support panel (another Radix dialog) may only open once this one has fully closed. Opened
   // earlier, this dialog's focus return (after its exit animation) lands outside the panel, which then dismisses itself.
   const pending = useRef<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const qc = useQueryClient();
+  const { t } = useI18n();
   useEffect(() => {
     const onOpen = (e: Event) => {
       const d = (e as CustomEvent<FeatureSheet>).detail;
@@ -127,7 +134,20 @@ export function FeatureSheetHost() {
           e.preventDefault(); // the support panel takes the focus instead
           openSupport("chat", draft);
         }}>
-        <FeatureSheetBody sheet={sheet} close={() => setOpen(false)} onWant={(d) => { pending.current = d; setOpen(false); }} />
+        <FeatureSheetBody sheet={sheet} close={() => setOpen(false)} sending={sending} onWant={(draft, sent) => {
+          // « Je veux ma vidéo » sends the request to the team at once (they get a support alert that opens this
+          // conversation); the chat then opens on it so the person can add their trade. If sending fails (signed out,
+          // rate limit), the old way: the message ready in the box.
+          setSending(true);
+          sendSupportMessage(sent, pagePath(window.location.pathname))
+            .then(() => {
+              void qc.invalidateQueries({ queryKey: ["support", "thread"] });
+              toast.success(t("sf_want_sent"));
+              pending.current = t("sf_want_more");
+            })
+            .catch(() => { pending.current = draft; })
+            .finally(() => { setSending(false); setOpen(false); });
+        }} />
       </DialogContent>
     </Dialog>
   );
