@@ -27,14 +27,17 @@ export const supportThreadQuery = (userId: string) => queryOptions({
   },
 });
 
+/** One message from the signed-in user to the team (RLS: own conversation; the database rate-limits). */
+export async function sendSupportMessage(body: string, page: string | null) {
+  const { error } = await from("support_messages").insert({ body: body.trim(), page } as never);
+  if (error) throw error;
+}
+
 export function useSendSupport(userId: string) {
   const qc = useQueryClient();
   const key = supportThreadQuery(userId).queryKey;
   return useMutation({
-    mutationFn: async ({ body, page }: { body: string; page: string | null }) => {
-      const { error } = await from("support_messages").insert({ body: body.trim(), page } as never);
-      if (error) throw error;
-    },
+    mutationFn: ({ body, page }: { body: string; page: string | null }) => sendSupportMessage(body, page),
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
   });
 }
